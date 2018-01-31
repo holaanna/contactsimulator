@@ -1,5 +1,5 @@
 #include "header.h"
-//// [[Rcpp::interfaces(r, cpp)]]
+// [[Rcpp::interfaces(r, cpp)]]
 /*======================================================================================================================================
                                                      Intensity of infection
  ======================================================================================================================================*/
@@ -20,7 +20,7 @@
 //' func_time_beta(20,50,0.08,0.2,0.3)
 //' @export
 // [[Rcpp::export]]
-double func_time_beta (const double& t, const double& t_intervention, const double& sum_beta, const double& epsilon,  const double& omega){
+double func_time_beta (const double& t, const double& t_intervention, const double& sum_beta, const double& epsilon,  const double& omega, const double& beta_1){
 
 
   double beta_t;
@@ -28,7 +28,7 @@ double func_time_beta (const double& t, const double& t_intervention, const doub
   switch(l){
   case 1:{
 
-    beta_t =  (sum_beta + epsilon)*pow(cos(omega*t/365),2);
+    beta_t =  (sum_beta + epsilon)*(1 + beta_1*cos(omega*(t-15)/365));
     //cout<<beta<<"\t"<<beta_t<<"\n";
     break;
   }
@@ -63,11 +63,11 @@ double func_time_beta (const double& t, const double& t_intervention, const doub
 //'simulate_NHPP_next_event(2,50,0.08,0.2,0.3,300)
 //' @export
 // [[Rcpp::export]]
-double simulate_NHPP_next_event(const double t_now,const double t_intervention,const double sum_beta,const double epsilon,const double omega, double t_max){
+double simulate_NHPP_next_event(const double t_now,const double t_intervention,const double sum_beta,const double epsilon,const double omega, const double b1, double t_max){
   double u=1;
   double acp_pr=0;
   double t_sim,t_next;
-  double total_rate_now = func_time_beta(t_now, t_intervention, sum_beta, epsilon, omega);
+  double total_rate_now = func_time_beta(t_now, t_intervention, sum_beta, epsilon, omega, b1);
 
   if ((total_rate_now)>0) {
     // if ((sum_beta+alpha)>0) {
@@ -75,7 +75,8 @@ double simulate_NHPP_next_event(const double t_now,const double t_intervention,c
     while(u>acp_pr){
 
       t_sim = t_now + Rcpp::rexp(2,total_rate_now)[0];   // time of next event
-      acp_pr = func_time_beta(t_sim, t_intervention, sum_beta, epsilon, omega)/(total_rate_now);  //acceptance probability
+     // Rcout<< t_sim <<"\t"<< t_now<<"\n";
+      acp_pr = func_time_beta(t_sim, t_intervention, sum_beta, epsilon, omega, b1)/(total_rate_now);  //acceptance probability
 
       u = R::runif(0,1);
 
@@ -89,13 +90,13 @@ double simulate_NHPP_next_event(const double t_now,const double t_intervention,c
     if (t_sim<=t_max){
       t_next = t_sim;
     } else {
-      t_next=INFINITY;
+      t_next=t_sim;
     }
 
 
   }
 
-  if ((total_rate_now)<=0) {
+  if ((total_rate_now)<0) {
     t_next =INFINITY;
   }
 
@@ -308,7 +309,7 @@ vector<segments_struct> func_segments_attributes (DataFrame& set_points, Numeric
       double y_2= y(0);
       double midpoint_x = (x_1+x_2)/2.0;
       double midpoint_y = (y_1+y_2)/2.0;
-      int m = ceil((midpoint_y - para_other.y_min)/para_other.grid_size); // at mth row of the grid
+      int m = ceil((-midpoint_y + para_other.y_max)/para_other.grid_size); // at mth row of the grid
       int n = ceil((midpoint_x - para_other.x_min)/para_other.grid_size); // at nth col..
 
       segments[i].m=m;
@@ -346,7 +347,7 @@ vector<segments_struct> func_segments_attributes (DataFrame& set_points, Numeric
       double y_2= y(i);
       double midpoint_x = (x_1+x_2)/2.0;
       double midpoint_y = (y_1+y_2)/2.0;
-      int m = ceil((midpoint_y - para_other.y_min)/para_other.grid_size); // at mth row of the grid
+      int m = ceil((-midpoint_y + para_other.y_max)/para_other.grid_size); // at mth row of the grid
       int n = ceil((midpoint_x - para_other.x_min)/para_other.grid_size); // at nth col..
 
 
@@ -405,31 +406,86 @@ vector<segments_struct> func_segments_attributes (DataFrame& set_points, Numeric
 //'
 //' @examples
 //' data(bbtv)
-//'   attach(bbtv)
-//'   Dat<- bbtv[,c(2:6,8,10)]     # Coonsidering the essential part of the data
-//'   Dat1<-subset(Dat,Dat$latitude> -27.3 & Dat$processedbananas%in%c("P&I","P", "NI") )  # data up in queensland (noth of brisbane)
-//'   Dat1$treatmentdate[is.na(Dat1$treatmentdate)]<- Dat1$date[is.na(Dat1$treatmentdate)] # When NA, consider removal date as
-//'   Dat1$detection<-as.numeric(difftime(as.Date(Dat1$date), as.Date("2011/01/01"), unit="days")) + runif(1)
-//'   Dat1$removal<-as.numeric(difftime(as.Date(Dat1$treatmentdate), as.Date("2011/01/01"), unit="days"))
-//'   Datt<-Dat1[,c(3,4,7,8,2)]
-//' Datt$detection=Datt$detection + runif(nrow(Datt))
-//'   Datt=Datt[with(Datt,order(Datt$detection)),]
+//' attach(bbtv)
+//' Dat<- bbtv[,c("longitude","latitude","BBTV","inspectiondate","leavesinfected","treatmentdate","location")]
+//' Dat1<-subset(Dat,Dat$latitude> -27.4698 & Dat$BBTV%in%c("P&I","P", "NI") & difftime(as.Date(Dat$inspectiondate), as.Date("2010/01/01"), unit="days")>=0)  # data up in queensland
+//' Dat1$treatmentdate[is.na(Dat1$treatmentdate)]<- Dat1$inspectiondate[is.na(Dat1$treatmentdate)]
+//' Dat1$detection<-as.numeric(difftime(as.Date(Dat1$inspectiondate), as.Date("2010/01/01"), unit="days"))
+//' Dat1$removal<-as.numeric(difftime(as.Date(Dat1$treatmentdate), as.Date("2010/01/01"), unit="days"))
+//' Dat1$removal[which(Dat1$removal<0)]<- Dat1$detection[which(Dat1$removal<0)]
+//' Datt<-Dat1[,c("longitude","latitude","BBTV","leavesinfected","detection","removal")]
 //'
+//' Datt<-Dat1[,c("longitude","latitude","BBTV","leavesinfected","detection","removal","location")]
+//'
+//' Datt[which(Datt$leavesinfected=="LOTS"),"leavesinfected"]<- 45
+//' Datt[which(Datt$leavesinfected=="1,2,4"),"leavesinfected"]<- 2.3
+//' Datt[which(Datt$leavesinfected=="'3"),"leavesinfected"]<- 3
+//' Datt[which(Datt$leavesinfected=="2 +bunch"),"leavesinfected"]<- 2
+//' Datt[which(Datt$leavesinfected=="3 +bunch"),"leavesinfected"]<- 3
+//' Datt[which(Datt$leavesinfected=="4+BUNCH"),"leavesinfected"]<- 4
+//' Datt[which(Datt$leavesinfected=="avg 3.2"),"leavesinfected"]<- 3.2
+//' Datt[which(Datt$leavesinfected=="1-6, avg 3.5"),"leavesinfected"]<- 3.5
+//' Datt[which(Datt$leavesinfected=="all"),"leavesinfected"]<- 45
+//'
+//'
+//' leav=sapply(Datt[,"leavesinfected"],function(x){
+//'   gsub("all/","",x)
+//' })
+//'
+//'   leav=sapply(leav,function(x){
+//'     gsub("/all","",x)
+//'   })
+//'
+//'   leav[grepl("[+]",leav)]<- 45  # Assuming 45 leaves on a plant
+//'
+//'   Datt$leavesinfected<- leav
+//'
+//' Datt=Datt[with(Datt,order(Datt$detection)),]
 //' # Australian reference system
 //' sp::coordinates(Datt) <- c("longitude", "latitude")
-//'   sp::proj4string(Datt) <- sp::CRS("+init=epsg:4326")
-//'   australianCRS <- sp::CRS("+init=epsg:3577")
+//' sp::proj4string(Datt) <- sp::CRS("+init=epsg:4326")
+//' australianCRS <- sp::CRS("+init=epsg:3577")
 //'
-//'   pointsinaustraliangrid = sp::spTransform(Datt,australianCRS)
+//' pointsinaustraliangrid = sp::spTransform(Datt,australianCRS)
 //'
-//' #Raster
-//'   rast <- raster::raster()
-//'     raster::extent(rast) <- raster::extent(pointsinaustraliangrid) # Set same extent
+//' # Raster
+//' rast <- raster::raster()
+//' raster::extent(rast) <- raster::extent(pointsinaustraliangrid) # Set same extent
 //'
-//'     raster::res(rast)=5000 #Set resolution
+//' raster::res(rast)=5000 # Set resolution
 //'
+//' size<- raster::res(rast)
+//' # Adding column at the top or bottom of the grid if raster leaves points out
+//' dif=(raster::xmax(pointsinaustraliangrid)-raster::xmin(pointsinaustraliangrid))/size
+//' cei= ceiling(dif)
+//'
+//' if(cei!=dif){
+//'   if(raster::xmax(rast)!=raster::xmax(pointsinaustraliangrid)){
+//'     raster::xmax(rast)<- raster::xmin(rast) + size*cei
+//'   }
+//'   if(xmin(rast)!=xmin(pointsinaustraliangrid)){
+//'     raster::xmin(rast)<- raster::xmax(rast) - size*cei
+//'   }
+//'
+//' }
+//'
+//' # Adding row at the top or bottom of the grid if raster leaves points out
+//'
+//' dif1=(raster::ymax(pointsinaustraliangrid)-raster::ymin(pointsinaustraliangrid))/size
+//' cei1= ceiling(dif1)
+//'
+//' if(cei1!=dif1){
+//'   if(raster::ymax(rast)!=raster::ymax(pointsinaustraliangrid)){
+//'     raster::ymax(rast)<- raster::ymin(rast) + size*cei1
+//'   }
+//'   if(raster::ymin(rast)!=raster::ymin(pointsinaustraliangrid)){
+//'     raster::ymin(rast)<- raster::ymax(rast) - size*cei1
+//'   }
+//'
+//' }
 //' # And then ... rasterize it! This creates a grid version
 //' # of your points using the cells of rast,
+//'
 //'
 //'     rast2 <- raster::rasterize(pointsinaustraliangrid, rast, 1, fun=sum)
 //'
@@ -590,6 +646,12 @@ NumericVector BTFinv1 (double E, double A, double t0)
 //' @param mu_lat The mean latent period.
 //' @param var_lat The variance of the latent period for the gamma distribution.
 //'
+//' @references
+//' \insertRef{ALL78a}{contactsimulator}
+//'
+//' \insertRef{ALL78b}{contactsimulator}
+//'
+//' \insertRef{ALL87}{contactsimulator}
 //' @return It returns a random draw from the latent period given the time of exposure.
 //'
 //' @examples
@@ -646,7 +708,9 @@ double beta_by_age(int age, NumericVector beta_by_age_vector){
 //' \enumerate{
 //'          \item exponential-exponential
 //'          \item cauchy-cauchy
-//'          \item linear combination of both (see paper by Montemayer et. al), the default.
+//'          \item exponential-cauchy
+//'          \item cauchy
+//'          \item exponential the default
 //'
 //'        }
 //' @param alpha1 Dispersal scale parameter for the local spread kernel.
@@ -684,7 +748,21 @@ double Samp_dis (int kern_model, double alpha1, double alpha2)
 
     break;
 
-  default:
+  case 3:  // exp-cauchy
+    if(runif(1,0,1)[0]< gama){
+      r=Rcpp::rexp(1,1/alpha1)[0];
+    }
+    else{
+      r=Rcpp::rcauchy(1,0,alpha2)[0];
+    }
+
+    break;
+
+  case 4:  // Cauchy
+      r=Rcpp::rcauchy(1,0,alpha1)[0];
+    break;
+
+  default:  // exponential
     r=Rcpp::rexp(1,1/alpha1)[0];
     // to be changed accordling
 
