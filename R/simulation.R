@@ -9,7 +9,7 @@
 #'       \describe{
 #'         \item{epsion}{The primary infection rate. See \code{\link{func_time_beta}}}
 #'         \item{beta}{Rate of infection. See \code{\link{func_time_beta}}}
-#'         \item{alpha}{The dispersal kernel parameter.}
+#'         \item{alpha1,alpha2}{The dispersal kernel parameters.}
 #'         \item{mu_lat,var_lat}{mean and variance of the latent period. See \code{\link{E_to_I}} for details.}
 #'         \item{omega}{Parameter characterising the seasality. See \code{\link{func_time_beta}}}
 #'        }
@@ -19,6 +19,7 @@
 #' @param t_max  Final observation time.
 #' @param t_intervention Start of the intervention if any.
 #' @param EI_model Take integer values to specify the type of model used for the latent period. See \code{\link{E_to_I}}
+#' @param kern_model Take integer values to specify the type of dispersal kernel used. See \code{\link{Samp_dis}}
 #' @return A data frame with components:
 #'       \describe{
 #'         \item{k}{Index of the case}
@@ -35,15 +36,39 @@
 #' @examples
 #' data(bbtv)
 #' attach(bbtv)
-#' Dat<- bbtv[,c(2:6,8,10)]     # Coonsidering the essential part of the data
-#' Dat1<-subset(Dat,Dat$latitude> -27.3 & Dat$processedbananas%in%c("P&I","P", "NI") )  # data up in queensland (noth of brisbane)
-#' Dat1$treatmentdate[is.na(Dat1$treatmentdate)]<- Dat1$date[is.na(Dat1$treatmentdate)] # When NA, consider removal date as
-#' Dat1$detection<-as.numeric(difftime(as.Date(Dat1$date), as.Date("2011/01/01"), unit="days")) + runif(1)
-#' Dat1$removal<-as.numeric(difftime(as.Date(Dat1$treatmentdate), as.Date("2011/01/01"), unit="days"))
-#' Datt<-Dat1[,c(3,4,7,8,2)]
-#' Datt$detection=Datt$detection + runif(nrow(Datt))
-#' Datt=Datt[with(Datt,order(Datt$detection)),]
+#' Dat<- bbtv[,c("longitude","latitude","BBTV","inspectiondate","leavesinfected","treatmentdate","location")]
+#' Dat1<-subset(Dat,Dat$latitude> -27.4698 & Dat$BBTV%in%c("P&I","P", "NI") & difftime(as.Date(Dat$inspectiondate), as.Date("2010/01/01"), unit="days")>=0)  # data up in queensland
+#' Dat1$treatmentdate[is.na(Dat1$treatmentdate)]<- Dat1$inspectiondate[is.na(Dat1$treatmentdate)]
+#' Dat1$detection<-as.numeric(difftime(as.Date(Dat1$inspectiondate), as.Date("2010/01/01"), unit="days"))
+#' Dat1$removal<-as.numeric(difftime(as.Date(Dat1$treatmentdate), as.Date("2010/01/01"), unit="days"))
+#' Dat1$removal[which(Dat1$removal<0)]<- Dat1$detection[which(Dat1$removal<0)]
+#' Datt<-Dat1[,c("longitude","latitude","BBTV","leavesinfected","detection","removal")]
 #'
+#'
+#' Datt[which(Datt$leavesinfected=="LOTS"),"leavesinfected"]<- 45
+#' Datt[which(Datt$leavesinfected=="1,2,4"),"leavesinfected"]<- 2.3
+#' Datt[which(Datt$leavesinfected=="'3"),"leavesinfected"]<- 3
+#' Datt[which(Datt$leavesinfected=="2 +bunch"),"leavesinfected"]<- 2
+#' Datt[which(Datt$leavesinfected=="3 +bunch"),"leavesinfected"]<- 3
+#' Datt[which(Datt$leavesinfected=="4+BUNCH"),"leavesinfected"]<- 4
+#' Datt[which(Datt$leavesinfected=="avg 3.2"),"leavesinfected"]<- 3.2
+#' Datt[which(Datt$leavesinfected=="1-6, avg 3.5"),"leavesinfected"]<- 3.5
+#' Datt[which(Datt$leavesinfected=="all"),"leavesinfected"]<- 45
+#'
+#'
+#' leav=sapply(Datt[,"leavesinfected"],function(x){
+#'   gsub("all/","",x)
+#' })
+#'
+#' leav=sapply(leav,function(x){
+#'   gsub("/all","",x)
+#' })
+#'
+#' leav[grepl("[+]",leav)]<- 45  # Assuming 45 leaves on a plant
+#'
+#' Datt$leavesinfected<- leav
+#'
+#' Datt=Datt[with(Datt,order(Datt$detection)),]
 #'
 #' # Australian reference system
 #' sp::coordinates(Datt) <- c("longitude", "latitude")
@@ -55,6 +80,39 @@
 #' # Raster
 #' rast <- raster::raster()
 #' raster::extent(rast) <- raster::extent(pointsinaustraliangrid) # Set same extent
+#'
+#' raster::res(rast)=5000 # Set resolution
+#'
+#'  size<- raster::res(rast)[1]
+# Adding column at the top or bottom of the grid if raster leaves points out
+#' dif=(raster::xmax(pointsinaustraliangrid)-raster::xmin(pointsinaustraliangrid))/size
+#' cei= abs(ceiling(dif))
+#'
+#' if(cei!=dif){
+#'   if(raster::xmax(rast)!=raster::xmax(pointsinaustraliangrid)){
+#'     raster::xmax(rast)<- raster::xmin(rast) + size*cei
+#'   }
+#'   if(raster::xmin(rast)!=raster::xmin(pointsinaustraliangrid)){
+#'     raster::xmin(rast)<- raster::xmax(rast) - size*cei
+#'   }
+#'
+#' }
+#'
+#' # Adding row at the top or bottom of the grid if raster leaves points out
+#'
+#' dif1=(raster::ymax(pointsinaustraliangrid)-raster::ymin(pointsinaustraliangrid))/size
+#' cei1= abs(ceiling(dif1))
+#'
+#'
+#' if(cei1!=dif1){
+#'   if(raster::ymax(rast)!=raster::ymax(pointsinaustraliangrid)){
+#'     raster::ymax(rast)<- raster::ymin(rast) + size*cei1
+#'   }
+#'   if(raster::ymin(rast)!=raster::ymin(pointsinaustraliangrid)){
+#'     raster::ymin(rast)<- raster::ymax(rast) - size*cei1
+#'   }
+#'
+#' }
 #'
 #' raster::res(rast)=5000 # Set resolution
 #'
@@ -106,21 +164,21 @@
 #' r=10000
 #'# Simulation with exponential kernel
 #' alpha<- 30; beta<- 0.012; epsilon<- 0.02; omega<- 0.12; mu_lat<- 30; var_lat<- 20; t0<- 0; c<- 20;
-#' param=data.frame(alpha=alpha, beta=beta, epsilon=epsilon, omega=omega, mu_lat=mu_lat, var_lat=var_lat, t0=t0, c=c)
+#' param=data.frame(alpha1=alpha, alpha2=alpha, beta=beta, epsilon=epsilon, omega=omega, mu_lat=mu_lat, var_lat=var_lat, t0=t0, c=c)
 #'
 #' Simulate_contact_model(param, grid_lines, pop_grid)
 #'
 #' detach(bbtv)
 #'
 #' @export
-Simulate_contact_model<- function(param, grid_lines, pop_grid, grid_size=5000, age_level=c(1,1),age_dist=c(1,0), m_start=1, t_max=118, t_intervention=365, EI_model=1){
-
-
+Simulate_contact_model<- function(param, grid_lines, pop_grid, grid_size=5000, age_level=c(1,1),age_dist=c(1,0), m_start=1, t_max=118, t_intervention=365, EI_model=1, kern_model=4){
 
   #Set parameters
   epsilon <- param$epsilon
   beta <- param$beta
-  alpha <- param$alpha
+  b1 <- param$b1
+  alpha1 <- param$alpha1
+  alpha2 <- param$alpha2
   mu_lat <- param$mu_lat
   var_lat <- param$var_lat
   omega <- param$omega
@@ -177,7 +235,8 @@ Simulate_contact_model<- function(param, grid_lines, pop_grid, grid_size=5000, a
 
 
   t_next <- t_now # to start the while loop
-  while(t_next<(t_max) | max(pop_grid)==0){
+
+  while(t_next<(t_max) & max(pop_grid)>0){
 
     ### simulate the timings, and the source, of next infection ###
 
@@ -186,6 +245,7 @@ Simulate_contact_model<- function(param, grid_lines, pop_grid, grid_size=5000, a
 
   #Risk due to secondary infection
     if(nrow(simulated_epi_sub)>=1){
+
       beta_infectious <- sapply(simulated_epi_sub$age, FUN=beta_by_age, c(beta_1,beta_2))
       total_beta <- sum(beta_infectious)
       joint_I_R <- c(simulated_epi_sub$t_i,simulated_epi_sub$t_r)
@@ -196,12 +256,13 @@ Simulate_contact_model<- function(param, grid_lines, pop_grid, grid_size=5000, a
     #Risk due to primary infection
     if(nrow(simulated_epi_sub)<1){
       total_beta <- 0
+      min_I_R <- t_now
     }
 
 
-    t_next <- simulate_NHPP_next_event (t_now=t_now, t_intervention=t_intervention, sum_beta=total_beta, epsilon=epsilon, omega=omega, t_max=t_max) # simulate the next infection time using thinning algorithm
-
-    #print(t_next)
+    t_next <- simulate_NHPP_next_event (t_now=t_now, t_intervention=t_intervention, sum_beta=total_beta, epsilon=epsilon, omega=omega, b1=b1, t_max=t_max) # simulate the next infection time using thinning algorithm
+    #print(c(t_next,t_now,1))
+    #print(c(t_next,total_beta,omega,t_max,t_now,t_intervention))
 
     while(t_next>=min_I_R & t_next!=Inf){  # If next event is a removal
 
@@ -217,18 +278,20 @@ Simulate_contact_model<- function(param, grid_lines, pop_grid, grid_size=5000, a
 
         joint_I_R <- c(simulated_epi_sub$t_i,simulated_epi_sub$t_r)
         min_I_R <- min(joint_I_R[which(joint_I_R>t_now)])
-        t_next <- simulate_NHPP_next_event (t_now=t_now,  t_intervention=t_intervention, sum_beta=total_beta, epsilon=epsilon, omega=omega, t_max=t_max)
-
+        t_next <- simulate_NHPP_next_event (t_now=t_now,  t_intervention=t_intervention, sum_beta=total_beta, epsilon=epsilon, omega=omega, b1=b1,t_max=t_max)
+        #print(c(t_next,t_now,2))
       }
 
       if(nrow(simulated_epi_sub)<1){
         total_beta <- 0
-        t_next <- simulate_NHPP_next_event (t_now=t_now,  t_intervention=t_intervention, sum_beta=total_beta, epsilon=epsilon, omega=omega, t_max=t_max)
+        t_next <- simulate_NHPP_next_event (t_now=t_now,  t_intervention=t_intervention, sum_beta=total_beta, epsilon=epsilon, omega=omega, b1=b1, t_max=t_max)
+        #print(c(t_next,t_now,3))
         break # needed when consider background infection
       }
 
     } # end of while(t_next>=min_I_R)
 
+    print(c(t_next,t_now,k,nrow(simulated_epi_sub)))
 
     k <- num_infection + 1 - 1 # k=0,1,2...
     t_now <- t_next
@@ -246,13 +309,14 @@ Simulate_contact_model<- function(param, grid_lines, pop_grid, grid_size=5000, a
 
     x_new = min_coor_x - 5 # to start the while loop
     y_new = min_coor_y - 5 # to start the while loop
+    #print(t_now)
     while(x_new<min_coor_x | x_new>max_coor_x | y_new<min_coor_y | y_new>max_coor_y){
 
       if (source!=9999){
 
         ru<- stats::runif(1)
-        if(ru<.5)
-        r <- stats::rexp(1,rate=alpha)
+
+        r <- abs(Samp_dis (kern_model, alpha1, alpha2))
 
         set_points <- circle_line_intersections (circle_x=simulated_epi$coor_x[source+1],circle_y=simulated_epi$coor_y[source+1], r,  n_line=n_line, grid_lines=grid_lines)
 
@@ -269,6 +333,7 @@ Simulate_contact_model<- function(param, grid_lines, pop_grid, grid_size=5000, a
           sum_arcs_den <- sum(arcs$dens)
 
           if (sum_arcs_den>0){
+            #print(prob)
             k_segment <- sample(1:nrow(arcs),size=1,prob=arcs$mass) # decide which segment the new infection would lie
             theta_within_segment <- stats::runif(1, min=0, max=arcs$theta_abs[k_segment]) # uniformly draws a point within the segment chosen above
 
@@ -280,11 +345,12 @@ Simulate_contact_model<- function(param, grid_lines, pop_grid, grid_size=5000, a
 
             n<- arcs$n_th_col
             m<- arcs$m_th_row
+
             if(max(pop_grid)>1){  # Density instead of sum
-              pop_grid[m+1,n+1]<- pop_grid[m+1,n+1] -1/grid_size # Rememeber to divide by the resolution for the density
+              pop_grid[m,n]<- pop_grid[m,n] -1/grid_size # Rememeber to divide by the resolution for the density
             }
             else{
-              pop_grid[m+1,n+1]<- pop_grid[m+1,n+1] -1
+              pop_grid[m,n]<- pop_grid[m,n] -1
             }
 
 
@@ -296,8 +362,8 @@ Simulate_contact_model<- function(param, grid_lines, pop_grid, grid_size=5000, a
             x_new <- simulated_epi$coor_x[source+1] + r*cos(theta_from_y_eq_0) # the coor_x of the new infection
             y_new <- simulated_epi$coor_y[source+1] + r*sin(theta_from_y_eq_0) # the coor_x of the new infection
 
-            m=ceiling((x_new-min_coor_x)/grid_size)-1
-            n=ceiling((y_new-min_coor_y)/grid_size)-1
+            m=ceiling((x_new-min_coor_x)/grid_size)
+            n=ceiling((y_new-min_coor_y)/grid_size)
           }
           ###
 
@@ -311,16 +377,20 @@ Simulate_contact_model<- function(param, grid_lines, pop_grid, grid_size=5000, a
           x_new <- simulated_epi$coor_x[source+1] + r*cos(theta_from_y_eq_0) # the coor_x of the new infection
           y_new <- simulated_epi$coor_y[source+1] + r*sin(theta_from_y_eq_0) # the coor_x of the new infection
 
-          m=ceiling((x_new-min_coor_x)/grid_size)-1
-          n=ceiling((y_new-min_coor_y)/grid_size)-1
+          m=ceiling((x_new-min_coor_x)/grid_size)
+          n=ceiling((y_new-min_coor_y)/grid_size)
 
-          if(pop_grid[n+1,m+1]>0){
-            if(max(pop_grid)>1){  # Density instead of sum
-              pop_grid[n+1,m+1]<- pop_grid[n+1,m+1] -1/grid_size # Rememeber to divide by the resolution for the density
+          #message(c(r))
+          if(all(dim(pop_grid)==c(n,m))){
+            if(pop_grid[n,m]>0){
+              if(max(pop_grid)>1){  # Density instead of sum
+                pop_grid[n,m]<- pop_grid[n,m] -1/grid_size # Rememeber to divide by the resolution for the density
+              }
+              else{
+                pop_grid[n,m]<- pop_grid[n,m] -1
+              }
             }
-            else{
-              pop_grid[n+1,m+1]<- pop_grid[n+1,m+1] -1
-            }
+
           }
 
         }
@@ -337,8 +407,8 @@ Simulate_contact_model<- function(param, grid_lines, pop_grid, grid_size=5000, a
         x_new <- stats::runif(1,min=x_intervals[n_grid],max=x_intervals[n_grid+1]) # random lands at a point in the grid selected
         y_new <- stats::runif(1,min=y_intervals[m_grid],max=y_intervals[m_grid+1])
 
-        n=n_grid-1
-        m=m_grid-1
+        n=n_grid
+        m=m_grid
         if(pop_grid[m_grid,n_grid]>0){
         if(max(pop_grid)>1){  # Density instead of sum
           pop_grid[m_grid,n_grid]<- pop_grid[m_grid,n_grid] -1/grid_size # Rememeber to divide by the resolution for the density
@@ -354,8 +424,13 @@ Simulate_contact_model<- function(param, grid_lines, pop_grid, grid_size=5000, a
 
     } # end while(x_new<min_coor_x | x_new>max_coor_x | y_new<min_coor_y | y_new>max_coor_y){
 
+    if(is.infinite(t_next)){
+      break
+    }
+    else{
+      simulated_epi[k+1,] <- c(k, x_new, y_new, t_now, t_i_new, t_r_new, age, source, (n_row_grid-m-2)*n_col_grid + n)
 
-    simulated_epi[k+1,] <- c(k, x_new, y_new, t_now, t_i_new, t_r_new, age, source, (n_row_grid-m-2)*n_col_grid + n)
+    }
     ####
 
     num_infection <- num_infection + 1
