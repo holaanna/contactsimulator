@@ -15,7 +15,8 @@
 //'          where n(t) is the size of potential sources.
 //'
 //' @return It returns the rate of infection in the non-homogeneous poisson process.
-//'
+//' @references
+//' \insertRef{KR08}{contactsimulator}
 //' @examples
 //' func_time_beta(20,50,0.08,0.2,0.3)
 //' @export
@@ -309,7 +310,7 @@ vector<segments_struct> func_segments_attributes (DataFrame& set_points, Numeric
       double y_2= y(0);
       double midpoint_x = (x_1+x_2)/2.0;
       double midpoint_y = (y_1+y_2)/2.0;
-      int m = ceil((-midpoint_y + para_other.y_max)/para_other.grid_size); // at mth row of the grid
+      int m = ceil((midpoint_y - para_other.y_min)/para_other.grid_size); // at mth row of the grid
       int n = ceil((midpoint_x - para_other.x_min)/para_other.grid_size); // at nth col..
 
       segments[i].m=m;
@@ -347,7 +348,7 @@ vector<segments_struct> func_segments_attributes (DataFrame& set_points, Numeric
       double y_2= y(i);
       double midpoint_x = (x_1+x_2)/2.0;
       double midpoint_y = (y_1+y_2)/2.0;
-      int m = ceil((-midpoint_y + para_other.y_max)/para_other.grid_size); // at mth row of the grid
+      int m = ceil((midpoint_y - para_other.y_min)/para_other.grid_size); // at mth row of the grid
       int n = ceil((midpoint_x - para_other.x_min)/para_other.grid_size); // at nth col..
 
 
@@ -552,13 +553,13 @@ DataFrame func_arcs_attributes(DataFrame set_points, NumericMatrix& pop_grid, do
   // grid_lines1.orient_line=grid_lines["orient_line"];
 
   // Read in grid parameters: size, density, boxes coordinate etc..
-  para_other.dimen_x = n_row_grid;
-  para_other.dimen_y = n_col_grid;
+  para_other.n_row_grid = n_row_grid;
+  para_other.n_col_grid = n_col_grid;
   para_other.grid_size = grid_size;
  // para_other.n_line = n_line;
  // para_other.total_pop_of_grid = pop_grid;
   para_other.x_min = x_min;
-  para_other.y_min =y_min;
+  para_other.y_max =y_min;
 
   //set_points= circle_line_intersections(circle_x, circle_y, r, n_line, grid_lines);  // Intersection points with angles
   //Rcout<<r<<"\n";
@@ -595,7 +596,136 @@ double f(double x0, double E,double A){
   b=A/c1;
   d=-b*sin(c1*(c-15));
   rat=A*cos(c1*(c+x0-15)) + 0.062;
-  return (rat*exp(-(d+b*sin(c1*(x0+c-15))+0.062*x0)));
+  return (rat*exp(-(d+b*sin(c1*(x0+c-15))+0.062*x0))/(exp(-2.99)-exp(-3.01)));
+}
+
+// [[Rcpp::export]]
+double g(double x0, double E,double A, double B){
+  double x, a, b, c, d, rat;
+  double c1=2*M_PI/365;
+  c=E;
+  a=A;
+  b=A/c1;
+  d=-1/c1*sin(c1*(c-15));
+  rat=A*(1 + B*cos(c1*(c+x0-15)) );
+  return (rat*exp(-A*(d+1/c1*sin(c1*(x0+c-15)) + x0)));
+}
+
+
+/*======================================================================================================================================
+Cyclic latent period using the leaves emergence rate (LER) and brent method
+======================================================================================================================================*/
+
+//Solve the inverse transform of the EI using the LER
+double
+  quadratic (double x, void *params)
+  {
+    struct quadratic_params *p
+    = (struct quadratic_params *) params;
+
+    double t2 = p->t2;
+    double l = p->l;
+
+    double b=0.062;
+    double a =0.9032258;
+    //a=b;
+
+    double c=2*M_PI/365.0;
+    //b=0.08;
+
+    return b*((x) + a/c*(sin(c*(t2+x-15)) - sin(c*(t2-15)))) + log(-l*(exp(-2.99)-exp(-3.01))+exp(-2.99));
+  }
+
+double
+  quadratic_deriv (double x, void *params)
+  {
+    struct quadratic_params *p
+    = (struct quadratic_params *) params;
+
+    double t2 = p->t2;
+    double b=0.062;
+    double a =0.9354839;
+    //a=b;
+
+    double c=2*M_PI/365.0;
+
+
+    return b*(1 + a*cos(c*(t2+x-15)));
+  }
+
+void
+  quadratic_fdf (double x, void *params,
+                 double *y, double *dy)
+  {
+    struct quadratic_params *p
+    = (struct quadratic_params *) params;
+
+    double t2 = p->t2;
+    double l = p->l;
+
+    double b=0.062;
+    double a =0.9354839;
+    //a=b;
+
+    double c=2*M_PI/365.0;
+
+
+    *y = b*((x) + a/c*(sin(c*(t2+x-15)) - sin(c*(t2-15)))) + log(-l*(exp(-2.99)-exp(-3.01))+exp(-2.99));
+    *dy = b*(1 + a*cos(c*(t2+x-15)));
+  }
+
+// Solving equation with Brent-method
+// [[Rcpp::depends(RcppGSL)]]
+//' Sample from the cyclic latent period using Brent method (Inverse tranform).
+//'
+//'\code{Inv_trans} Generate a random draw from the distribution specified for the latent period.
+//'
+//' @param r The initial value.
+//' @param x_lo A lower bound for the variable.
+//' @param x_hi The upper bound of the variable.
+//' @param t The current time: the exposure time.
+//' @param l A random variable in (0,1)
+//'
+//' @references
+//' \insertRef{DR18}{contactsimulator}
+//' @return It returns a random draw from the latent period given the time of exposure for the cyclic model.
+//'
+//' @examples
+//' Inv_trans(10,0,1000,10,runif(1))
+//' @export
+// [[Rcpp::export]]
+double Inv_trans(double &r, double x_lo, double x_hi, double t, double l){
+  int status;
+  int iter = 0, max_iter = 1000;
+  const gsl_root_fsolver_type *T;
+  gsl_root_fsolver *s;
+  double r_expected = sqrt (5.0);
+  //double x_lo = -500.0, x_hi = 20.0;
+  gsl_function F;
+  struct quadratic_params params = {t,l};
+
+  F.function = &quadratic;
+  F.params = &params;
+
+  T = gsl_root_fsolver_brent;
+  s = gsl_root_fsolver_alloc (T);
+  gsl_root_fsolver_set (s, &F, x_lo, x_hi);
+
+  do
+  {
+    iter++;
+    status = gsl_root_fsolver_iterate (s);
+    r = gsl_root_fsolver_root (s);
+    x_lo = gsl_root_fsolver_x_lower (s);
+    x_hi = gsl_root_fsolver_x_upper (s);
+    status = gsl_root_test_interval (x_lo, x_hi,
+                                     0, 0.001);
+  }
+  while (status == GSL_CONTINUE && iter < max_iter);
+
+  gsl_root_fsolver_free (s);
+
+  return r;
 }
 
 
@@ -626,6 +756,29 @@ NumericVector BTFinv1 (double E, double A, double t0)
 
   return (par);
 }
+
+NumericVector BTFinv2 (double E, double A, double B, double t0)
+{
+  double q, x, pacc;
+  NumericVector par(1000);
+  par[0]=t0;
+  for( int i=1;i<1000;i++){
+    q=3*Rcpp::rnorm(2,0,1)[0];
+    x=par[i-1]*exp(q);
+    pacc=g(x,E,A,B)/g(par[i-1],E,A,B)*exp(q);
+    if(pacc>Rcpp::runif(2,0,1)[0]){
+      par[i]=x;
+    }
+    else{
+      par[i]=par[i-1];
+    }
+  }
+
+
+
+  return (par);
+}
+
 
 /*======================================================================================================================================
                             Latent period depending on the distribution used
@@ -670,8 +823,8 @@ double E_to_I (int EI_model, double E, double mu_lat, double var_lat)
     ru=runif(1,0,1)[0];
     k=ru*500;
     mu_lat=0.056;
-    //dt=mean(BTFinv1(E,mu_lat,10.0));
-    dt=BTFinv1(E,mu_lat,10.0)[k+450];
+    dt=Inv_trans(E,0,10000,E,ru);
+    //dt=BTFinv2(E,mu_lat,var_lat,10.0)[k+450];
     break;
 
   case 2:
@@ -713,23 +866,24 @@ double beta_by_age(int age, NumericVector beta_by_age_vector){
 //'          \item exponential the default
 //'
 //'        }
+//' @param ru. The proportion of not infected hosts in the cell containing the osurce.
 //' @param alpha1 Dispersal scale parameter for the local spread kernel.
 //' @param alpha2 Dispersal scale parameter for the long range interaction.
 //'
 //' @return It returns a random distance the inoculum will travel to.
 //'
 //' @examples
-//' Samp_dis (1, 0.2, 0.3)
+//' Samp_dis (1,0.5, 0.2, 0.3)
 //' @export
 // [[Rcpp::export]]
-double Samp_dis (int kern_model, double alpha1, double alpha2)
+double Samp_dis (int kern_model, double ru,double alpha1, double alpha2)
 {
   double r;
-  double gama = .5;
+
   switch (kern_model) {
 
   case 1:   // expo-expo
-    if(runif(1,0,1)[0]< gama){
+    if(runif(1,0,1)[0]< ru){
       r=Rcpp::rexp(1,1/alpha1)[0];
     }
     else{
@@ -739,7 +893,7 @@ double Samp_dis (int kern_model, double alpha1, double alpha2)
     break;
 
   case 2:  // Cauchy-cauchy
-    if(runif(1,0,1)[0]< gama){
+    if(runif(1,0,1)[0]< ru){
       r=Rcpp::rcauchy(1,0,alpha1)[0];
     }
     else{
@@ -749,7 +903,7 @@ double Samp_dis (int kern_model, double alpha1, double alpha2)
     break;
 
   case 3:  // exp-cauchy
-    if(runif(1,0,1)[0]< gama){
+    if(runif(1,0,1)[0]< (1-ru)){
       r=Rcpp::rexp(1,1/alpha1)[0];
     }
     else{
@@ -768,5 +922,56 @@ double Samp_dis (int kern_model, double alpha1, double alpha2)
 
   }
   return r;
+}
+
+//------------------------------Subset from a data frame -----------------------------------
+//'
+//'\code{Sub_set} Count the number of observation during a certain period of time.
+//'
+//' @param tr. A vector giving time of events (eg removals) that occur during a time period.
+//' @param time. A sequence of time a which observations were performed/
+//'
+//' @return It returns the number of observation recorded at each time.
+//'
+//' @examples
+//'
+//' time = seq(1,10)
+//' tr = sort(runif(30,0,10))
+//' Sub_set(tr, time)
+//' @export
+// [[Rcpp::export]]
+NumericVector Sub_set(NumericVector tr, NumericVector time){
+  NumericVector obs(time.size()-1);
+  for(int i; i<(time.size()-1); i++){
+    NumericVector selct = tr[tr<=time[i+1] & tr>time[i]];
+    obs[i] = selct.size();
+  }
+
+  return obs;
+}
+
+//------------------------------Subset from a data frame -----------------------------------
+//' @export
+// [[Rcpp::export]]
+NumericVector distanc(NumericMatrix dat,NumericVector d){
+  int N=dat.nrow();
+  NumericVector d1(N);
+  //int k;
+  for(int i=0; i<N;i++){
+      d1(i)=sqrt((dat(i,0)-d(0))*(dat(i,0)-d(0))+(dat(i,1)-d(1))*(dat(i,1)-d(1)));
+      //Rcout<<i<<"\t"<<j<<"\n";
+  }
+  return d1;
+}
+
+
+//---------------------------------LER ------------------------------------------------------
+//' @export
+// [[Rcpp::export]]
+double fu(double t1, double t2, double l){
+double  a=.062;
+double  b=3.22;
+double  c=2*M_PI/365;
+  return(a*(t2-t1) + b*(sin(c*(t2-15)) - sin(c*(t1-15)))-l);
 }
 

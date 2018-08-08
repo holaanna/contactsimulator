@@ -5,13 +5,16 @@
 #'\code{Simulate_contact_model} provide the simulation of the epidemic process and the
 #'       maximum distance the wave can travel at each particular obaservation date.
 #'
-#' @param param Indicating a data frame contaning a vector of parameters including:
+#' @param param Indicating a data frame containing a vector of parameters including:
 #'       \describe{
 #'         \item{epsion}{The primary infection rate. See \code{\link{func_time_beta}}}
-#'         \item{beta}{Rate of infection. See \code{\link{func_time_beta}}}
+#'         \item{beta_0}{Baseline or average transmission rate. See \code{\link{func_time_beta}}}
+#'         \item{beta_1}{Amplitude of the seasonality. See \code{\link{func_time_beta}}}
 #'         \item{alpha1,alpha2}{The dispersal kernel parameters.}
 #'         \item{mu_lat,var_lat}{mean and variance of the latent period. See \code{\link{E_to_I}} for details.}
-#'         \item{omega}{Parameter characterising the seasality. See \code{\link{func_time_beta}}}
+#'         \item{t0}{Time at which the primary source became active}.
+#'         \item{omega}{Period of the forcing. See \code{\link{func_time_beta}}}
+#'         \item{gama}{The mean proportion of short range dispersal events.}.
 #'        }
 #' @inheritParams func_arcs_attributes
 #' @param age_level,age_dist Vectors of age level and the propportion of each age group respectively. See details.
@@ -33,6 +36,9 @@
 #'          at short range from the source (ref). Consequentely, we use an expoential dispersal parameter \eqn{\alpha} of the form:
 #'          \deqn{f(r,\alpha)=\alpha exp(-\alpha r)}
 #' @seealso  \code{\link{E_to_I}}, \code{\link{func_time_beta}}.
+#' @references
+#' \insertRef{KR08}{contactsimulator}
+#' \insertRef{Mee11}{contactsimulator}
 #' @examples
 #' data(bbtv)
 #' attach(bbtv)
@@ -163,8 +169,8 @@
 #' circle_y=-3123109
 #' r=10000
 #'# Simulation with exponential kernel
-#' alpha<- 30; beta<- 0.012; epsilon<- 0.02; omega<- 0.12; mu_lat<- 30; var_lat<- 20; t0<- 0; c<- 20;
-#' param=data.frame(alpha1=alpha, alpha2=alpha, beta=beta, epsilon=epsilon, omega=omega, mu_lat=mu_lat, var_lat=var_lat, t0=t0, c=c)
+#' alpha<- 30; beta<- 0.012; epsilon<- 0.02; omega<- 0.12; mu_lat<- 30; var_lat<- 20; t0<- 0; c<- 20; b1<-0; gama<- 0.5
+#' param=data.frame(alpha1=alpha, alpha2=alpha, beta=beta, epsilon=epsilon, omega=omega, mu_lat=mu_lat, var_lat=var_lat, t0=t0, c=c, b1=b1, gama=gama)
 #'
 #' Simulate_contact_model(param, grid_lines, pop_grid)
 #'
@@ -188,6 +194,7 @@ Simulate_contact_model<- function(param, grid_lines, pop_grid, grid_size=5000, a
   beta_1<- beta;
   beta_2<- beta;
 
+  ru <- param$gama
 
   min_coor_x <- min(c(grid_lines$coor_x_1,grid_lines$coor_x_2)) # bounds of the region
   max_coor_x <- max(c(grid_lines$coor_x_1,grid_lines$coor_x_2))
@@ -197,21 +204,36 @@ Simulate_contact_model<- function(param, grid_lines, pop_grid, grid_size=5000, a
   x_intervals <- seq(min_coor_x,max_coor_x,grid_size)
   y_intervals <- seq(min_coor_y,max_coor_y,grid_size)
 
-  n_line <- max(grid_lines$indx) #+ 1 # number of lines
+  n_line <- max(grid_lines$indx) + 1 #+ 1 # number of lines
   n_row_grid <- nrow(pop_grid) # number of rows of grids
   n_col_grid <- ncol(pop_grid)  # number of cols of grids
 
+  pop_grid_old = pop_grid
 
-  simulated_epi <- data.frame(k=numeric(0), coor_x=numeric(0), coor_y=numeric(0), t_e=numeric(0), t_i=numeric(0), t_r=numeric(0), age=numeric(0), infected_source=numeric(0), value_indx=numeric(0))
+  simulated_epi <- data.frame(k=numeric(0), coor_x=numeric(0), coor_y=numeric(0), t_e=numeric(0), t_i=numeric(0), t_r=numeric(0), age=numeric(0), infected_source=numeric(0), row=numeric(0), col=numeric(0))
 
   ## initialize the index cases ##
 
   index_k <- 0:(m_start-1)
-  index_coor_x <- stats::runif(m_start,min_coor_x,max_coor_x)
-  index_coor_y <- stats::runif(m_start,min_coor_y,max_coor_y)
+  n_indx<- m_indx<- index_coor_x <- index_coor_y<- numeric(m_start)
+  for(i in 1:m_start){
+    k_grid <- sample(1:length(as.numeric(pop_grid)),size=1, prob=as.numeric(pop_grid))
+    m_grid <- k_grid%%nrow(pop_grid) # the mth row of the grids
+    if(m_grid==0) m_grid <- nrow(pop_grid)
+    n_grid <- ceiling(k_grid/nrow(pop_grid))  # nth column ..
+    index_coor_x[i] <- stats::runif(1,min=x_intervals[n_grid],max=x_intervals[n_grid+1]) # random lands at a point in the grid selected
+    index_coor_y[i] <- stats::runif(1,min=y_intervals[m_grid],max=y_intervals[m_grid+1])
+
+    n_indx[i]=n_grid
+    m_indx[i]=m_grid
+
+  }
+
+  # index_coor_x <- stats::runif(m_start,min_coor_x,max_coor_x)
+  # index_coor_y <- stats::runif(m_start,min_coor_y,max_coor_y)
   dt<- stats::rexp(1)/epsilon    # Sellke
 
-  index_t_e <- rep(t0+dt,m_start) # all assumed to infected at time=t0
+  index_t_e <- rep(t0,m_start) # all assumed to infected at time=t0
 
   # Latent period depending on the model
 
@@ -221,10 +243,10 @@ Simulate_contact_model<- function(param, grid_lines, pop_grid, grid_size=5000, a
   index_source <- rep(9999,m_start) # all assumed to be infected by the background
 
 
-  m=ceiling((index_coor_x-min_coor_x)/grid_size)-1
-  n=ceiling((index_coor_y-min_coor_y)/grid_size)-1
+  # m=ceiling((index_coor_x-min_coor_x)/grid_size)-1
+  # n=ceiling((index_coor_y-min_coor_y)/grid_size)-1
 
-  simulated_epi[1:m_start,] <- c(index_k, index_coor_x,index_coor_y,index_t_e,index_t_i,index_t_r,index_age,index_source,(n_row_grid-m-2)*n_col_grid + n)
+  simulated_epi[1:m_start,] <- c(index_k, index_coor_x,index_coor_y,index_t_e,index_t_i,index_t_r,index_age,index_source,m_indx,n_indx)
   #####
 
   t_now <- min(simulated_epi$t_i)
@@ -237,7 +259,7 @@ Simulate_contact_model<- function(param, grid_lines, pop_grid, grid_size=5000, a
   t_next <- t_now # to start the while loop
 
   while(t_next<(t_max) & max(pop_grid)>0){
-
+# show(t_next)
     ### simulate the timings, and the source, of next infection ###
 
     simulated_epi_sub <- subset(simulated_epi, simulated_epi$t_i<=t_now & simulated_epi$t_r>t_now) # those are currently infectious
@@ -291,7 +313,7 @@ Simulate_contact_model<- function(param, grid_lines, pop_grid, grid_size=5000, a
 
     } # end of while(t_next>=min_I_R)
 
-    print(c(t_next,t_now,k,nrow(simulated_epi_sub)))
+    #print(c(t_next,t_now,k,nrow(simulated_epi_sub)))
 
     k <- num_infection + 1 - 1 # k=0,1,2...
     t_now <- t_next
@@ -304,56 +326,86 @@ Simulate_contact_model<- function(param, grid_lines, pop_grid, grid_size=5000, a
     if(nrow(simulated_epi_sub)<1) source <- 9999 # 9999 = background
 
     age <- sample(age_level,size=1,prob=age_dist)
-
+    #print(c(t_next,t_now,2))
     ### simulate the coordinates of the new infection (above) ###
 
     x_new = min_coor_x - 5 # to start the while loop
     y_new = min_coor_y - 5 # to start the while loop
     #print(t_now)
-    while(x_new<min_coor_x | x_new>max_coor_x | y_new<min_coor_y | y_new>max_coor_y){
-
+    # if(source!=9999){
+    #   #print(c(simulated_epi$row[source+1],simulated_epi$col[source+1],source,k_grid))
+    #   ru<- pop_grid[simulated_epi$row[source+1],simulated_epi$col[source+1]]/pop_grid_old[simulated_epi$row[source+1],simulated_epi$col[source+1]]
+    #
+    # }
+    # ru <- .47
+    m_1=n_1=1000
+    pop_grid_before = pop_grid
+    while(x_new<min_coor_x | x_new>max_coor_x | y_new<min_coor_y | y_new>max_coor_y ){
+      pop_grid = pop_grid_before
       if (source!=9999){
+      # show(kern_model)
+      # show(ru)
+      # show(alpha1)
+      # show(alpha2)
 
-        ru<- stats::runif(1)
-
-        r <- abs(Samp_dis (kern_model, alpha1, alpha2))
+        r <- abs(Samp_dis (kern_model,ru, alpha1, alpha2))
 
         set_points <- circle_line_intersections (circle_x=simulated_epi$coor_x[source+1],circle_y=simulated_epi$coor_y[source+1], r,  n_line=n_line, grid_lines=grid_lines)
 
         n_set_points = nrow(set_points)
-
+        #print(c(r,n_set_points))
         if (n_set_points>=1) {
           # show(set_points)
           # show(source)
           # show(simulated_epi)
-          arcs <- func_arcs_attributes(set_points, pop_grid, r, min_coor_x, min_coor_y, grid_size, n_row_grid, n_col_grid)
+          arcs <- func_arcs_attributes(set_points, pop_grid, r, min_coor_x, max_coor_y, grid_size, n_row_grid, n_col_grid)
+
           arcs$mass <- arcs$dens*arcs$len_arc
-          arcs <- arcs[order(arcs$theta_abs),]
+
+          arcs$theta=set_points$theta
+
+          #arcs <- arcs[order(arcs$theta_abs),]
 
           sum_arcs_den <- sum(arcs$dens)
-
+             # print(c(sum_arcs_den,n_line))
+             # print(c(simulated_epi$coor_x[source+1],simulated_epi$coor_y[source+1]))
+            # print(as.data.frame(arcs$n_th_col,arcs$m_th_row))
+            # print(sum_arcs_den)
           if (sum_arcs_den>0){
-            #print(prob)
+            # print(nrow(arcs))
+             #print(arcs$mass)
             k_segment <- sample(1:nrow(arcs),size=1,prob=arcs$mass) # decide which segment the new infection would lie
+            #print(k_segment)
             theta_within_segment <- stats::runif(1, min=0, max=arcs$theta_abs[k_segment]) # uniformly draws a point within the segment chosen above
 
-            if (k_segment==1) theta_from_y_eq_0 <- theta_within_segment # the measure of theta from y=0
-            if (k_segment!=1) theta_from_y_eq_0 <- sum(arcs$theta_abs[1:(k_segment-1)]) + theta_within_segment # the measure of theta from y=0
+            if (k_segment==1) theta_from_y_eq_0 <- arcs$theta[nrow(arcs)] + theta_within_segment # the measure of theta from y=0
+            if (k_segment!=1) theta_from_y_eq_0 <- arcs$theta[k_segment-1] + theta_within_segment # the measure of theta from y=0
 
             x_new <- simulated_epi$coor_x[source+1] + r*cos(theta_from_y_eq_0) # the coor_x of the new infection
             y_new <- simulated_epi$coor_y[source+1] + r*sin(theta_from_y_eq_0) # the coor_x of the new infection
+            # print(c(r*cos(theta_from_y_eq_0)))
+            n=ceiling((x_new-min_coor_x)/grid_size)
+            m=ceiling((y_new-min_coor_y)/grid_size)
 
-            n<- arcs$n_th_col
-            m<- arcs$m_th_row
+            #print(c(arcs$n_th_col[k_segment],arcs$m_th_row[k_segment]))
+            # print(c(m,n,k_segment,n_set_points))
+            # print(c(pop_grid[m,n],r))
+            # print(arcs)
+            # print(set_points)
+            # #print(c(simulated_epi$coor_x[source+1],simulated_epi$coor_y[source+1],r))
 
-            if(max(pop_grid)>1){  # Density instead of sum
-              pop_grid[m,n]<- pop_grid[m,n] -1/grid_size # Rememeber to divide by the resolution for the density
-            }
-            else{
-              pop_grid[m,n]<- pop_grid[m,n] -1
-            }
+            m_1=arcs$m_th_row[k_segment]
+            n_1=arcs$n_th_col[k_segment]
+            # if(any(c(m,n)!=c(arcs$m_th_row[k_segment],arcs$n_th_col[k_segment]))){
+            #   print(c(m,n,k_segment,n_set_points))
+            #   print(c(pop_grid[m,n],r))
+            #   print(c(simulated_epi$coor_x[source+1],simulated_epi$coor_y[source+1],r))
+            #   print(arcs)
+            #   print(set_points)
+            #   print(c(x_new,y_new))
+            # }
 
-
+         # print(c(m,n,1))
           }
 
           ###
@@ -362,44 +414,39 @@ Simulate_contact_model<- function(param, grid_lines, pop_grid, grid_size=5000, a
             x_new <- simulated_epi$coor_x[source+1] + r*cos(theta_from_y_eq_0) # the coor_x of the new infection
             y_new <- simulated_epi$coor_y[source+1] + r*sin(theta_from_y_eq_0) # the coor_x of the new infection
 
-            m=ceiling((x_new-min_coor_x)/grid_size)
-            n=ceiling((y_new-min_coor_y)/grid_size)
+            n=ceiling((x_new-min_coor_x)/grid_size)
+            m=ceiling((-y_new+max_coor_y)/grid_size)
+
+            m_1 = m
+            n_1 = n
+
           }
           ###
 
 
         }
 
-
+       #print(c(r,n_set_points))
         if (n_set_points<1) {
           theta_from_y_eq_0 <-  stats::runif(1, min=0,max=(2*pi)) # draw theta uniformly between [0,2pi]
 
           x_new <- simulated_epi$coor_x[source+1] + r*cos(theta_from_y_eq_0) # the coor_x of the new infection
           y_new <- simulated_epi$coor_y[source+1] + r*sin(theta_from_y_eq_0) # the coor_x of the new infection
 
-          m=ceiling((x_new-min_coor_x)/grid_size)
-          n=ceiling((y_new-min_coor_y)/grid_size)
+          n=ceiling((x_new-min_coor_x)/grid_size)
+          m=ceiling((y_new-min_coor_y)/grid_size)
+          m_1 = m
+          n_1 = n
 
           #message(c(r))
-          if(all(dim(pop_grid)==c(n,m))){
-            if(pop_grid[n,m]>0){
-              if(max(pop_grid)>1){  # Density instead of sum
-                pop_grid[n,m]<- pop_grid[n,m] -1/grid_size # Rememeber to divide by the resolution for the density
-              }
-              else{
-                pop_grid[n,m]<- pop_grid[n,m] -1
-              }
-            }
-
-          }
-
         }
 
-
+       # print(c(r,n_set_points))
       }
 
       if(source==9999){
 
+        #print(pop_grid)
         k_grid <- sample(1:length(as.numeric(pop_grid)),size=1, prob=as.numeric(pop_grid))
         m_grid <- k_grid%%nrow(pop_grid) # the mth row of the grids
         if(m_grid==0) m_grid <- nrow(pop_grid)
@@ -409,26 +456,21 @@ Simulate_contact_model<- function(param, grid_lines, pop_grid, grid_size=5000, a
 
         n=n_grid
         m=m_grid
-        if(pop_grid[m_grid,n_grid]>0){
-        if(max(pop_grid)>1){  # Density instead of sum
-          pop_grid[m_grid,n_grid]<- pop_grid[m_grid,n_grid] -1/grid_size # Rememeber to divide by the resolution for the density
-        }
-        else{
-          pop_grid[m_grid,n_grid]<- pop_grid[m_grid,n_grid] -1
-        }
-        }
+        m_1 = m
+        n_1 = n
+
 
       }
 
 
 
     } # end while(x_new<min_coor_x | x_new>max_coor_x | y_new<min_coor_y | y_new>max_coor_y){
-
+    #print(c(t_next,t_now,3))
     if(is.infinite(t_next)){
       break
     }
     else{
-      simulated_epi[k+1,] <- c(k, x_new, y_new, t_now, t_i_new, t_r_new, age, source, (n_row_grid-m-2)*n_col_grid + n)
+      simulated_epi[k+1,] <- c(k, x_new, y_new, t_now, t_i_new, t_r_new, age, source, m,n)
 
     }
     ####

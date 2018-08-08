@@ -1,3 +1,6 @@
+
+
+ #include <RcppGSL.h>
 #include <Rcpp.h>
 using namespace Rcpp;
 
@@ -18,6 +21,12 @@ using namespace Rcpp;
 #include <numeric>
 #include <set>
 #include <unistd.h>
+#include <gsl/gsl_errno.h>
+#include <gsl/gsl_math.h>
+#include <gsl/gsl_roots.h>
+#include <gsl/gsl_rng.h>
+#include <gsl/gsl_randist.h>
+#include <gsl/gsl_cdf.h>
 
 #define path1 "/Users/sylauadmin/Dropbox/PU/scripts/ebola/contact_model_extension/simulation_inference/cplus_script/" /*the script directory*/
 #define path3 "/Users/sylauadmin/PU/results/ebola/contact_model_extension/output/figures/"      /*as above*/
@@ -213,12 +222,21 @@ struct lh_SQUARE { // the contribution to likelihood function from each individu
 
 };
 
+//------------------------------------------
+struct quadratic_params
+{
+  double t2, l, b1, a1;
+};
 
 //----
 
 double func_time_beta (const double& ,const double& ,const double& , const double& );
 
 double func_time_alpha (const double& ,const double& ,const double& , const double& );
+
+double quadratic (double x, void *params);
+double quadratic_deriv (double x, void *params);
+void quadratic_fdf (double x, void *params, double *y, double *dy);
 
 //----
 

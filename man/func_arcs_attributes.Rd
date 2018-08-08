@@ -35,31 +35,86 @@ the angle formed with the x-axis.
 }
 \examples{
 data(bbtv)
-  attach(bbtv)
-  Dat<- bbtv[,c(2:6,8,10)]     # Coonsidering the essential part of the data
-  Dat1<-subset(Dat,Dat$latitude> -27.3 & Dat$processedbananas\%in\%c("P&I","P", "NI") )  # data up in queensland (noth of brisbane)
-  Dat1$treatmentdate[is.na(Dat1$treatmentdate)]<- Dat1$date[is.na(Dat1$treatmentdate)] # When NA, consider removal date as
-  Dat1$detection<-as.numeric(difftime(as.Date(Dat1$date), as.Date("2011/01/01"), unit="days")) + runif(1)
-  Dat1$removal<-as.numeric(difftime(as.Date(Dat1$treatmentdate), as.Date("2011/01/01"), unit="days"))
-  Datt<-Dat1[,c(3,4,7,8,2)]
-Datt$detection=Datt$detection + runif(nrow(Datt))
-  Datt=Datt[with(Datt,order(Datt$detection)),]
+attach(bbtv)
+Dat<- bbtv[,c("longitude","latitude","BBTV","inspectiondate","leavesinfected","treatmentdate","location")]
+Dat1<-subset(Dat,Dat$latitude> -27.4698 & Dat$BBTV\%in\%c("P&I","P", "NI") & difftime(as.Date(Dat$inspectiondate), as.Date("2010/01/01"), unit="days")>=0)  # data up in queensland
+Dat1$treatmentdate[is.na(Dat1$treatmentdate)]<- Dat1$inspectiondate[is.na(Dat1$treatmentdate)]
+Dat1$detection<-as.numeric(difftime(as.Date(Dat1$inspectiondate), as.Date("2010/01/01"), unit="days"))
+Dat1$removal<-as.numeric(difftime(as.Date(Dat1$treatmentdate), as.Date("2010/01/01"), unit="days"))
+Dat1$removal[which(Dat1$removal<0)]<- Dat1$detection[which(Dat1$removal<0)]
+Datt<-Dat1[,c("longitude","latitude","BBTV","leavesinfected","detection","removal")]
 
+Datt<-Dat1[,c("longitude","latitude","BBTV","leavesinfected","detection","removal","location")]
+
+Datt[which(Datt$leavesinfected=="LOTS"),"leavesinfected"]<- 45
+Datt[which(Datt$leavesinfected=="1,2,4"),"leavesinfected"]<- 2.3
+Datt[which(Datt$leavesinfected=="'3"),"leavesinfected"]<- 3
+Datt[which(Datt$leavesinfected=="2 +bunch"),"leavesinfected"]<- 2
+Datt[which(Datt$leavesinfected=="3 +bunch"),"leavesinfected"]<- 3
+Datt[which(Datt$leavesinfected=="4+BUNCH"),"leavesinfected"]<- 4
+Datt[which(Datt$leavesinfected=="avg 3.2"),"leavesinfected"]<- 3.2
+Datt[which(Datt$leavesinfected=="1-6, avg 3.5"),"leavesinfected"]<- 3.5
+Datt[which(Datt$leavesinfected=="all"),"leavesinfected"]<- 45
+
+
+leav=sapply(Datt[,"leavesinfected"],function(x){
+  gsub("all/","",x)
+})
+
+  leav=sapply(leav,function(x){
+    gsub("/all","",x)
+  })
+
+  leav[grepl("[+]",leav)]<- 45  # Assuming 45 leaves on a plant
+
+  Datt$leavesinfected<- leav
+
+Datt=Datt[with(Datt,order(Datt$detection)),]
 # Australian reference system
 sp::coordinates(Datt) <- c("longitude", "latitude")
-  sp::proj4string(Datt) <- sp::CRS("+init=epsg:4326")
-  australianCRS <- sp::CRS("+init=epsg:3577")
+sp::proj4string(Datt) <- sp::CRS("+init=epsg:4326")
+australianCRS <- sp::CRS("+init=epsg:3577")
 
-  pointsinaustraliangrid = sp::spTransform(Datt,australianCRS)
+pointsinaustraliangrid = sp::spTransform(Datt,australianCRS)
 
-#Raster
-  rast <- raster::raster()
-    raster::extent(rast) <- raster::extent(pointsinaustraliangrid) # Set same extent
+# Raster
+rast <- raster::raster()
+raster::extent(rast) <- raster::extent(pointsinaustraliangrid) # Set same extent
 
-    raster::res(rast)=5000 #Set resolution
+raster::res(rast)=5000 # Set resolution
 
+size<- raster::res(rast)
+# Adding column at the top or bottom of the grid if raster leaves points out
+dif=(raster::xmax(pointsinaustraliangrid)-raster::xmin(pointsinaustraliangrid))/size
+cei= ceiling(dif)
+
+if(cei!=dif){
+  if(raster::xmax(rast)!=raster::xmax(pointsinaustraliangrid)){
+    raster::xmax(rast)<- raster::xmin(rast) + size*cei
+  }
+  if(xmin(rast)!=xmin(pointsinaustraliangrid)){
+    raster::xmin(rast)<- raster::xmax(rast) - size*cei
+  }
+
+}
+
+# Adding row at the top or bottom of the grid if raster leaves points out
+
+dif1=(raster::ymax(pointsinaustraliangrid)-raster::ymin(pointsinaustraliangrid))/size
+cei1= ceiling(dif1)
+
+if(cei1!=dif1){
+  if(raster::ymax(rast)!=raster::ymax(pointsinaustraliangrid)){
+    raster::ymax(rast)<- raster::ymin(rast) + size*cei1
+  }
+  if(raster::ymin(rast)!=raster::ymin(pointsinaustraliangrid)){
+    raster::ymin(rast)<- raster::ymax(rast) - size*cei1
+  }
+
+}
 # And then ... rasterize it! This creates a grid version
 # of your points using the cells of rast,
+
 
     rast2 <- raster::rasterize(pointsinaustraliangrid, rast, 1, fun=sum)
 

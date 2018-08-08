@@ -33,3 +33,10 @@ E_to_I(1,-20,30,10)
 E_to_I(2,-20,30,10)
 E_to_I(3,-20,30,10)
 }
+\references{
+\insertRef{ALL78a}{contactsimulator}
+
+\insertRef{ALL78b}{contactsimulator}
+
+\insertRef{ALL87}{contactsimulator}
+}

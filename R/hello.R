@@ -16,7 +16,8 @@
 hello <- function() {
   print("Hello, world!")
 }
-
+#' @importFrom Rdpack reprompt
+#'
 #' @useDynLib contactsimulator
 #' @importFrom Rcpp sourceCpp
 NULL

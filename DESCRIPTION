@@ -1,7 +1,7 @@
 Package: contactsimulator
 Type: Package
 Title: Contact model simulator
-Version: 0.1.0
+Version: 0.1.1
 Author: Hola Kwame Adrakey
 Maintainer: The package maintainer <ha411@scam.ac.uk>
 Depends: R (>= 2.10)
@@ -14,7 +14,7 @@ License: What license is it under?
 Encoding: UTF-8
 LazyData: true
 RoxygenNote: 6.0.1
-LinkingTo: Rcpp
+LinkingTo: Rcpp,RcppGSL
 Imports: Rcpp,
          geosphere,
          raster,
@@ -22,4 +22,31 @@ Imports: Rcpp,
          sp,
          graphics,
          grDevices,
-         stats
+         stats,
+         Rdpack,
+         inline,
+         RcppGSL,
+         parallel
+RdMacros: Rdpack
+Suggests: knitr,
+    rmarkdown
+VignetteBuilder: knitr
+Collate: 
+    'RcppExports.R'
+    'generics.R'
+    'rsnippet.R'
+    'cppsnippet.R'
+    'contact_fun.R'
+    'builder.R'
+    'contact_class.R'
+    'contact.R'
+    'contact_methods.R'
+    'contact_plot.R'
+    'contactsimulator.R'
+    'control_alternative.R'
+    'control_baseline.R'
+    'hello.R'
+    'nsimulations.R'
+    'simulate.R'
+    'simulation.R'
+    'simulation_control.R'

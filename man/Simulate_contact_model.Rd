@@ -6,16 +6,19 @@
 \usage{
 Simulate_contact_model(param, grid_lines, pop_grid, grid_size = 5000,
   age_level = c(1, 1), age_dist = c(1, 0), m_start = 1, t_max = 118,
-  t_intervention = 365, EI_model = 1)
+  t_intervention = 365, EI_model = 1, kern_model = 4)
 }
 \arguments{
-\item{param}{Indicating a data frame contaning a vector of parameters including:
+\item{param}{Indicating a data frame containing a vector of parameters including:
 \describe{
   \item{epsion}{The primary infection rate. See \code{\link{func_time_beta}}}
-  \item{beta}{Rate of infection. See \code{\link{func_time_beta}}}
-  \item{alpha}{The dispersal kernel parameter.}
+  \item{beta_0}{Baseline or average transmission rate. See \code{\link{func_time_beta}}}
+  \item{beta_1}{Amplitude of the seasonality. See \code{\link{func_time_beta}}}
+  \item{alpha1,alpha2}{The dispersal kernel parameters.}
   \item{mu_lat,var_lat}{mean and variance of the latent period. See \code{\link{E_to_I}} for details.}
-  \item{omega}{Parameter characterising the seasality. See \code{\link{func_time_beta}}}
+  \item{t0}{Time at which the primary source became active}.
+  \item{omega}{Period of the forcing. See \code{\link{func_time_beta}}}
+  \item{gama}{The mean proportion of short range dispersal events.}.
  }}
 
 \item{pop_grid}{Population density of the grid a case resides. This is filled from bottom to top, then left to right.}
@@ -32,6 +35,8 @@ Simulate_contact_model(param, grid_lines, pop_grid, grid_size = 5000,
 \item{t_intervention}{Start of the intervention if any.}
 
 \item{EI_model}{Take integer values to specify the type of model used for the latent period. See \code{\link{E_to_I}}}
+
+\item{kern_model}{Take integer values to specify the type of dispersal kernel used. See \code{\link{Samp_dis}}}
 }
 \value{
 A data frame with components:
@@ -58,15 +63,39 @@ The contact model developped here only consider a short range dispersal kernal a
 \examples{
 data(bbtv)
 attach(bbtv)
-Dat<- bbtv[,c(2:6,8,10)]     # Coonsidering the essential part of the data
-Dat1<-subset(Dat,Dat$latitude> -27.3 & Dat$processedbananas\%in\%c("P&I","P", "NI") )  # data up in queensland (noth of brisbane)
-Dat1$treatmentdate[is.na(Dat1$treatmentdate)]<- Dat1$date[is.na(Dat1$treatmentdate)] # When NA, consider removal date as
-Dat1$detection<-as.numeric(difftime(as.Date(Dat1$date), as.Date("2011/01/01"), unit="days")) + runif(1)
-Dat1$removal<-as.numeric(difftime(as.Date(Dat1$treatmentdate), as.Date("2011/01/01"), unit="days"))
-Datt<-Dat1[,c(3,4,7,8,2)]
-Datt$detection=Datt$detection + runif(nrow(Datt))
-Datt=Datt[with(Datt,order(Datt$detection)),]
+Dat<- bbtv[,c("longitude","latitude","BBTV","inspectiondate","leavesinfected","treatmentdate","location")]
+Dat1<-subset(Dat,Dat$latitude> -27.4698 & Dat$BBTV\%in\%c("P&I","P", "NI") & difftime(as.Date(Dat$inspectiondate), as.Date("2010/01/01"), unit="days")>=0)  # data up in queensland
+Dat1$treatmentdate[is.na(Dat1$treatmentdate)]<- Dat1$inspectiondate[is.na(Dat1$treatmentdate)]
+Dat1$detection<-as.numeric(difftime(as.Date(Dat1$inspectiondate), as.Date("2010/01/01"), unit="days"))
+Dat1$removal<-as.numeric(difftime(as.Date(Dat1$treatmentdate), as.Date("2010/01/01"), unit="days"))
+Dat1$removal[which(Dat1$removal<0)]<- Dat1$detection[which(Dat1$removal<0)]
+Datt<-Dat1[,c("longitude","latitude","BBTV","leavesinfected","detection","removal")]
 
+
+Datt[which(Datt$leavesinfected=="LOTS"),"leavesinfected"]<- 45
+Datt[which(Datt$leavesinfected=="1,2,4"),"leavesinfected"]<- 2.3
+Datt[which(Datt$leavesinfected=="'3"),"leavesinfected"]<- 3
+Datt[which(Datt$leavesinfected=="2 +bunch"),"leavesinfected"]<- 2
+Datt[which(Datt$leavesinfected=="3 +bunch"),"leavesinfected"]<- 3
+Datt[which(Datt$leavesinfected=="4+BUNCH"),"leavesinfected"]<- 4
+Datt[which(Datt$leavesinfected=="avg 3.2"),"leavesinfected"]<- 3.2
+Datt[which(Datt$leavesinfected=="1-6, avg 3.5"),"leavesinfected"]<- 3.5
+Datt[which(Datt$leavesinfected=="all"),"leavesinfected"]<- 45
+
+
+leav=sapply(Datt[,"leavesinfected"],function(x){
+  gsub("all/","",x)
+})
+
+leav=sapply(leav,function(x){
+  gsub("/all","",x)
+})
+
+leav[grepl("[+]",leav)]<- 45  # Assuming 45 leaves on a plant
+
+Datt$leavesinfected<- leav
+
+Datt=Datt[with(Datt,order(Datt$detection)),]
 
 # Australian reference system
 sp::coordinates(Datt) <- c("longitude", "latitude")
@@ -78,6 +107,38 @@ pointsinaustraliangrid = sp::spTransform(Datt,australianCRS)
 # Raster
 rast <- raster::raster()
 raster::extent(rast) <- raster::extent(pointsinaustraliangrid) # Set same extent
+
+raster::res(rast)=5000 # Set resolution
+
+ size<- raster::res(rast)[1]
+dif=(raster::xmax(pointsinaustraliangrid)-raster::xmin(pointsinaustraliangrid))/size
+cei= abs(ceiling(dif))
+
+if(cei!=dif){
+  if(raster::xmax(rast)!=raster::xmax(pointsinaustraliangrid)){
+    raster::xmax(rast)<- raster::xmin(rast) + size*cei
+  }
+  if(raster::xmin(rast)!=raster::xmin(pointsinaustraliangrid)){
+    raster::xmin(rast)<- raster::xmax(rast) - size*cei
+  }
+
+}
+
+# Adding row at the top or bottom of the grid if raster leaves points out
+
+dif1=(raster::ymax(pointsinaustraliangrid)-raster::ymin(pointsinaustraliangrid))/size
+cei1= abs(ceiling(dif1))
+
+
+if(cei1!=dif1){
+  if(raster::ymax(rast)!=raster::ymax(pointsinaustraliangrid)){
+    raster::ymax(rast)<- raster::ymin(rast) + size*cei1
+  }
+  if(raster::ymin(rast)!=raster::ymin(pointsinaustraliangrid)){
+    raster::ymin(rast)<- raster::ymax(rast) - size*cei1
+  }
+
+}
 
 raster::res(rast)=5000 # Set resolution
 
@@ -128,13 +189,17 @@ circle_x=2022230
 circle_y=-3123109
 r=10000
 # Simulation with exponential kernel
-alpha<- 30; beta<- 0.012; epsilon<- 0.02; omega<- 0.12; mu_lat<- 30; var_lat<- 20; t0<- 0; c<- 20;
-param=data.frame(alpha=alpha, beta=beta, epsilon=epsilon, omega=omega, mu_lat=mu_lat, var_lat=var_lat, t0=t0, c=c)
+alpha<- 30; beta<- 0.012; epsilon<- 0.02; omega<- 0.12; mu_lat<- 30; var_lat<- 20; t0<- 0; c<- 20; b1<-0; gama<- 0.5
+param=data.frame(alpha1=alpha, alpha2=alpha, beta=beta, epsilon=epsilon, omega=omega, mu_lat=mu_lat, var_lat=var_lat, t0=t0, c=c, b1=b1, gama=gama)
 
 Simulate_contact_model(param, grid_lines, pop_grid)
 
 detach(bbtv)
 
+}
+\references{
+\insertRef{KR08}{contactsimulator}
+\insertRef{Mee11}{contactsimulator}
 }
 \seealso{
 \code{\link{E_to_I}}, \code{\link{func_time_beta}}.

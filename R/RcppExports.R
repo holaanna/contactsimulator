@@ -13,12 +13,13 @@
 #'          where n(t) is the size of potential sources.
 #'
 #' @return It returns the rate of infection in the non-homogeneous poisson process.
-#'
+#' @references
+#' \insertRef{KR08}{contactsimulator}
 #' @examples
 #' func_time_beta(20,50,0.08,0.2,0.3)
 #' @export
-func_time_beta <- function(t, t_intervention, sum_beta, epsilon, omega) {
-    .Call('_contactsimulator_func_time_beta', PACKAGE = 'contactsimulator', t, t_intervention, sum_beta, epsilon, omega)
+func_time_beta <- function(t, t_intervention, sum_beta, epsilon, omega, beta_1) {
+    .Call('_contactsimulator_func_time_beta', PACKAGE = 'contactsimulator', t, t_intervention, sum_beta, epsilon, omega, beta_1)
 }
 
 #' Simulation of the time of the next event of a non-homogeneous oisson process .
@@ -35,8 +36,8 @@ func_time_beta <- function(t, t_intervention, sum_beta, epsilon, omega) {
 #' @examples
 #'simulate_NHPP_next_event(2,50,0.08,0.2,0.3,300)
 #' @export
-simulate_NHPP_next_event <- function(t_now, t_intervention, sum_beta, epsilon, omega, t_max) {
-    .Call('_contactsimulator_simulate_NHPP_next_event', PACKAGE = 'contactsimulator', t_now, t_intervention, sum_beta, epsilon, omega, t_max)
+simulate_NHPP_next_event <- function(t_now, t_intervention, sum_beta, epsilon, omega, b1, t_max) {
+    .Call('_contactsimulator_simulate_NHPP_next_event', PACKAGE = 'contactsimulator', t_now, t_intervention, sum_beta, epsilon, omega, b1, t_max)
 }
 
 #' Generates a set of intersection points between the cirlce and the grid lines.
@@ -97,31 +98,86 @@ circle_line_intersections <- function(circle_x, circle_y, r, n_line, grid_lines)
 #'
 #' @examples
 #' data(bbtv)
-#'   attach(bbtv)
-#'   Dat<- bbtv[,c(2:6,8,10)]     # Coonsidering the essential part of the data
-#'   Dat1<-subset(Dat,Dat$latitude> -27.3 & Dat$processedbananas%in%c("P&I","P", "NI") )  # data up in queensland (noth of brisbane)
-#'   Dat1$treatmentdate[is.na(Dat1$treatmentdate)]<- Dat1$date[is.na(Dat1$treatmentdate)] # When NA, consider removal date as
-#'   Dat1$detection<-as.numeric(difftime(as.Date(Dat1$date), as.Date("2011/01/01"), unit="days")) + runif(1)
-#'   Dat1$removal<-as.numeric(difftime(as.Date(Dat1$treatmentdate), as.Date("2011/01/01"), unit="days"))
-#'   Datt<-Dat1[,c(3,4,7,8,2)]
-#' Datt$detection=Datt$detection + runif(nrow(Datt))
-#'   Datt=Datt[with(Datt,order(Datt$detection)),]
+#' attach(bbtv)
+#' Dat<- bbtv[,c("longitude","latitude","BBTV","inspectiondate","leavesinfected","treatmentdate","location")]
+#' Dat1<-subset(Dat,Dat$latitude> -27.4698 & Dat$BBTV%in%c("P&I","P", "NI") & difftime(as.Date(Dat$inspectiondate), as.Date("2010/01/01"), unit="days")>=0)  # data up in queensland
+#' Dat1$treatmentdate[is.na(Dat1$treatmentdate)]<- Dat1$inspectiondate[is.na(Dat1$treatmentdate)]
+#' Dat1$detection<-as.numeric(difftime(as.Date(Dat1$inspectiondate), as.Date("2010/01/01"), unit="days"))
+#' Dat1$removal<-as.numeric(difftime(as.Date(Dat1$treatmentdate), as.Date("2010/01/01"), unit="days"))
+#' Dat1$removal[which(Dat1$removal<0)]<- Dat1$detection[which(Dat1$removal<0)]
+#' Datt<-Dat1[,c("longitude","latitude","BBTV","leavesinfected","detection","removal")]
 #'
+#' Datt<-Dat1[,c("longitude","latitude","BBTV","leavesinfected","detection","removal","location")]
+#'
+#' Datt[which(Datt$leavesinfected=="LOTS"),"leavesinfected"]<- 45
+#' Datt[which(Datt$leavesinfected=="1,2,4"),"leavesinfected"]<- 2.3
+#' Datt[which(Datt$leavesinfected=="'3"),"leavesinfected"]<- 3
+#' Datt[which(Datt$leavesinfected=="2 +bunch"),"leavesinfected"]<- 2
+#' Datt[which(Datt$leavesinfected=="3 +bunch"),"leavesinfected"]<- 3
+#' Datt[which(Datt$leavesinfected=="4+BUNCH"),"leavesinfected"]<- 4
+#' Datt[which(Datt$leavesinfected=="avg 3.2"),"leavesinfected"]<- 3.2
+#' Datt[which(Datt$leavesinfected=="1-6, avg 3.5"),"leavesinfected"]<- 3.5
+#' Datt[which(Datt$leavesinfected=="all"),"leavesinfected"]<- 45
+#'
+#'
+#' leav=sapply(Datt[,"leavesinfected"],function(x){
+#'   gsub("all/","",x)
+#' })
+#'
+#'   leav=sapply(leav,function(x){
+#'     gsub("/all","",x)
+#'   })
+#'
+#'   leav[grepl("[+]",leav)]<- 45  # Assuming 45 leaves on a plant
+#'
+#'   Datt$leavesinfected<- leav
+#'
+#' Datt=Datt[with(Datt,order(Datt$detection)),]
 #' # Australian reference system
 #' sp::coordinates(Datt) <- c("longitude", "latitude")
-#'   sp::proj4string(Datt) <- sp::CRS("+init=epsg:4326")
-#'   australianCRS <- sp::CRS("+init=epsg:3577")
+#' sp::proj4string(Datt) <- sp::CRS("+init=epsg:4326")
+#' australianCRS <- sp::CRS("+init=epsg:3577")
 #'
-#'   pointsinaustraliangrid = sp::spTransform(Datt,australianCRS)
+#' pointsinaustraliangrid = sp::spTransform(Datt,australianCRS)
 #'
-#' #Raster
-#'   rast <- raster::raster()
-#'     raster::extent(rast) <- raster::extent(pointsinaustraliangrid) # Set same extent
+#' # Raster
+#' rast <- raster::raster()
+#' raster::extent(rast) <- raster::extent(pointsinaustraliangrid) # Set same extent
 #'
-#'     raster::res(rast)=5000 #Set resolution
+#' raster::res(rast)=5000 # Set resolution
 #'
+#' size<- raster::res(rast)
+#' # Adding column at the top or bottom of the grid if raster leaves points out
+#' dif=(raster::xmax(pointsinaustraliangrid)-raster::xmin(pointsinaustraliangrid))/size
+#' cei= ceiling(dif)
+#'
+#' if(cei!=dif){
+#'   if(raster::xmax(rast)!=raster::xmax(pointsinaustraliangrid)){
+#'     raster::xmax(rast)<- raster::xmin(rast) + size*cei
+#'   }
+#'   if(xmin(rast)!=xmin(pointsinaustraliangrid)){
+#'     raster::xmin(rast)<- raster::xmax(rast) - size*cei
+#'   }
+#'
+#' }
+#'
+#' # Adding row at the top or bottom of the grid if raster leaves points out
+#'
+#' dif1=(raster::ymax(pointsinaustraliangrid)-raster::ymin(pointsinaustraliangrid))/size
+#' cei1= ceiling(dif1)
+#'
+#' if(cei1!=dif1){
+#'   if(raster::ymax(rast)!=raster::ymax(pointsinaustraliangrid)){
+#'     raster::ymax(rast)<- raster::ymin(rast) + size*cei1
+#'   }
+#'   if(raster::ymin(rast)!=raster::ymin(pointsinaustraliangrid)){
+#'     raster::ymin(rast)<- raster::ymax(rast) - size*cei1
+#'   }
+#'
+#' }
 #' # And then ... rasterize it! This creates a grid version
 #' # of your points using the cells of rast,
+#'
 #'
 #'     rast2 <- raster::rasterize(pointsinaustraliangrid, rast, 1, fun=sum)
 #'
@@ -181,6 +237,31 @@ f <- function(x0, E, A) {
     .Call('_contactsimulator_f', PACKAGE = 'contactsimulator', x0, E, A)
 }
 
+g <- function(x0, E, A, B) {
+    .Call('_contactsimulator_g', PACKAGE = 'contactsimulator', x0, E, A, B)
+}
+
+#' Sample from the cyclic latent period using Brent method (Inverse tranform).
+#'
+#'\code{Inv_trans} Generate a random draw from the distribution specified for the latent period.
+#'
+#' @param r The initial value.
+#' @param x_lo A lower bound for the variable.
+#' @param x_hi The upper bound of the variable.
+#' @param t The current time: the exposure time.
+#' @param l A random variable in (0,1)
+#'
+#' @references
+#' \insertRef{DR18}{contactsimulator}
+#' @return It returns a random draw from the latent period given the time of exposure for the cyclic model.
+#'
+#' @examples
+#' Inv_trans(10,0,1000,10,runif(1))
+#' @export
+Inv_trans <- function(r, x_lo, x_hi, t, l) {
+    .Call('_contactsimulator_Inv_trans', PACKAGE = 'contactsimulator', r, x_lo, x_hi, t, l)
+}
+
 #' @export
 BTFinv1 <- function(E, A, t0) {
     .Call('_contactsimulator_BTFinv1', PACKAGE = 'contactsimulator', E, A, t0)
@@ -202,6 +283,12 @@ BTFinv1 <- function(E, A, t0) {
 #' @param mu_lat The mean latent period.
 #' @param var_lat The variance of the latent period for the gamma distribution.
 #'
+#' @references
+#' \insertRef{ALL78a}{contactsimulator}
+#'
+#' \insertRef{ALL78b}{contactsimulator}
+#'
+#' \insertRef{ALL87}{contactsimulator}
 #' @return It returns a random draw from the latent period given the time of exposure.
 #'
 #' @examples
@@ -217,3 +304,61 @@ beta_by_age <- function(age, beta_by_age_vector) {
     .Call('_contactsimulator_beta_by_age', PACKAGE = 'contactsimulator', age, beta_by_age_vector)
 }
 
+#' Sample the distance at which the inoculum will travel.
+#'
+#'\code{Samp_dis} Generate a random draw from the distribution specified for the latent period.
+#'
+#' @param kern_model A given integer characterising the type of distribution for the kernel for both short and long range interaction.
+#' \enumerate{
+#'          \item exponential-exponential
+#'          \item cauchy-cauchy
+#'          \item exponential-cauchy
+#'          \item cauchy
+#'          \item exponential the default
+#'
+#'        }
+#' @param ru. The proportion of not infected hosts in the cell containing the osurce.
+#' @param alpha1 Dispersal scale parameter for the local spread kernel.
+#' @param alpha2 Dispersal scale parameter for the long range interaction.
+#'
+#' @return It returns a random distance the inoculum will travel to.
+#'
+#' @examples
+#' Samp_dis (1,0.5, 0.2, 0.3)
+#' @export
+Samp_dis <- function(kern_model, ru, alpha1, alpha2) {
+    .Call('_contactsimulator_Samp_dis', PACKAGE = 'contactsimulator', kern_model, ru, alpha1, alpha2)
+}
+
+#'
+#'\code{Sub_set} Count the number of observation during a certain period of time.
+#'
+#' @param tr. A vector giving time of events (eg removals) that occur during a time period.
+#' @param time. A sequence of time a which observations were performed/
+#'
+#' @return It returns the number of observation recorded at each time.
+#'
+#' @examples
+#'
+#' time = seq(1,10)
+#' tr = sort(runif(30,0,10))
+#' Sub_set(tr, time)
+#' @export
+Sub_set <- function(tr, time) {
+    .Call('_contactsimulator_Sub_set', PACKAGE = 'contactsimulator', tr, time)
+}
+
+#' @export
+distanc <- function(dat, d) {
+    .Call('_contactsimulator_distanc', PACKAGE = 'contactsimulator', dat, d)
+}
+
+#' @export
+fu <- function(t1, t2, l) {
+    .Call('_contactsimulator_fu', PACKAGE = 'contactsimulator', t1, t2, l)
+}
+
+# Register entry points for exported C++ functions
+methods::setLoadAction(function(ns) {
+    .Call('_contactsimulator_RcppExport_registerCCallable', PACKAGE = 'contactsimulator')
+})

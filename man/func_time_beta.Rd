@@ -4,7 +4,7 @@
 \alias{func_time_beta}
 \title{Functional form of the intensity (beta) as a function of t.}
 \usage{
-func_time_beta(t, t_intervention, sum_beta, epsilon, omega)
+func_time_beta(t, t_intervention, sum_beta, epsilon, omega, beta_1)
 }
 \arguments{
 \item{t, t_intervention}{Time of the contact and the introduction of the control respectively espressed in days.}
@@ -25,4 +25,7 @@ The particular case of transmission rate used here is given by \deqn{\beta(t)= n
 }
 \examples{
 func_time_beta(20,50,0.08,0.2,0.3)
+}
+\references{
+\insertRef{KR08}{contactsimulator}
 }

@@ -4,7 +4,8 @@
 \alias{simulate_NHPP_next_event}
 \title{Simulation of the time of the next event of a non-homogeneous oisson process .}
 \usage{
-simulate_NHPP_next_event(t_now, t_intervention, sum_beta, epsilon, omega, t_max)
+simulate_NHPP_next_event(t_now, t_intervention, sum_beta, epsilon, omega, b1,
+  t_max)
 }
 \arguments{
 \item{t_now, t_intervention, t_max}{current time, the introduction of the control and the final observation time (usually fixed)
