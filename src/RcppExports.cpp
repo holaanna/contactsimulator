@@ -35,6 +35,10 @@ RcppExport SEXP _contactsimulator_func_time_beta(SEXP tSEXP, SEXP t_intervention
         UNPROTECT(1);
         Rf_onintr();
     }
+    bool rcpp_isLongjump_gen = Rcpp::internal::isLongjumpSentinel(rcpp_result_gen);
+    if (rcpp_isLongjump_gen) {
+        Rcpp::internal::resumeJump(rcpp_result_gen);
+    }
     Rboolean rcpp_isError_gen = Rf_inherits(rcpp_result_gen, "try-error");
     if (rcpp_isError_gen) {
         SEXP rcpp_msgSEXP_gen = Rf_asChar(rcpp_result_gen);
@@ -71,6 +75,10 @@ RcppExport SEXP _contactsimulator_simulate_NHPP_next_event(SEXP t_nowSEXP, SEXP 
         UNPROTECT(1);
         Rf_onintr();
     }
+    bool rcpp_isLongjump_gen = Rcpp::internal::isLongjumpSentinel(rcpp_result_gen);
+    if (rcpp_isLongjump_gen) {
+        Rcpp::internal::resumeJump(rcpp_result_gen);
+    }
     Rboolean rcpp_isError_gen = Rf_inherits(rcpp_result_gen, "try-error");
     if (rcpp_isError_gen) {
         SEXP rcpp_msgSEXP_gen = Rf_asChar(rcpp_result_gen);
@@ -104,6 +112,10 @@ RcppExport SEXP _contactsimulator_circle_line_intersections(SEXP circle_xSEXP, S
     if (rcpp_isInterrupt_gen) {
         UNPROTECT(1);
         Rf_onintr();
+    }
+    bool rcpp_isLongjump_gen = Rcpp::internal::isLongjumpSentinel(rcpp_result_gen);
+    if (rcpp_isLongjump_gen) {
+        Rcpp::internal::resumeJump(rcpp_result_gen);
     }
     Rboolean rcpp_isError_gen = Rf_inherits(rcpp_result_gen, "try-error");
     if (rcpp_isError_gen) {
@@ -142,6 +154,10 @@ RcppExport SEXP _contactsimulator_func_arcs_attributes(SEXP set_pointsSEXP, SEXP
         UNPROTECT(1);
         Rf_onintr();
     }
+    bool rcpp_isLongjump_gen = Rcpp::internal::isLongjumpSentinel(rcpp_result_gen);
+    if (rcpp_isLongjump_gen) {
+        Rcpp::internal::resumeJump(rcpp_result_gen);
+    }
     Rboolean rcpp_isError_gen = Rf_inherits(rcpp_result_gen, "try-error");
     if (rcpp_isError_gen) {
         SEXP rcpp_msgSEXP_gen = Rf_asChar(rcpp_result_gen);
@@ -173,6 +189,10 @@ RcppExport SEXP _contactsimulator_f(SEXP x0SEXP, SEXP ESEXP, SEXP ASEXP) {
     if (rcpp_isInterrupt_gen) {
         UNPROTECT(1);
         Rf_onintr();
+    }
+    bool rcpp_isLongjump_gen = Rcpp::internal::isLongjumpSentinel(rcpp_result_gen);
+    if (rcpp_isLongjump_gen) {
+        Rcpp::internal::resumeJump(rcpp_result_gen);
     }
     Rboolean rcpp_isError_gen = Rf_inherits(rcpp_result_gen, "try-error");
     if (rcpp_isError_gen) {
@@ -207,6 +227,271 @@ RcppExport SEXP _contactsimulator_g(SEXP x0SEXP, SEXP ESEXP, SEXP ASEXP, SEXP BS
         UNPROTECT(1);
         Rf_onintr();
     }
+    bool rcpp_isLongjump_gen = Rcpp::internal::isLongjumpSentinel(rcpp_result_gen);
+    if (rcpp_isLongjump_gen) {
+        Rcpp::internal::resumeJump(rcpp_result_gen);
+    }
+    Rboolean rcpp_isError_gen = Rf_inherits(rcpp_result_gen, "try-error");
+    if (rcpp_isError_gen) {
+        SEXP rcpp_msgSEXP_gen = Rf_asChar(rcpp_result_gen);
+        UNPROTECT(1);
+        Rf_error(CHAR(rcpp_msgSEXP_gen));
+    }
+    UNPROTECT(1);
+    return rcpp_result_gen;
+}
+// g1
+double g1(double x0, double I, double A, double B);
+static SEXP _contactsimulator_g1_try(SEXP x0SEXP, SEXP ISEXP, SEXP ASEXP, SEXP BSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::traits::input_parameter< double >::type x0(x0SEXP);
+    Rcpp::traits::input_parameter< double >::type I(ISEXP);
+    Rcpp::traits::input_parameter< double >::type A(ASEXP);
+    Rcpp::traits::input_parameter< double >::type B(BSEXP);
+    rcpp_result_gen = Rcpp::wrap(g1(x0, I, A, B));
+    return rcpp_result_gen;
+END_RCPP_RETURN_ERROR
+}
+RcppExport SEXP _contactsimulator_g1(SEXP x0SEXP, SEXP ISEXP, SEXP ASEXP, SEXP BSEXP) {
+    SEXP rcpp_result_gen;
+    {
+        Rcpp::RNGScope rcpp_rngScope_gen;
+        rcpp_result_gen = PROTECT(_contactsimulator_g1_try(x0SEXP, ISEXP, ASEXP, BSEXP));
+    }
+    Rboolean rcpp_isInterrupt_gen = Rf_inherits(rcpp_result_gen, "interrupted-error");
+    if (rcpp_isInterrupt_gen) {
+        UNPROTECT(1);
+        Rf_onintr();
+    }
+    bool rcpp_isLongjump_gen = Rcpp::internal::isLongjumpSentinel(rcpp_result_gen);
+    if (rcpp_isLongjump_gen) {
+        Rcpp::internal::resumeJump(rcpp_result_gen);
+    }
+    Rboolean rcpp_isError_gen = Rf_inherits(rcpp_result_gen, "try-error");
+    if (rcpp_isError_gen) {
+        SEXP rcpp_msgSEXP_gen = Rf_asChar(rcpp_result_gen);
+        UNPROTECT(1);
+        Rf_error(CHAR(rcpp_msgSEXP_gen));
+    }
+    UNPROTECT(1);
+    return rcpp_result_gen;
+}
+// h
+double h(double x0, double E, double a, double b);
+static SEXP _contactsimulator_h_try(SEXP x0SEXP, SEXP ESEXP, SEXP aSEXP, SEXP bSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::traits::input_parameter< double >::type x0(x0SEXP);
+    Rcpp::traits::input_parameter< double >::type E(ESEXP);
+    Rcpp::traits::input_parameter< double >::type a(aSEXP);
+    Rcpp::traits::input_parameter< double >::type b(bSEXP);
+    rcpp_result_gen = Rcpp::wrap(h(x0, E, a, b));
+    return rcpp_result_gen;
+END_RCPP_RETURN_ERROR
+}
+RcppExport SEXP _contactsimulator_h(SEXP x0SEXP, SEXP ESEXP, SEXP aSEXP, SEXP bSEXP) {
+    SEXP rcpp_result_gen;
+    {
+        Rcpp::RNGScope rcpp_rngScope_gen;
+        rcpp_result_gen = PROTECT(_contactsimulator_h_try(x0SEXP, ESEXP, aSEXP, bSEXP));
+    }
+    Rboolean rcpp_isInterrupt_gen = Rf_inherits(rcpp_result_gen, "interrupted-error");
+    if (rcpp_isInterrupt_gen) {
+        UNPROTECT(1);
+        Rf_onintr();
+    }
+    bool rcpp_isLongjump_gen = Rcpp::internal::isLongjumpSentinel(rcpp_result_gen);
+    if (rcpp_isLongjump_gen) {
+        Rcpp::internal::resumeJump(rcpp_result_gen);
+    }
+    Rboolean rcpp_isError_gen = Rf_inherits(rcpp_result_gen, "try-error");
+    if (rcpp_isError_gen) {
+        SEXP rcpp_msgSEXP_gen = Rf_asChar(rcpp_result_gen);
+        UNPROTECT(1);
+        Rf_error(CHAR(rcpp_msgSEXP_gen));
+    }
+    UNPROTECT(1);
+    return rcpp_result_gen;
+}
+// h1
+double h1(double x0, double I, double a, double b);
+static SEXP _contactsimulator_h1_try(SEXP x0SEXP, SEXP ISEXP, SEXP aSEXP, SEXP bSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::traits::input_parameter< double >::type x0(x0SEXP);
+    Rcpp::traits::input_parameter< double >::type I(ISEXP);
+    Rcpp::traits::input_parameter< double >::type a(aSEXP);
+    Rcpp::traits::input_parameter< double >::type b(bSEXP);
+    rcpp_result_gen = Rcpp::wrap(h1(x0, I, a, b));
+    return rcpp_result_gen;
+END_RCPP_RETURN_ERROR
+}
+RcppExport SEXP _contactsimulator_h1(SEXP x0SEXP, SEXP ISEXP, SEXP aSEXP, SEXP bSEXP) {
+    SEXP rcpp_result_gen;
+    {
+        Rcpp::RNGScope rcpp_rngScope_gen;
+        rcpp_result_gen = PROTECT(_contactsimulator_h1_try(x0SEXP, ISEXP, aSEXP, bSEXP));
+    }
+    Rboolean rcpp_isInterrupt_gen = Rf_inherits(rcpp_result_gen, "interrupted-error");
+    if (rcpp_isInterrupt_gen) {
+        UNPROTECT(1);
+        Rf_onintr();
+    }
+    bool rcpp_isLongjump_gen = Rcpp::internal::isLongjumpSentinel(rcpp_result_gen);
+    if (rcpp_isLongjump_gen) {
+        Rcpp::internal::resumeJump(rcpp_result_gen);
+    }
+    Rboolean rcpp_isError_gen = Rf_inherits(rcpp_result_gen, "try-error");
+    if (rcpp_isError_gen) {
+        SEXP rcpp_msgSEXP_gen = Rf_asChar(rcpp_result_gen);
+        UNPROTECT(1);
+        Rf_error(CHAR(rcpp_msgSEXP_gen));
+    }
+    UNPROTECT(1);
+    return rcpp_result_gen;
+}
+// tau
+double tau(double x0, double E, double a, double b);
+static SEXP _contactsimulator_tau_try(SEXP x0SEXP, SEXP ESEXP, SEXP aSEXP, SEXP bSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::traits::input_parameter< double >::type x0(x0SEXP);
+    Rcpp::traits::input_parameter< double >::type E(ESEXP);
+    Rcpp::traits::input_parameter< double >::type a(aSEXP);
+    Rcpp::traits::input_parameter< double >::type b(bSEXP);
+    rcpp_result_gen = Rcpp::wrap(tau(x0, E, a, b));
+    return rcpp_result_gen;
+END_RCPP_RETURN_ERROR
+}
+RcppExport SEXP _contactsimulator_tau(SEXP x0SEXP, SEXP ESEXP, SEXP aSEXP, SEXP bSEXP) {
+    SEXP rcpp_result_gen;
+    {
+        Rcpp::RNGScope rcpp_rngScope_gen;
+        rcpp_result_gen = PROTECT(_contactsimulator_tau_try(x0SEXP, ESEXP, aSEXP, bSEXP));
+    }
+    Rboolean rcpp_isInterrupt_gen = Rf_inherits(rcpp_result_gen, "interrupted-error");
+    if (rcpp_isInterrupt_gen) {
+        UNPROTECT(1);
+        Rf_onintr();
+    }
+    bool rcpp_isLongjump_gen = Rcpp::internal::isLongjumpSentinel(rcpp_result_gen);
+    if (rcpp_isLongjump_gen) {
+        Rcpp::internal::resumeJump(rcpp_result_gen);
+    }
+    Rboolean rcpp_isError_gen = Rf_inherits(rcpp_result_gen, "try-error");
+    if (rcpp_isError_gen) {
+        SEXP rcpp_msgSEXP_gen = Rf_asChar(rcpp_result_gen);
+        UNPROTECT(1);
+        Rf_error(CHAR(rcpp_msgSEXP_gen));
+    }
+    UNPROTECT(1);
+    return rcpp_result_gen;
+}
+// tau1
+double tau1(double x0, double I, double a, double b);
+static SEXP _contactsimulator_tau1_try(SEXP x0SEXP, SEXP ISEXP, SEXP aSEXP, SEXP bSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::traits::input_parameter< double >::type x0(x0SEXP);
+    Rcpp::traits::input_parameter< double >::type I(ISEXP);
+    Rcpp::traits::input_parameter< double >::type a(aSEXP);
+    Rcpp::traits::input_parameter< double >::type b(bSEXP);
+    rcpp_result_gen = Rcpp::wrap(tau1(x0, I, a, b));
+    return rcpp_result_gen;
+END_RCPP_RETURN_ERROR
+}
+RcppExport SEXP _contactsimulator_tau1(SEXP x0SEXP, SEXP ISEXP, SEXP aSEXP, SEXP bSEXP) {
+    SEXP rcpp_result_gen;
+    {
+        Rcpp::RNGScope rcpp_rngScope_gen;
+        rcpp_result_gen = PROTECT(_contactsimulator_tau1_try(x0SEXP, ISEXP, aSEXP, bSEXP));
+    }
+    Rboolean rcpp_isInterrupt_gen = Rf_inherits(rcpp_result_gen, "interrupted-error");
+    if (rcpp_isInterrupt_gen) {
+        UNPROTECT(1);
+        Rf_onintr();
+    }
+    bool rcpp_isLongjump_gen = Rcpp::internal::isLongjumpSentinel(rcpp_result_gen);
+    if (rcpp_isLongjump_gen) {
+        Rcpp::internal::resumeJump(rcpp_result_gen);
+    }
+    Rboolean rcpp_isError_gen = Rf_inherits(rcpp_result_gen, "try-error");
+    if (rcpp_isError_gen) {
+        SEXP rcpp_msgSEXP_gen = Rf_asChar(rcpp_result_gen);
+        UNPROTECT(1);
+        Rf_error(CHAR(rcpp_msgSEXP_gen));
+    }
+    UNPROTECT(1);
+    return rcpp_result_gen;
+}
+// f1
+double f1(double x0, double E, double a, double b, int n);
+static SEXP _contactsimulator_f1_try(SEXP x0SEXP, SEXP ESEXP, SEXP aSEXP, SEXP bSEXP, SEXP nSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::traits::input_parameter< double >::type x0(x0SEXP);
+    Rcpp::traits::input_parameter< double >::type E(ESEXP);
+    Rcpp::traits::input_parameter< double >::type a(aSEXP);
+    Rcpp::traits::input_parameter< double >::type b(bSEXP);
+    Rcpp::traits::input_parameter< int >::type n(nSEXP);
+    rcpp_result_gen = Rcpp::wrap(f1(x0, E, a, b, n));
+    return rcpp_result_gen;
+END_RCPP_RETURN_ERROR
+}
+RcppExport SEXP _contactsimulator_f1(SEXP x0SEXP, SEXP ESEXP, SEXP aSEXP, SEXP bSEXP, SEXP nSEXP) {
+    SEXP rcpp_result_gen;
+    {
+        Rcpp::RNGScope rcpp_rngScope_gen;
+        rcpp_result_gen = PROTECT(_contactsimulator_f1_try(x0SEXP, ESEXP, aSEXP, bSEXP, nSEXP));
+    }
+    Rboolean rcpp_isInterrupt_gen = Rf_inherits(rcpp_result_gen, "interrupted-error");
+    if (rcpp_isInterrupt_gen) {
+        UNPROTECT(1);
+        Rf_onintr();
+    }
+    bool rcpp_isLongjump_gen = Rcpp::internal::isLongjumpSentinel(rcpp_result_gen);
+    if (rcpp_isLongjump_gen) {
+        Rcpp::internal::resumeJump(rcpp_result_gen);
+    }
+    Rboolean rcpp_isError_gen = Rf_inherits(rcpp_result_gen, "try-error");
+    if (rcpp_isError_gen) {
+        SEXP rcpp_msgSEXP_gen = Rf_asChar(rcpp_result_gen);
+        UNPROTECT(1);
+        Rf_error(CHAR(rcpp_msgSEXP_gen));
+    }
+    UNPROTECT(1);
+    return rcpp_result_gen;
+}
+// f2
+double f2(double x0, double I, double a, double b, int n);
+static SEXP _contactsimulator_f2_try(SEXP x0SEXP, SEXP ISEXP, SEXP aSEXP, SEXP bSEXP, SEXP nSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::traits::input_parameter< double >::type x0(x0SEXP);
+    Rcpp::traits::input_parameter< double >::type I(ISEXP);
+    Rcpp::traits::input_parameter< double >::type a(aSEXP);
+    Rcpp::traits::input_parameter< double >::type b(bSEXP);
+    Rcpp::traits::input_parameter< int >::type n(nSEXP);
+    rcpp_result_gen = Rcpp::wrap(f2(x0, I, a, b, n));
+    return rcpp_result_gen;
+END_RCPP_RETURN_ERROR
+}
+RcppExport SEXP _contactsimulator_f2(SEXP x0SEXP, SEXP ISEXP, SEXP aSEXP, SEXP bSEXP, SEXP nSEXP) {
+    SEXP rcpp_result_gen;
+    {
+        Rcpp::RNGScope rcpp_rngScope_gen;
+        rcpp_result_gen = PROTECT(_contactsimulator_f2_try(x0SEXP, ISEXP, aSEXP, bSEXP, nSEXP));
+    }
+    Rboolean rcpp_isInterrupt_gen = Rf_inherits(rcpp_result_gen, "interrupted-error");
+    if (rcpp_isInterrupt_gen) {
+        UNPROTECT(1);
+        Rf_onintr();
+    }
+    bool rcpp_isLongjump_gen = Rcpp::internal::isLongjumpSentinel(rcpp_result_gen);
+    if (rcpp_isLongjump_gen) {
+        Rcpp::internal::resumeJump(rcpp_result_gen);
+    }
     Rboolean rcpp_isError_gen = Rf_inherits(rcpp_result_gen, "try-error");
     if (rcpp_isError_gen) {
         SEXP rcpp_msgSEXP_gen = Rf_asChar(rcpp_result_gen);
@@ -217,8 +502,8 @@ RcppExport SEXP _contactsimulator_g(SEXP x0SEXP, SEXP ESEXP, SEXP ASEXP, SEXP BS
     return rcpp_result_gen;
 }
 // Inv_trans
-double Inv_trans(double& r, double x_lo, double x_hi, double t, double l);
-static SEXP _contactsimulator_Inv_trans_try(SEXP rSEXP, SEXP x_loSEXP, SEXP x_hiSEXP, SEXP tSEXP, SEXP lSEXP) {
+double Inv_trans(double& r, double x_lo, double x_hi, double t, double l, double b, double a);
+static SEXP _contactsimulator_Inv_trans_try(SEXP rSEXP, SEXP x_loSEXP, SEXP x_hiSEXP, SEXP tSEXP, SEXP lSEXP, SEXP bSEXP, SEXP aSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::traits::input_parameter< double& >::type r(rSEXP);
@@ -226,20 +511,26 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< double >::type x_hi(x_hiSEXP);
     Rcpp::traits::input_parameter< double >::type t(tSEXP);
     Rcpp::traits::input_parameter< double >::type l(lSEXP);
-    rcpp_result_gen = Rcpp::wrap(Inv_trans(r, x_lo, x_hi, t, l));
+    Rcpp::traits::input_parameter< double >::type b(bSEXP);
+    Rcpp::traits::input_parameter< double >::type a(aSEXP);
+    rcpp_result_gen = Rcpp::wrap(Inv_trans(r, x_lo, x_hi, t, l, b, a));
     return rcpp_result_gen;
 END_RCPP_RETURN_ERROR
 }
-RcppExport SEXP _contactsimulator_Inv_trans(SEXP rSEXP, SEXP x_loSEXP, SEXP x_hiSEXP, SEXP tSEXP, SEXP lSEXP) {
+RcppExport SEXP _contactsimulator_Inv_trans(SEXP rSEXP, SEXP x_loSEXP, SEXP x_hiSEXP, SEXP tSEXP, SEXP lSEXP, SEXP bSEXP, SEXP aSEXP) {
     SEXP rcpp_result_gen;
     {
         Rcpp::RNGScope rcpp_rngScope_gen;
-        rcpp_result_gen = PROTECT(_contactsimulator_Inv_trans_try(rSEXP, x_loSEXP, x_hiSEXP, tSEXP, lSEXP));
+        rcpp_result_gen = PROTECT(_contactsimulator_Inv_trans_try(rSEXP, x_loSEXP, x_hiSEXP, tSEXP, lSEXP, bSEXP, aSEXP));
     }
     Rboolean rcpp_isInterrupt_gen = Rf_inherits(rcpp_result_gen, "interrupted-error");
     if (rcpp_isInterrupt_gen) {
         UNPROTECT(1);
         Rf_onintr();
+    }
+    bool rcpp_isLongjump_gen = Rcpp::internal::isLongjumpSentinel(rcpp_result_gen);
+    if (rcpp_isLongjump_gen) {
+        Rcpp::internal::resumeJump(rcpp_result_gen);
     }
     Rboolean rcpp_isError_gen = Rf_inherits(rcpp_result_gen, "try-error");
     if (rcpp_isError_gen) {
@@ -272,6 +563,160 @@ RcppExport SEXP _contactsimulator_BTFinv1(SEXP ESEXP, SEXP ASEXP, SEXP t0SEXP) {
     if (rcpp_isInterrupt_gen) {
         UNPROTECT(1);
         Rf_onintr();
+    }
+    bool rcpp_isLongjump_gen = Rcpp::internal::isLongjumpSentinel(rcpp_result_gen);
+    if (rcpp_isLongjump_gen) {
+        Rcpp::internal::resumeJump(rcpp_result_gen);
+    }
+    Rboolean rcpp_isError_gen = Rf_inherits(rcpp_result_gen, "try-error");
+    if (rcpp_isError_gen) {
+        SEXP rcpp_msgSEXP_gen = Rf_asChar(rcpp_result_gen);
+        UNPROTECT(1);
+        Rf_error(CHAR(rcpp_msgSEXP_gen));
+    }
+    UNPROTECT(1);
+    return rcpp_result_gen;
+}
+// BTFinv3
+NumericVector BTFinv3(double E, double a, double b, int n);
+static SEXP _contactsimulator_BTFinv3_try(SEXP ESEXP, SEXP aSEXP, SEXP bSEXP, SEXP nSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::traits::input_parameter< double >::type E(ESEXP);
+    Rcpp::traits::input_parameter< double >::type a(aSEXP);
+    Rcpp::traits::input_parameter< double >::type b(bSEXP);
+    Rcpp::traits::input_parameter< int >::type n(nSEXP);
+    rcpp_result_gen = Rcpp::wrap(BTFinv3(E, a, b, n));
+    return rcpp_result_gen;
+END_RCPP_RETURN_ERROR
+}
+RcppExport SEXP _contactsimulator_BTFinv3(SEXP ESEXP, SEXP aSEXP, SEXP bSEXP, SEXP nSEXP) {
+    SEXP rcpp_result_gen;
+    {
+        Rcpp::RNGScope rcpp_rngScope_gen;
+        rcpp_result_gen = PROTECT(_contactsimulator_BTFinv3_try(ESEXP, aSEXP, bSEXP, nSEXP));
+    }
+    Rboolean rcpp_isInterrupt_gen = Rf_inherits(rcpp_result_gen, "interrupted-error");
+    if (rcpp_isInterrupt_gen) {
+        UNPROTECT(1);
+        Rf_onintr();
+    }
+    bool rcpp_isLongjump_gen = Rcpp::internal::isLongjumpSentinel(rcpp_result_gen);
+    if (rcpp_isLongjump_gen) {
+        Rcpp::internal::resumeJump(rcpp_result_gen);
+    }
+    Rboolean rcpp_isError_gen = Rf_inherits(rcpp_result_gen, "try-error");
+    if (rcpp_isError_gen) {
+        SEXP rcpp_msgSEXP_gen = Rf_asChar(rcpp_result_gen);
+        UNPROTECT(1);
+        Rf_error(CHAR(rcpp_msgSEXP_gen));
+    }
+    UNPROTECT(1);
+    return rcpp_result_gen;
+}
+// BTFinv4
+NumericVector BTFinv4(double I, double a, double b, int n);
+static SEXP _contactsimulator_BTFinv4_try(SEXP ISEXP, SEXP aSEXP, SEXP bSEXP, SEXP nSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::traits::input_parameter< double >::type I(ISEXP);
+    Rcpp::traits::input_parameter< double >::type a(aSEXP);
+    Rcpp::traits::input_parameter< double >::type b(bSEXP);
+    Rcpp::traits::input_parameter< int >::type n(nSEXP);
+    rcpp_result_gen = Rcpp::wrap(BTFinv4(I, a, b, n));
+    return rcpp_result_gen;
+END_RCPP_RETURN_ERROR
+}
+RcppExport SEXP _contactsimulator_BTFinv4(SEXP ISEXP, SEXP aSEXP, SEXP bSEXP, SEXP nSEXP) {
+    SEXP rcpp_result_gen;
+    {
+        Rcpp::RNGScope rcpp_rngScope_gen;
+        rcpp_result_gen = PROTECT(_contactsimulator_BTFinv4_try(ISEXP, aSEXP, bSEXP, nSEXP));
+    }
+    Rboolean rcpp_isInterrupt_gen = Rf_inherits(rcpp_result_gen, "interrupted-error");
+    if (rcpp_isInterrupt_gen) {
+        UNPROTECT(1);
+        Rf_onintr();
+    }
+    bool rcpp_isLongjump_gen = Rcpp::internal::isLongjumpSentinel(rcpp_result_gen);
+    if (rcpp_isLongjump_gen) {
+        Rcpp::internal::resumeJump(rcpp_result_gen);
+    }
+    Rboolean rcpp_isError_gen = Rf_inherits(rcpp_result_gen, "try-error");
+    if (rcpp_isError_gen) {
+        SEXP rcpp_msgSEXP_gen = Rf_asChar(rcpp_result_gen);
+        UNPROTECT(1);
+        Rf_error(CHAR(rcpp_msgSEXP_gen));
+    }
+    UNPROTECT(1);
+    return rcpp_result_gen;
+}
+// rBTFinv3
+NumericVector rBTFinv3(int EI_model, NumericVector E, double a, double b, int n);
+static SEXP _contactsimulator_rBTFinv3_try(SEXP EI_modelSEXP, SEXP ESEXP, SEXP aSEXP, SEXP bSEXP, SEXP nSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::traits::input_parameter< int >::type EI_model(EI_modelSEXP);
+    Rcpp::traits::input_parameter< NumericVector >::type E(ESEXP);
+    Rcpp::traits::input_parameter< double >::type a(aSEXP);
+    Rcpp::traits::input_parameter< double >::type b(bSEXP);
+    Rcpp::traits::input_parameter< int >::type n(nSEXP);
+    rcpp_result_gen = Rcpp::wrap(rBTFinv3(EI_model, E, a, b, n));
+    return rcpp_result_gen;
+END_RCPP_RETURN_ERROR
+}
+RcppExport SEXP _contactsimulator_rBTFinv3(SEXP EI_modelSEXP, SEXP ESEXP, SEXP aSEXP, SEXP bSEXP, SEXP nSEXP) {
+    SEXP rcpp_result_gen;
+    {
+        Rcpp::RNGScope rcpp_rngScope_gen;
+        rcpp_result_gen = PROTECT(_contactsimulator_rBTFinv3_try(EI_modelSEXP, ESEXP, aSEXP, bSEXP, nSEXP));
+    }
+    Rboolean rcpp_isInterrupt_gen = Rf_inherits(rcpp_result_gen, "interrupted-error");
+    if (rcpp_isInterrupt_gen) {
+        UNPROTECT(1);
+        Rf_onintr();
+    }
+    bool rcpp_isLongjump_gen = Rcpp::internal::isLongjumpSentinel(rcpp_result_gen);
+    if (rcpp_isLongjump_gen) {
+        Rcpp::internal::resumeJump(rcpp_result_gen);
+    }
+    Rboolean rcpp_isError_gen = Rf_inherits(rcpp_result_gen, "try-error");
+    if (rcpp_isError_gen) {
+        SEXP rcpp_msgSEXP_gen = Rf_asChar(rcpp_result_gen);
+        UNPROTECT(1);
+        Rf_error(CHAR(rcpp_msgSEXP_gen));
+    }
+    UNPROTECT(1);
+    return rcpp_result_gen;
+}
+// rBTFinv4
+NumericVector rBTFinv4(int EI_model, NumericVector I, double a, double b, int n);
+static SEXP _contactsimulator_rBTFinv4_try(SEXP EI_modelSEXP, SEXP ISEXP, SEXP aSEXP, SEXP bSEXP, SEXP nSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::traits::input_parameter< int >::type EI_model(EI_modelSEXP);
+    Rcpp::traits::input_parameter< NumericVector >::type I(ISEXP);
+    Rcpp::traits::input_parameter< double >::type a(aSEXP);
+    Rcpp::traits::input_parameter< double >::type b(bSEXP);
+    Rcpp::traits::input_parameter< int >::type n(nSEXP);
+    rcpp_result_gen = Rcpp::wrap(rBTFinv4(EI_model, I, a, b, n));
+    return rcpp_result_gen;
+END_RCPP_RETURN_ERROR
+}
+RcppExport SEXP _contactsimulator_rBTFinv4(SEXP EI_modelSEXP, SEXP ISEXP, SEXP aSEXP, SEXP bSEXP, SEXP nSEXP) {
+    SEXP rcpp_result_gen;
+    {
+        Rcpp::RNGScope rcpp_rngScope_gen;
+        rcpp_result_gen = PROTECT(_contactsimulator_rBTFinv4_try(EI_modelSEXP, ISEXP, aSEXP, bSEXP, nSEXP));
+    }
+    Rboolean rcpp_isInterrupt_gen = Rf_inherits(rcpp_result_gen, "interrupted-error");
+    if (rcpp_isInterrupt_gen) {
+        UNPROTECT(1);
+        Rf_onintr();
+    }
+    bool rcpp_isLongjump_gen = Rcpp::internal::isLongjumpSentinel(rcpp_result_gen);
+    if (rcpp_isLongjump_gen) {
+        Rcpp::internal::resumeJump(rcpp_result_gen);
     }
     Rboolean rcpp_isError_gen = Rf_inherits(rcpp_result_gen, "try-error");
     if (rcpp_isError_gen) {
@@ -306,6 +751,10 @@ RcppExport SEXP _contactsimulator_E_to_I(SEXP EI_modelSEXP, SEXP ESEXP, SEXP mu_
         UNPROTECT(1);
         Rf_onintr();
     }
+    bool rcpp_isLongjump_gen = Rcpp::internal::isLongjumpSentinel(rcpp_result_gen);
+    if (rcpp_isLongjump_gen) {
+        Rcpp::internal::resumeJump(rcpp_result_gen);
+    }
     Rboolean rcpp_isError_gen = Rf_inherits(rcpp_result_gen, "try-error");
     if (rcpp_isError_gen) {
         SEXP rcpp_msgSEXP_gen = Rf_asChar(rcpp_result_gen);
@@ -336,6 +785,10 @@ RcppExport SEXP _contactsimulator_beta_by_age(SEXP ageSEXP, SEXP beta_by_age_vec
     if (rcpp_isInterrupt_gen) {
         UNPROTECT(1);
         Rf_onintr();
+    }
+    bool rcpp_isLongjump_gen = Rcpp::internal::isLongjumpSentinel(rcpp_result_gen);
+    if (rcpp_isLongjump_gen) {
+        Rcpp::internal::resumeJump(rcpp_result_gen);
     }
     Rboolean rcpp_isError_gen = Rf_inherits(rcpp_result_gen, "try-error");
     if (rcpp_isError_gen) {
@@ -370,6 +823,10 @@ RcppExport SEXP _contactsimulator_Samp_dis(SEXP kern_modelSEXP, SEXP ruSEXP, SEX
         UNPROTECT(1);
         Rf_onintr();
     }
+    bool rcpp_isLongjump_gen = Rcpp::internal::isLongjumpSentinel(rcpp_result_gen);
+    if (rcpp_isLongjump_gen) {
+        Rcpp::internal::resumeJump(rcpp_result_gen);
+    }
     Rboolean rcpp_isError_gen = Rf_inherits(rcpp_result_gen, "try-error");
     if (rcpp_isError_gen) {
         SEXP rcpp_msgSEXP_gen = Rf_asChar(rcpp_result_gen);
@@ -401,6 +858,10 @@ RcppExport SEXP _contactsimulator_Sub_set(SEXP trSEXP, SEXP timeSEXP) {
         UNPROTECT(1);
         Rf_onintr();
     }
+    bool rcpp_isLongjump_gen = Rcpp::internal::isLongjumpSentinel(rcpp_result_gen);
+    if (rcpp_isLongjump_gen) {
+        Rcpp::internal::resumeJump(rcpp_result_gen);
+    }
     Rboolean rcpp_isError_gen = Rf_inherits(rcpp_result_gen, "try-error");
     if (rcpp_isError_gen) {
         SEXP rcpp_msgSEXP_gen = Rf_asChar(rcpp_result_gen);
@@ -431,6 +892,10 @@ RcppExport SEXP _contactsimulator_distanc(SEXP datSEXP, SEXP dSEXP) {
     if (rcpp_isInterrupt_gen) {
         UNPROTECT(1);
         Rf_onintr();
+    }
+    bool rcpp_isLongjump_gen = Rcpp::internal::isLongjumpSentinel(rcpp_result_gen);
+    if (rcpp_isLongjump_gen) {
+        Rcpp::internal::resumeJump(rcpp_result_gen);
     }
     Rboolean rcpp_isError_gen = Rf_inherits(rcpp_result_gen, "try-error");
     if (rcpp_isError_gen) {
@@ -464,6 +929,299 @@ RcppExport SEXP _contactsimulator_fu(SEXP t1SEXP, SEXP t2SEXP, SEXP lSEXP) {
         UNPROTECT(1);
         Rf_onintr();
     }
+    bool rcpp_isLongjump_gen = Rcpp::internal::isLongjumpSentinel(rcpp_result_gen);
+    if (rcpp_isLongjump_gen) {
+        Rcpp::internal::resumeJump(rcpp_result_gen);
+    }
+    Rboolean rcpp_isError_gen = Rf_inherits(rcpp_result_gen, "try-error");
+    if (rcpp_isError_gen) {
+        SEXP rcpp_msgSEXP_gen = Rf_asChar(rcpp_result_gen);
+        UNPROTECT(1);
+        Rf_error(CHAR(rcpp_msgSEXP_gen));
+    }
+    UNPROTECT(1);
+    return rcpp_result_gen;
+}
+// which2
+Rcpp::IntegerVector which2(Rcpp::NumericVector x, int t);
+static SEXP _contactsimulator_which2_try(SEXP xSEXP, SEXP tSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::traits::input_parameter< Rcpp::NumericVector >::type x(xSEXP);
+    Rcpp::traits::input_parameter< int >::type t(tSEXP);
+    rcpp_result_gen = Rcpp::wrap(which2(x, t));
+    return rcpp_result_gen;
+END_RCPP_RETURN_ERROR
+}
+RcppExport SEXP _contactsimulator_which2(SEXP xSEXP, SEXP tSEXP) {
+    SEXP rcpp_result_gen;
+    {
+        Rcpp::RNGScope rcpp_rngScope_gen;
+        rcpp_result_gen = PROTECT(_contactsimulator_which2_try(xSEXP, tSEXP));
+    }
+    Rboolean rcpp_isInterrupt_gen = Rf_inherits(rcpp_result_gen, "interrupted-error");
+    if (rcpp_isInterrupt_gen) {
+        UNPROTECT(1);
+        Rf_onintr();
+    }
+    bool rcpp_isLongjump_gen = Rcpp::internal::isLongjumpSentinel(rcpp_result_gen);
+    if (rcpp_isLongjump_gen) {
+        Rcpp::internal::resumeJump(rcpp_result_gen);
+    }
+    Rboolean rcpp_isError_gen = Rf_inherits(rcpp_result_gen, "try-error");
+    if (rcpp_isError_gen) {
+        SEXP rcpp_msgSEXP_gen = Rf_asChar(rcpp_result_gen);
+        UNPROTECT(1);
+        Rf_error(CHAR(rcpp_msgSEXP_gen));
+    }
+    UNPROTECT(1);
+    return rcpp_result_gen;
+}
+// traj
+Rcpp::IntegerVector traj(Rcpp::NumericVector x, NumericVector times);
+static SEXP _contactsimulator_traj_try(SEXP xSEXP, SEXP timesSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::traits::input_parameter< Rcpp::NumericVector >::type x(xSEXP);
+    Rcpp::traits::input_parameter< NumericVector >::type times(timesSEXP);
+    rcpp_result_gen = Rcpp::wrap(traj(x, times));
+    return rcpp_result_gen;
+END_RCPP_RETURN_ERROR
+}
+RcppExport SEXP _contactsimulator_traj(SEXP xSEXP, SEXP timesSEXP) {
+    SEXP rcpp_result_gen;
+    {
+        Rcpp::RNGScope rcpp_rngScope_gen;
+        rcpp_result_gen = PROTECT(_contactsimulator_traj_try(xSEXP, timesSEXP));
+    }
+    Rboolean rcpp_isInterrupt_gen = Rf_inherits(rcpp_result_gen, "interrupted-error");
+    if (rcpp_isInterrupt_gen) {
+        UNPROTECT(1);
+        Rf_onintr();
+    }
+    bool rcpp_isLongjump_gen = Rcpp::internal::isLongjumpSentinel(rcpp_result_gen);
+    if (rcpp_isLongjump_gen) {
+        Rcpp::internal::resumeJump(rcpp_result_gen);
+    }
+    Rboolean rcpp_isError_gen = Rf_inherits(rcpp_result_gen, "try-error");
+    if (rcpp_isError_gen) {
+        SEXP rcpp_msgSEXP_gen = Rf_asChar(rcpp_result_gen);
+        UNPROTECT(1);
+        Rf_error(CHAR(rcpp_msgSEXP_gen));
+    }
+    UNPROTECT(1);
+    return rcpp_result_gen;
+}
+// I_to_R
+double I_to_R(double& r, double x_lo, double x_hi, double t, double l, double b, double a);
+static SEXP _contactsimulator_I_to_R_try(SEXP rSEXP, SEXP x_loSEXP, SEXP x_hiSEXP, SEXP tSEXP, SEXP lSEXP, SEXP bSEXP, SEXP aSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::traits::input_parameter< double& >::type r(rSEXP);
+    Rcpp::traits::input_parameter< double >::type x_lo(x_loSEXP);
+    Rcpp::traits::input_parameter< double >::type x_hi(x_hiSEXP);
+    Rcpp::traits::input_parameter< double >::type t(tSEXP);
+    Rcpp::traits::input_parameter< double >::type l(lSEXP);
+    Rcpp::traits::input_parameter< double >::type b(bSEXP);
+    Rcpp::traits::input_parameter< double >::type a(aSEXP);
+    rcpp_result_gen = Rcpp::wrap(I_to_R(r, x_lo, x_hi, t, l, b, a));
+    return rcpp_result_gen;
+END_RCPP_RETURN_ERROR
+}
+RcppExport SEXP _contactsimulator_I_to_R(SEXP rSEXP, SEXP x_loSEXP, SEXP x_hiSEXP, SEXP tSEXP, SEXP lSEXP, SEXP bSEXP, SEXP aSEXP) {
+    SEXP rcpp_result_gen;
+    {
+        Rcpp::RNGScope rcpp_rngScope_gen;
+        rcpp_result_gen = PROTECT(_contactsimulator_I_to_R_try(rSEXP, x_loSEXP, x_hiSEXP, tSEXP, lSEXP, bSEXP, aSEXP));
+    }
+    Rboolean rcpp_isInterrupt_gen = Rf_inherits(rcpp_result_gen, "interrupted-error");
+    if (rcpp_isInterrupt_gen) {
+        UNPROTECT(1);
+        Rf_onintr();
+    }
+    bool rcpp_isLongjump_gen = Rcpp::internal::isLongjumpSentinel(rcpp_result_gen);
+    if (rcpp_isLongjump_gen) {
+        Rcpp::internal::resumeJump(rcpp_result_gen);
+    }
+    Rboolean rcpp_isError_gen = Rf_inherits(rcpp_result_gen, "try-error");
+    if (rcpp_isError_gen) {
+        SEXP rcpp_msgSEXP_gen = Rf_asChar(rcpp_result_gen);
+        UNPROTECT(1);
+        Rf_error(CHAR(rcpp_msgSEXP_gen));
+    }
+    UNPROTECT(1);
+    return rcpp_result_gen;
+}
+// r_IR
+NumericVector r_IR(int n, double I, double a, double b);
+static SEXP _contactsimulator_r_IR_try(SEXP nSEXP, SEXP ISEXP, SEXP aSEXP, SEXP bSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::traits::input_parameter< int >::type n(nSEXP);
+    Rcpp::traits::input_parameter< double >::type I(ISEXP);
+    Rcpp::traits::input_parameter< double >::type a(aSEXP);
+    Rcpp::traits::input_parameter< double >::type b(bSEXP);
+    rcpp_result_gen = Rcpp::wrap(r_IR(n, I, a, b));
+    return rcpp_result_gen;
+END_RCPP_RETURN_ERROR
+}
+RcppExport SEXP _contactsimulator_r_IR(SEXP nSEXP, SEXP ISEXP, SEXP aSEXP, SEXP bSEXP) {
+    SEXP rcpp_result_gen;
+    {
+        Rcpp::RNGScope rcpp_rngScope_gen;
+        rcpp_result_gen = PROTECT(_contactsimulator_r_IR_try(nSEXP, ISEXP, aSEXP, bSEXP));
+    }
+    Rboolean rcpp_isInterrupt_gen = Rf_inherits(rcpp_result_gen, "interrupted-error");
+    if (rcpp_isInterrupt_gen) {
+        UNPROTECT(1);
+        Rf_onintr();
+    }
+    bool rcpp_isLongjump_gen = Rcpp::internal::isLongjumpSentinel(rcpp_result_gen);
+    if (rcpp_isLongjump_gen) {
+        Rcpp::internal::resumeJump(rcpp_result_gen);
+    }
+    Rboolean rcpp_isError_gen = Rf_inherits(rcpp_result_gen, "try-error");
+    if (rcpp_isError_gen) {
+        SEXP rcpp_msgSEXP_gen = Rf_asChar(rcpp_result_gen);
+        UNPROTECT(1);
+        Rf_error(CHAR(rcpp_msgSEXP_gen));
+    }
+    UNPROTECT(1);
+    return rcpp_result_gen;
+}
+// SGcycle
+int SGcycle(double t);
+static SEXP _contactsimulator_SGcycle_try(SEXP tSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::traits::input_parameter< double >::type t(tSEXP);
+    rcpp_result_gen = Rcpp::wrap(SGcycle(t));
+    return rcpp_result_gen;
+END_RCPP_RETURN_ERROR
+}
+RcppExport SEXP _contactsimulator_SGcycle(SEXP tSEXP) {
+    SEXP rcpp_result_gen;
+    {
+        Rcpp::RNGScope rcpp_rngScope_gen;
+        rcpp_result_gen = PROTECT(_contactsimulator_SGcycle_try(tSEXP));
+    }
+    Rboolean rcpp_isInterrupt_gen = Rf_inherits(rcpp_result_gen, "interrupted-error");
+    if (rcpp_isInterrupt_gen) {
+        UNPROTECT(1);
+        Rf_onintr();
+    }
+    bool rcpp_isLongjump_gen = Rcpp::internal::isLongjumpSentinel(rcpp_result_gen);
+    if (rcpp_isLongjump_gen) {
+        Rcpp::internal::resumeJump(rcpp_result_gen);
+    }
+    Rboolean rcpp_isError_gen = Rf_inherits(rcpp_result_gen, "try-error");
+    if (rcpp_isError_gen) {
+        SEXP rcpp_msgSEXP_gen = Rf_asChar(rcpp_result_gen);
+        UNPROTECT(1);
+        Rf_error(CHAR(rcpp_msgSEXP_gen));
+    }
+    UNPROTECT(1);
+    return rcpp_result_gen;
+}
+// func_latent_pdf
+double func_latent_pdf(double ti, double te, double mu_lat, double var_lat, int k);
+static SEXP _contactsimulator_func_latent_pdf_try(SEXP tiSEXP, SEXP teSEXP, SEXP mu_latSEXP, SEXP var_latSEXP, SEXP kSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::traits::input_parameter< double >::type ti(tiSEXP);
+    Rcpp::traits::input_parameter< double >::type te(teSEXP);
+    Rcpp::traits::input_parameter< double >::type mu_lat(mu_latSEXP);
+    Rcpp::traits::input_parameter< double >::type var_lat(var_latSEXP);
+    Rcpp::traits::input_parameter< int >::type k(kSEXP);
+    rcpp_result_gen = Rcpp::wrap(func_latent_pdf(ti, te, mu_lat, var_lat, k));
+    return rcpp_result_gen;
+END_RCPP_RETURN_ERROR
+}
+RcppExport SEXP _contactsimulator_func_latent_pdf(SEXP tiSEXP, SEXP teSEXP, SEXP mu_latSEXP, SEXP var_latSEXP, SEXP kSEXP) {
+    SEXP rcpp_result_gen;
+    {
+        Rcpp::RNGScope rcpp_rngScope_gen;
+        rcpp_result_gen = PROTECT(_contactsimulator_func_latent_pdf_try(tiSEXP, teSEXP, mu_latSEXP, var_latSEXP, kSEXP));
+    }
+    Rboolean rcpp_isInterrupt_gen = Rf_inherits(rcpp_result_gen, "interrupted-error");
+    if (rcpp_isInterrupt_gen) {
+        UNPROTECT(1);
+        Rf_onintr();
+    }
+    bool rcpp_isLongjump_gen = Rcpp::internal::isLongjumpSentinel(rcpp_result_gen);
+    if (rcpp_isLongjump_gen) {
+        Rcpp::internal::resumeJump(rcpp_result_gen);
+    }
+    Rboolean rcpp_isError_gen = Rf_inherits(rcpp_result_gen, "try-error");
+    if (rcpp_isError_gen) {
+        SEXP rcpp_msgSEXP_gen = Rf_asChar(rcpp_result_gen);
+        UNPROTECT(1);
+        Rf_error(CHAR(rcpp_msgSEXP_gen));
+    }
+    UNPROTECT(1);
+    return rcpp_result_gen;
+}
+// norma_cons
+double norma_cons(const double& beta, const double& d);
+static SEXP _contactsimulator_norma_cons_try(SEXP betaSEXP, SEXP dSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::traits::input_parameter< const double& >::type beta(betaSEXP);
+    Rcpp::traits::input_parameter< const double& >::type d(dSEXP);
+    rcpp_result_gen = Rcpp::wrap(norma_cons(beta, d));
+    return rcpp_result_gen;
+END_RCPP_RETURN_ERROR
+}
+RcppExport SEXP _contactsimulator_norma_cons(SEXP betaSEXP, SEXP dSEXP) {
+    SEXP rcpp_result_gen;
+    {
+        Rcpp::RNGScope rcpp_rngScope_gen;
+        rcpp_result_gen = PROTECT(_contactsimulator_norma_cons_try(betaSEXP, dSEXP));
+    }
+    Rboolean rcpp_isInterrupt_gen = Rf_inherits(rcpp_result_gen, "interrupted-error");
+    if (rcpp_isInterrupt_gen) {
+        UNPROTECT(1);
+        Rf_onintr();
+    }
+    bool rcpp_isLongjump_gen = Rcpp::internal::isLongjumpSentinel(rcpp_result_gen);
+    if (rcpp_isLongjump_gen) {
+        Rcpp::internal::resumeJump(rcpp_result_gen);
+    }
+    Rboolean rcpp_isError_gen = Rf_inherits(rcpp_result_gen, "try-error");
+    if (rcpp_isError_gen) {
+        SEXP rcpp_msgSEXP_gen = Rf_asChar(rcpp_result_gen);
+        UNPROTECT(1);
+        Rf_error(CHAR(rcpp_msgSEXP_gen));
+    }
+    UNPROTECT(1);
+    return rcpp_result_gen;
+}
+// integral_forc
+double integral_forc(double a, double b);
+static SEXP _contactsimulator_integral_forc_try(SEXP aSEXP, SEXP bSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::traits::input_parameter< double >::type a(aSEXP);
+    Rcpp::traits::input_parameter< double >::type b(bSEXP);
+    rcpp_result_gen = Rcpp::wrap(integral_forc(a, b));
+    return rcpp_result_gen;
+END_RCPP_RETURN_ERROR
+}
+RcppExport SEXP _contactsimulator_integral_forc(SEXP aSEXP, SEXP bSEXP) {
+    SEXP rcpp_result_gen;
+    {
+        Rcpp::RNGScope rcpp_rngScope_gen;
+        rcpp_result_gen = PROTECT(_contactsimulator_integral_forc_try(aSEXP, bSEXP));
+    }
+    Rboolean rcpp_isInterrupt_gen = Rf_inherits(rcpp_result_gen, "interrupted-error");
+    if (rcpp_isInterrupt_gen) {
+        UNPROTECT(1);
+        Rf_onintr();
+    }
+    bool rcpp_isLongjump_gen = Rcpp::internal::isLongjumpSentinel(rcpp_result_gen);
+    if (rcpp_isLongjump_gen) {
+        Rcpp::internal::resumeJump(rcpp_result_gen);
+    }
     Rboolean rcpp_isError_gen = Rf_inherits(rcpp_result_gen, "try-error");
     if (rcpp_isError_gen) {
         SEXP rcpp_msgSEXP_gen = Rf_asChar(rcpp_result_gen);
@@ -484,14 +1242,33 @@ static int _contactsimulator_RcppExport_validate(const char* sig) {
         signatures.insert("DataFrame(*func_arcs_attributes)(DataFrame,NumericMatrix&,double,double,double,double,double,double)");
         signatures.insert("double(*f)(double,double,double)");
         signatures.insert("double(*g)(double,double,double,double)");
-        signatures.insert("double(*Inv_trans)(double&,double,double,double,double)");
+        signatures.insert("double(*g1)(double,double,double,double)");
+        signatures.insert("double(*h)(double,double,double,double)");
+        signatures.insert("double(*h1)(double,double,double,double)");
+        signatures.insert("double(*tau)(double,double,double,double)");
+        signatures.insert("double(*tau1)(double,double,double,double)");
+        signatures.insert("double(*f1)(double,double,double,double,int)");
+        signatures.insert("double(*f2)(double,double,double,double,int)");
+        signatures.insert("double(*Inv_trans)(double&,double,double,double,double,double,double)");
         signatures.insert("NumericVector(*BTFinv1)(double,double,double)");
+        signatures.insert("NumericVector(*BTFinv3)(double,double,double,int)");
+        signatures.insert("NumericVector(*BTFinv4)(double,double,double,int)");
+        signatures.insert("NumericVector(*rBTFinv3)(int,NumericVector,double,double,int)");
+        signatures.insert("NumericVector(*rBTFinv4)(int,NumericVector,double,double,int)");
         signatures.insert("double(*E_to_I)(int,double,double,double)");
         signatures.insert("double(*beta_by_age)(int,NumericVector)");
         signatures.insert("double(*Samp_dis)(int,double,double,double)");
         signatures.insert("NumericVector(*Sub_set)(NumericVector,NumericVector)");
         signatures.insert("NumericVector(*distanc)(NumericMatrix,NumericVector)");
         signatures.insert("double(*fu)(double,double,double)");
+        signatures.insert("Rcpp::IntegerVector(*which2)(Rcpp::NumericVector,int)");
+        signatures.insert("Rcpp::IntegerVector(*traj)(Rcpp::NumericVector,NumericVector)");
+        signatures.insert("double(*I_to_R)(double&,double,double,double,double,double,double)");
+        signatures.insert("NumericVector(*r_IR)(int,double,double,double)");
+        signatures.insert("int(*SGcycle)(double)");
+        signatures.insert("double(*func_latent_pdf)(double,double,double,double,int)");
+        signatures.insert("double(*norma_cons)(const double&,const double&)");
+        signatures.insert("double(*integral_forc)(double,double)");
     }
     return signatures.find(sig) != signatures.end();
 }
@@ -504,14 +1281,33 @@ RcppExport SEXP _contactsimulator_RcppExport_registerCCallable() {
     R_RegisterCCallable("contactsimulator", "_contactsimulator_func_arcs_attributes", (DL_FUNC)_contactsimulator_func_arcs_attributes_try);
     R_RegisterCCallable("contactsimulator", "_contactsimulator_f", (DL_FUNC)_contactsimulator_f_try);
     R_RegisterCCallable("contactsimulator", "_contactsimulator_g", (DL_FUNC)_contactsimulator_g_try);
+    R_RegisterCCallable("contactsimulator", "_contactsimulator_g1", (DL_FUNC)_contactsimulator_g1_try);
+    R_RegisterCCallable("contactsimulator", "_contactsimulator_h", (DL_FUNC)_contactsimulator_h_try);
+    R_RegisterCCallable("contactsimulator", "_contactsimulator_h1", (DL_FUNC)_contactsimulator_h1_try);
+    R_RegisterCCallable("contactsimulator", "_contactsimulator_tau", (DL_FUNC)_contactsimulator_tau_try);
+    R_RegisterCCallable("contactsimulator", "_contactsimulator_tau1", (DL_FUNC)_contactsimulator_tau1_try);
+    R_RegisterCCallable("contactsimulator", "_contactsimulator_f1", (DL_FUNC)_contactsimulator_f1_try);
+    R_RegisterCCallable("contactsimulator", "_contactsimulator_f2", (DL_FUNC)_contactsimulator_f2_try);
     R_RegisterCCallable("contactsimulator", "_contactsimulator_Inv_trans", (DL_FUNC)_contactsimulator_Inv_trans_try);
     R_RegisterCCallable("contactsimulator", "_contactsimulator_BTFinv1", (DL_FUNC)_contactsimulator_BTFinv1_try);
+    R_RegisterCCallable("contactsimulator", "_contactsimulator_BTFinv3", (DL_FUNC)_contactsimulator_BTFinv3_try);
+    R_RegisterCCallable("contactsimulator", "_contactsimulator_BTFinv4", (DL_FUNC)_contactsimulator_BTFinv4_try);
+    R_RegisterCCallable("contactsimulator", "_contactsimulator_rBTFinv3", (DL_FUNC)_contactsimulator_rBTFinv3_try);
+    R_RegisterCCallable("contactsimulator", "_contactsimulator_rBTFinv4", (DL_FUNC)_contactsimulator_rBTFinv4_try);
     R_RegisterCCallable("contactsimulator", "_contactsimulator_E_to_I", (DL_FUNC)_contactsimulator_E_to_I_try);
     R_RegisterCCallable("contactsimulator", "_contactsimulator_beta_by_age", (DL_FUNC)_contactsimulator_beta_by_age_try);
     R_RegisterCCallable("contactsimulator", "_contactsimulator_Samp_dis", (DL_FUNC)_contactsimulator_Samp_dis_try);
     R_RegisterCCallable("contactsimulator", "_contactsimulator_Sub_set", (DL_FUNC)_contactsimulator_Sub_set_try);
     R_RegisterCCallable("contactsimulator", "_contactsimulator_distanc", (DL_FUNC)_contactsimulator_distanc_try);
     R_RegisterCCallable("contactsimulator", "_contactsimulator_fu", (DL_FUNC)_contactsimulator_fu_try);
+    R_RegisterCCallable("contactsimulator", "_contactsimulator_which2", (DL_FUNC)_contactsimulator_which2_try);
+    R_RegisterCCallable("contactsimulator", "_contactsimulator_traj", (DL_FUNC)_contactsimulator_traj_try);
+    R_RegisterCCallable("contactsimulator", "_contactsimulator_I_to_R", (DL_FUNC)_contactsimulator_I_to_R_try);
+    R_RegisterCCallable("contactsimulator", "_contactsimulator_r_IR", (DL_FUNC)_contactsimulator_r_IR_try);
+    R_RegisterCCallable("contactsimulator", "_contactsimulator_SGcycle", (DL_FUNC)_contactsimulator_SGcycle_try);
+    R_RegisterCCallable("contactsimulator", "_contactsimulator_func_latent_pdf", (DL_FUNC)_contactsimulator_func_latent_pdf_try);
+    R_RegisterCCallable("contactsimulator", "_contactsimulator_norma_cons", (DL_FUNC)_contactsimulator_norma_cons_try);
+    R_RegisterCCallable("contactsimulator", "_contactsimulator_integral_forc", (DL_FUNC)_contactsimulator_integral_forc_try);
     R_RegisterCCallable("contactsimulator", "_contactsimulator_RcppExport_validate", (DL_FUNC)_contactsimulator_RcppExport_validate);
     return R_NilValue;
 }
@@ -523,14 +1319,33 @@ static const R_CallMethodDef CallEntries[] = {
     {"_contactsimulator_func_arcs_attributes", (DL_FUNC) &_contactsimulator_func_arcs_attributes, 8},
     {"_contactsimulator_f", (DL_FUNC) &_contactsimulator_f, 3},
     {"_contactsimulator_g", (DL_FUNC) &_contactsimulator_g, 4},
-    {"_contactsimulator_Inv_trans", (DL_FUNC) &_contactsimulator_Inv_trans, 5},
+    {"_contactsimulator_g1", (DL_FUNC) &_contactsimulator_g1, 4},
+    {"_contactsimulator_h", (DL_FUNC) &_contactsimulator_h, 4},
+    {"_contactsimulator_h1", (DL_FUNC) &_contactsimulator_h1, 4},
+    {"_contactsimulator_tau", (DL_FUNC) &_contactsimulator_tau, 4},
+    {"_contactsimulator_tau1", (DL_FUNC) &_contactsimulator_tau1, 4},
+    {"_contactsimulator_f1", (DL_FUNC) &_contactsimulator_f1, 5},
+    {"_contactsimulator_f2", (DL_FUNC) &_contactsimulator_f2, 5},
+    {"_contactsimulator_Inv_trans", (DL_FUNC) &_contactsimulator_Inv_trans, 7},
     {"_contactsimulator_BTFinv1", (DL_FUNC) &_contactsimulator_BTFinv1, 3},
+    {"_contactsimulator_BTFinv3", (DL_FUNC) &_contactsimulator_BTFinv3, 4},
+    {"_contactsimulator_BTFinv4", (DL_FUNC) &_contactsimulator_BTFinv4, 4},
+    {"_contactsimulator_rBTFinv3", (DL_FUNC) &_contactsimulator_rBTFinv3, 5},
+    {"_contactsimulator_rBTFinv4", (DL_FUNC) &_contactsimulator_rBTFinv4, 5},
     {"_contactsimulator_E_to_I", (DL_FUNC) &_contactsimulator_E_to_I, 4},
     {"_contactsimulator_beta_by_age", (DL_FUNC) &_contactsimulator_beta_by_age, 2},
     {"_contactsimulator_Samp_dis", (DL_FUNC) &_contactsimulator_Samp_dis, 4},
     {"_contactsimulator_Sub_set", (DL_FUNC) &_contactsimulator_Sub_set, 2},
     {"_contactsimulator_distanc", (DL_FUNC) &_contactsimulator_distanc, 2},
     {"_contactsimulator_fu", (DL_FUNC) &_contactsimulator_fu, 3},
+    {"_contactsimulator_which2", (DL_FUNC) &_contactsimulator_which2, 2},
+    {"_contactsimulator_traj", (DL_FUNC) &_contactsimulator_traj, 2},
+    {"_contactsimulator_I_to_R", (DL_FUNC) &_contactsimulator_I_to_R, 7},
+    {"_contactsimulator_r_IR", (DL_FUNC) &_contactsimulator_r_IR, 4},
+    {"_contactsimulator_SGcycle", (DL_FUNC) &_contactsimulator_SGcycle, 1},
+    {"_contactsimulator_func_latent_pdf", (DL_FUNC) &_contactsimulator_func_latent_pdf, 5},
+    {"_contactsimulator_norma_cons", (DL_FUNC) &_contactsimulator_norma_cons, 2},
+    {"_contactsimulator_integral_forc", (DL_FUNC) &_contactsimulator_integral_forc, 2},
     {"_contactsimulator_RcppExport_registerCCallable", (DL_FUNC) &_contactsimulator_RcppExport_registerCCallable, 0},
     {NULL, NULL, 0}
 };

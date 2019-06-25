@@ -27,6 +27,7 @@ using namespace Rcpp;
 #include <gsl/gsl_rng.h>
 #include <gsl/gsl_randist.h>
 #include <gsl/gsl_cdf.h>
+#include <boost/date_time/gregorian/gregorian.hpp>
 
 #define path1 "/Users/sylauadmin/Dropbox/PU/scripts/ebola/contact_model_extension/simulation_inference/cplus_script/" /*the script directory*/
 #define path3 "/Users/sylauadmin/PU/results/ebola/contact_model_extension/output/figures/"      /*as above*/
@@ -51,7 +52,7 @@ using namespace Rcpp;
 //#define DOUBLE_EQ(x,v) (((v - EPSILON) < x) && (x <( v + EPSILON)))
 
 using namespace std;
-
+using namespace boost::gregorian;
 
 struct para_key {
   double alpha,a,b,mu_lat,var_lat,c,d,k_1,k_2,beta,t_0;
@@ -228,6 +229,8 @@ struct quadratic_params
   double t2, l, b1, a1;
 };
 
+
+
 //----
 
 double func_time_beta (const double& ,const double& ,const double& , const double& );
@@ -237,6 +240,10 @@ double func_time_alpha (const double& ,const double& ,const double& , const doub
 double quadratic (double x, void *params);
 double quadratic_deriv (double x, void *params);
 void quadratic_fdf (double x, void *params, double *y, double *dy);
+
+double quadratic1 (double x, void *params);
+double quadratic1_deriv (double x, void *params);
+void quadratic1_fdf (double x, void *params, double *y, double *dy);
 
 //----
 

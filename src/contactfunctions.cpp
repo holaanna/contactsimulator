@@ -24,13 +24,15 @@
 double func_time_beta (const double& t, const double& t_intervention, const double& sum_beta, const double& epsilon,  const double& omega, const double& beta_1){
 
 
-  double beta_t;
+   double beta_t;
   int l=(t<t_intervention);
   switch(l){
   case 1:{
 
-    beta_t =  (sum_beta + epsilon)*(1 + beta_1*cos(omega*(t-15)/365));
-    //cout<<beta<<"\t"<<beta_t<<"\n";
+
+  //beta_t = epsilon/365.0 + (sum_beta)/365.0*(1 + beta_1*cos(omega*(t)));
+  beta_t = (epsilon + sum_beta)/365.0*(1 + beta_1*cos(omega*(t)));
+  //cout<<beta<<"\t"<<beta_t<<"\n";
     break;
   }
 
@@ -40,8 +42,12 @@ double func_time_beta (const double& t, const double& t_intervention, const doub
   }
 
   }
-
   return(beta_t);
+  // if((fmod(t , 365)<=59 & fmod(t,365)>=0) | (fmod(t ,365)<=364 & fmod(t,365)>=304) ) beta_t= 1;
+  // else beta_t= -1;
+  //
+  // return((sum_beta + epsilon)/(((1+beta_1)*120+(1-beta_1)*245)/365)*(1+beta_1*beta_t));
+
 
 }
 
@@ -258,11 +264,11 @@ DataFrame circle_line_intersections(double circle_x, double circle_y, double r, 
   vector <set_points_struct> set_points;
   grid_lines_struct grid_lines1;
 
-    grid_lines1.coor_x_1=grid_lines["coor_x_1"];
-    grid_lines1.coor_y_1=grid_lines["coor_y_1"];
-    grid_lines1.coor_x_2=grid_lines["coor_x_2"];
-    grid_lines1.coor_y_2=grid_lines["coor_y_2"];
-    grid_lines1.orient_line=grid_lines["orient_line"];
+  grid_lines1.coor_x_1=as<std::vector<double> >(grid_lines["coor_x_1"]);
+  grid_lines1.coor_y_1=as<std::vector<double> >(grid_lines["coor_y_1"]);
+  grid_lines1.coor_x_2=as<std::vector<double> >(grid_lines["coor_x_2"]);
+  grid_lines1.coor_y_2=as<std::vector<double> >(grid_lines["coor_y_2"]);
+  grid_lines1.orient_line=as<std::vector<int> >(grid_lines["orient_line"]);
 
     set_points= circle_line_intersections_C(circle_x, circle_y, r, n_line, grid_lines1);
 
@@ -310,8 +316,35 @@ vector<segments_struct> func_segments_attributes (DataFrame& set_points, Numeric
       double y_2= y(0);
       double midpoint_x = (x_1+x_2)/2.0;
       double midpoint_y = (y_1+y_2)/2.0;
+
       int m = ceil((midpoint_y - para_other.y_min)/para_other.grid_size); // at mth row of the grid
       int n = ceil((midpoint_x - para_other.x_min)/para_other.grid_size); // at nth col..
+      //cout<<para_other.y_min<<"\t"<<midpoint_y<<"\n";
+      // if( n_segments==484){
+      //   cout<<para_other.x_min<<"\t"<<midpoint_x<<"\t"<<x_1<<"\t"<<x_2<<"\n";
+      // }
+        if(fmod(midpoint_x - para_other.x_min , para_other.grid_size)==0){
+        //  if(segments[i].theta_abs<M_PI){
+            n=n+1;
+       //   }
+
+        }
+
+        if(fmod(midpoint_y - para_other.y_min, para_other.grid_size)==0){
+          if( n_segments!=2){
+            m=m+1;
+          }
+          if( n_segments==2 & theta[i]>M_PI){
+            //  if(segments[i].theta_abs>M_PI){
+            m=m+1;
+            // }
+          }
+        }
+
+        // if(fmod(midpoint_y , para_other.grid_size)==0){
+        //   n=n+1;
+        // }
+      //}
 
       segments[i].m=m;
       segments[i].n=n;
@@ -351,7 +384,25 @@ vector<segments_struct> func_segments_attributes (DataFrame& set_points, Numeric
       int m = ceil((midpoint_y - para_other.y_min)/para_other.grid_size); // at mth row of the grid
       int n = ceil((midpoint_x - para_other.x_min)/para_other.grid_size); // at nth col..
 
+        if(fmod(midpoint_x - para_other.x_min , para_other.grid_size)==0 & n_segments!=2 & theta[i]<M_PI){
 
+          //if(segments[i].theta_abs>M_PI){
+          n=n+1;
+          //   }
+
+        }
+
+        if(fmod(midpoint_y - para_other.y_min, para_other.grid_size)==0 & theta[i]<M_PI){
+          //  if(segments[i].theta_abs>M_PI){
+          m=m+1;
+          // }
+        }
+
+
+        // if(fmod(midpoint_y , para_other.grid_size)==0){
+        //   n=n+1;
+        // }
+      //}
       int l=(m>para_other.n_row_grid | n>para_other.n_col_grid | m<=0| n<=0);
       switch(l){
       case 1:{
@@ -559,7 +610,7 @@ DataFrame func_arcs_attributes(DataFrame set_points, NumericMatrix& pop_grid, do
  // para_other.n_line = n_line;
  // para_other.total_pop_of_grid = pop_grid;
   para_other.x_min = x_min;
-  para_other.y_max =y_min;
+  para_other.y_min =y_min;
 
   //set_points= circle_line_intersections(circle_x, circle_y, r, n_line, grid_lines);  // Intersection points with angles
   //Rcout<<r<<"\n";
@@ -611,7 +662,67 @@ double g(double x0, double E,double A, double B){
   return (rat*exp(-A*(d+1/c1*sin(c1*(x0+c-15)) + x0)));
 }
 
+// [[Rcpp::export]]
+double g1(double x0, double I,double A, double B){
+  double x, a, b, c, d, rat;
+  double c1=2*M_PI/365;
+  c=I-x0;
+  a=A;
+  b=A/c1;
+  d=-1/c1*sin(c1*(c-15));
+  rat=A*(1 + B*cos(c1*(I-15)) );
+  return (rat*exp(-A*(d+1/c1*sin(c1*(I-15)) + x0)));
+}
 
+//' @export
+// [[Rcpp::export]]
+double h(double x0, double E,double a, double b){
+  double c1=2*M_PI/365;
+  return (a*(1+b*cos(c1*(E+x0))));
+}
+
+//' @export
+// [[Rcpp::export]]
+double h1(double x0, double I,double a, double b){
+  double c1=2*M_PI/365;
+  return (a*(1+b*cos(c1*(I))));
+}
+
+//' @export
+// [[Rcpp::export]]
+double tau(double x0, double E,double a, double b){
+  double c1=2*M_PI/365;
+  return (a*(x0+b/c1*(sin(c1*(x0+E-15))-sin(c1*(E-15)))));
+}
+
+//' @export
+// [[Rcpp::export]]
+double tau1(double x0, double I,double a, double b){
+  double c1=2*M_PI/365;
+  return (a*(x0+b/c1*(sin(c1*(I-15))-sin(c1*(I-x0-15)))));
+}
+
+//' @export
+// [[Rcpp::export]]
+double f1(double x0, double E,double a, double b, int n){
+  double A=h(x0,E,a,b);
+  double B=tau(x0,E,a,b);
+  int gama;
+  if (n==0) gama = 1;
+  if (n>0)  gama = tgamma(n);
+  return (1.0/gama*A*pow(B,n-1)*exp(-B));
+}
+
+//' @export
+// [[Rcpp::export]]
+double f2(double x0, double I,double a, double b, int n){
+  double A=h1(x0,I,a,b);
+  double B=tau1(x0,I,a,b);
+  int gama;
+  if (n==0) gama = 1;
+  if (n>0)  gama = tgamma(n);
+  return (1.0/gama*A*pow(B,n-1)*exp(-B));
+}
 /*======================================================================================================================================
 Cyclic latent period using the leaves emergence rate (LER) and brent method
 ======================================================================================================================================*/
@@ -625,53 +736,16 @@ double
 
     double t2 = p->t2;
     double l = p->l;
-
-    double b=0.062;
-    double a =0.9032258;
+    double b = p->b1;
+    double a = p->a1;
+    // double b=0.062;
+    // double a =0.9032258;
     //a=b;
 
     double c=2*M_PI/365.0;
     //b=0.08;
 
-    return b*((x) + a/c*(sin(c*(t2+x-15)) - sin(c*(t2-15)))) + log(-l*(exp(-2.99)-exp(-3.01))+exp(-2.99));
-  }
-
-double
-  quadratic_deriv (double x, void *params)
-  {
-    struct quadratic_params *p
-    = (struct quadratic_params *) params;
-
-    double t2 = p->t2;
-    double b=0.062;
-    double a =0.9354839;
-    //a=b;
-
-    double c=2*M_PI/365.0;
-
-
-    return b*(1 + a*cos(c*(t2+x-15)));
-  }
-
-void
-  quadratic_fdf (double x, void *params,
-                 double *y, double *dy)
-  {
-    struct quadratic_params *p
-    = (struct quadratic_params *) params;
-
-    double t2 = p->t2;
-    double l = p->l;
-
-    double b=0.062;
-    double a =0.9354839;
-    //a=b;
-
-    double c=2*M_PI/365.0;
-
-
-    *y = b*((x) + a/c*(sin(c*(t2+x-15)) - sin(c*(t2-15)))) + log(-l*(exp(-2.99)-exp(-3.01))+exp(-2.99));
-    *dy = b*(1 + a*cos(c*(t2+x-15)));
+    return b*((x) + a/c*(sin(c*(t2+x-15)) - sin(c*(t2-15)))) + log(-l*(exp(-2.99)-exp(-3.01))+ exp(-2.99));
   }
 
 // Solving equation with Brent-method
@@ -694,7 +768,7 @@ void
 //' Inv_trans(10,0,1000,10,runif(1))
 //' @export
 // [[Rcpp::export]]
-double Inv_trans(double &r, double x_lo, double x_hi, double t, double l){
+double Inv_trans(double &r, double x_lo, double x_hi, double t, double l,double b,double a){
   int status;
   int iter = 0, max_iter = 1000;
   const gsl_root_fsolver_type *T;
@@ -702,7 +776,7 @@ double Inv_trans(double &r, double x_lo, double x_hi, double t, double l){
   double r_expected = sqrt (5.0);
   //double x_lo = -500.0, x_hi = 20.0;
   gsl_function F;
-  struct quadratic_params params = {t,l};
+  struct quadratic_params params = {t,l,b,a};
 
   F.function = &quadratic;
   F.params = &params;
@@ -779,7 +853,164 @@ NumericVector BTFinv2 (double E, double A, double B, double t0)
   return (par);
 }
 
+//' @export
+// [[Rcpp::export]]
+NumericVector BTFinv3 (double E, double a, double b, int n)
+{
+  if(E<=0) E = ceil(abs(E)/365.0)*365 + E;
+  double t0=E;
+  double q, x, pacc;
+  NumericVector par(1000);
+  par[0]=t0;
+  for( int i=1;i<1000;i++){
+    q=3*Rcpp::rnorm(2,0,1)[0];
+    x=par[i-1]*exp(q);
+    pacc=f1(x,E,a,b,n)/f1(par[i-1],E,a,b,n)*exp(q);
+    if(pacc>Rcpp::runif(2,0,1)[0]){
+      par[i]=x;
+    }
+    else{
+      par[i]=par[i-1];
+    }
+  }
 
+
+
+  return (par);
+}
+
+//' @export
+// [[Rcpp::export]]
+NumericVector BTFinv4 (double I, double a, double b, int n)
+{
+  if(I<=0) I = 365 + I;
+  double t0=I;
+  double q, x, pacc;
+  NumericVector par(1000);
+  par[0]=t0;
+  for( int i=1;i<1000;i++){
+    q=3*Rcpp::rnorm(2,0,1)[0];
+    x=par[i-1]*exp(q);
+    pacc=f2(x,I,a,b,n)/f2(par[i-1],I,a,b,n)*exp(q);
+    if(pacc>Rcpp::runif(2,0,1)[0]){
+      par[i]=x;
+    }
+    else{
+      par[i]=par[i-1];
+    }
+  }
+
+
+
+  return (par);
+}
+
+
+//' Sample the period it takes for n leaf to emerge.
+//'
+//'\code{rBTFinv3} Generate a random draw from the distribution of leaf emergence.
+//'
+//' @param EI_model A given integer characterising the type pf distribution for the latent period.
+//' \enumerate{
+//'          \item Cyclic distribution using the LER (leaf emergence rate) derived by R Allen \url{http://www.publish.csiro.au/ar/pdf/ar9780535}:
+//'          \deqn{\frac{dL}{dt}=0.056cos(t-15) + 0.062}
+//'          \item Gamma distribution with given rate and shape parameters: \code{\link{rgamma}}
+//'          \item Expoential distribution with given rate: \code{\link{rexp}}, the default.
+//'
+//'        }
+//' @param E A vector of time at which the period it will take for n leaf to emerge is computed.
+//' @param a The baseline LER in the absence of seasonality.
+//' @param b The amplitude of the seasonality.
+//' @param n The number of leaf to emerge.
+//'
+//' @return It returns a random period of time n leaf will emerge given E.
+//'
+//' @examples
+//' rBTFinv3(1,c(0,10,100),0.062,0.85,3)
+
+//' @export
+// [[Rcpp::export]]
+NumericVector rBTFinv3 (int EI_model, NumericVector E, double a, double b, int n){
+
+  int ll=E.length();
+  NumericVector samp(E.length());
+  switch (EI_model) {
+
+  case 1:
+
+    double ru;
+    int k;
+    for(int i=0; i<E.length(); i++){
+      ru=runif(1,0,1)[0];
+      k=ru*500;
+      samp[i]= BTFinv3(E[i],a,b,n)[450+k];
+    }
+    break;
+
+  case 2:
+    // a=mu_lat*mu_lat/var_lat;
+    // b=var_lat/mu_lat;
+    samp=Rcpp::rgamma(ll,a*a/b,b/a);
+    break;
+
+  default:
+    samp=Rcpp::rexp(ll,1/a);
+
+  }
+
+  return(samp);
+}
+
+
+
+//' Sample the period it took for n leaf to emerge.
+//'
+//'\code{rBTFinv4} Generate a random draw from the distribution of leaf emergence knowing the ti.
+//'
+//' @inheritParams rBTFinv4
+//' @param I A vector of time at which the period it took for n leaf to emerge is computed.
+//' @return It returns a random period of time n leaf will emerge given E.
+//'
+//' @examples
+//' rBTFinv3(1,c(0,10,100),0.062,0.85,3)
+//' @export
+// [[Rcpp::export]]
+NumericVector rBTFinv4 (int EI_model, NumericVector I, double a, double b, int n){
+
+  int ll=I.length();
+  NumericVector samp(I.length());
+  switch (EI_model) {
+
+  case 1:
+
+    double ru;
+    int k;
+    for(int i=0; i<I.length(); i++){
+      ru=runif(1,0,1)[0];
+      k=ru*500;
+      if(n==0){
+        samp[i]= 0;
+      }
+      else{
+        samp[i]= BTFinv4(I[i],a,b,n)[450+k];
+      }
+
+    }
+    break;
+
+  case 2:
+    // a=mu_lat*mu_lat/var_lat;
+    // b=var_lat/mu_lat;
+    samp=Rcpp::rgamma(ll,a*a/b,b/a);
+    break;
+
+  default:
+    samp=Rcpp::rexp(ll,1/a);
+
+  }
+
+  return(samp);
+}
 /*======================================================================================================================================
                             Latent period depending on the distribution used
  ======================================================================================================================================*/
@@ -821,16 +1052,17 @@ double E_to_I (int EI_model, double E, double mu_lat, double var_lat)
 
   case 1:
     ru=runif(1,0,1)[0];
-    k=ru*500;
-    mu_lat=0.056;
-    dt=Inv_trans(E,0,10000,E,ru);
+    //k=ru*500;
+    // mu_lat=0.062;
+    // var_lat=0.93;
+    dt=Inv_trans(E,0,10000,E,ru,mu_lat,var_lat);
     //dt=BTFinv2(E,mu_lat,var_lat,10.0)[k+450];
     break;
 
   case 2:
     a=mu_lat*mu_lat/var_lat;
     b=var_lat/mu_lat;
-    dt=Rcpp::rgamma(1,a,1/b)[0];
+    dt=Rcpp::rgamma(1,a,b)[0];
     break;
 
   default:
@@ -975,3 +1207,243 @@ double  c=2*M_PI/365;
   return(a*(t2-t1) + b*(sin(c*(t2-15)) - sin(c*(t1-15)))-l);
 }
 
+/*--------------------------------------------------------------------------------------------
+                   Equivalence of which
+ --------------------------------------------------------------------------------------------*/
+//' @export
+// [[Rcpp::export]]
+Rcpp::IntegerVector which2(Rcpp::NumericVector x, int t) {
+  Rcpp::IntegerVector v = Rcpp::seq(0, x.size()-1);
+  return v[x<=t];
+}
+
+/*--------------------------------------------------------------------------------------------
+               Trjaectory
+ --------------------------------------------------------------------------------------------*/
+//' @export
+// [[Rcpp::export]]
+Rcpp::IntegerVector traj(Rcpp::NumericVector x, NumericVector times) {
+  Rcpp::IntegerVector v = Rcpp::seq(0, x.size()-1);
+  Rcpp::IntegerVector siz(times.size());
+  int sm=0;
+  for(int i=0; i<times.size();i++){
+    IntegerVector vec= which2(x,times[i]);
+    if(i==0){
+      siz[i]=  vec.size();
+      sm=sm + siz[i];
+    }
+    else{
+      siz[i]=  vec.size()-sm;
+      sm=sm + siz[i];
+    }
+
+  }
+  return siz;
+}
+
+
+/*======================================================================================================================================
+ Cyclic latent period using the leaves emergence rate (LER) and brent method
+======================================================================================================================================*/
+
+//Solve the inverse transform of the EI using the LER
+double
+  quadratic1 (double x, void *params)
+  {
+    struct quadratic_params *p
+    = (struct quadratic_params *) params;
+
+    double t2 = p->t2;
+    double l = p->l;
+    double b = p->b1;
+    double a = p->a1;
+    // double b=0.062;
+    // double a =0.9032258;
+    //a=b;
+
+    double c=2*M_PI/365.0;
+    //b=0.08;
+
+    //return b*((x) + a/c*(sin(c*(t2+x-15)) - sin(c*(t2-15)))) + log(-l*(exp(-1))+ exp(-1));
+   // return b*((x) + a/c*(sin(c*(t2+x-15)) - sin(c*(t2-15)))) -3 + log(1-l);
+   return b*((x) + a/c*(sin(c*(t2+x-15)) - sin(c*(t2-15)))) + log(1-l);
+  }
+
+
+
+
+// Solving equation with Brent-method
+// [[Rcpp::depends(RcppGSL)]]
+//' Sample from the cyclic removal period using Brent method (Inverse tranform).
+//'
+//'\code{I_to_R} Generate a random draw from the distribution specified for the latent period.
+//'
+//' @param r The initial value.
+//' @param x_lo A lower bound for the variable.
+//' @param x_hi The upper bound of the variable.
+//' @param t The current time: the infection time.
+//' @param l A random variable in (0,1)
+//'
+//' @references
+//' \insertRef{DR18}{contactsimulator}
+//' @return It returns a random draw from the removal period given the time of infection for the cyclic model.
+//'
+//' @examples
+//' I_to_R(10,0,1000,10,runif(1),0.062,0.93)
+//' @export
+// [[Rcpp::export]]
+double I_to_R(double &r, double x_lo, double x_hi, double t, double l,double b,double a){
+  int status;
+  int iter = 0, max_iter = 1000;
+  const gsl_root_fsolver_type *T;
+  gsl_root_fsolver *s;
+  double r_expected = sqrt (5.0);
+  //double x_lo = -500.0, x_hi = 20.0;
+  gsl_function F;
+  struct quadratic_params params = {t,l,b,a};
+
+  F.function = &quadratic1;
+  F.params = &params;
+
+  T = gsl_root_fsolver_brent;
+  s = gsl_root_fsolver_alloc (T);
+  gsl_root_fsolver_set (s, &F, x_lo, x_hi);
+
+  do
+  {
+    iter++;
+    status = gsl_root_fsolver_iterate (s);
+    r = gsl_root_fsolver_root (s);
+    x_lo = gsl_root_fsolver_x_lower (s);
+    x_hi = gsl_root_fsolver_x_upper (s);
+    status = gsl_root_test_interval (x_lo, x_hi,
+                                     0, 0.001);
+  }
+  while (status == GSL_CONTINUE && iter < max_iter);
+
+  gsl_root_fsolver_free (s);
+
+  return r;
+}
+
+
+// Sampling from the cyclic removal period
+//' Random draw from the cyclic removal period using Brent method (Inverse tranform).
+//'
+//'\code{r_IR} Generate a random draw from the distribution specified for the latent period.
+//'
+//' @param n The sample size
+//' @param I The time at which host become infectious, or strictly speaking the infection time.
+//' @param a The baseline or the average infectious period.
+//' @param b The amplitude of the removal period.
+//' @return It returns n random draws from the removal period given the time of infection for the cyclic model.
+//'
+//' @examples
+//' r_IR(10,10,0.062,0.93)
+//' @export
+// [[Rcpp::export]]
+NumericVector r_IR(int n, double I, double a, double b){
+  NumericVector sim(n);
+  for(int i=0; i<n; i++){
+    sim[i]=I_to_R(I,0,10000,I,R::runif(0,1),a,b);
+  }
+  return(sim);
+}
+
+// [[Rcpp::depends(BH)]]
+//' @export
+// [[Rcpp::export]]
+int SGcycle(double t)
+{
+  int itime;
+  itime=0;
+  date_period dp(date(2011,Jan,01),days(t));
+  boost::gregorian::month_iterator it = dp.begin();
+  while (*it < dp.end())
+  {
+    ++it;
+    itime=itime+1;
+  }
+  return (itime-1);
+}
+
+
+
+// [[Rcpp::depends(BH)]]
+//' @export
+// [[Rcpp::export]]
+ double func_latent_pdf(double ti, double te , double mu_lat, double var_lat, int k){
+  //cout<<ti<<"\t"<<te<<"\n";
+  long double func_lat_pdf;
+  double a_lat, b_lat;
+  double c1=2*M_PI/365;
+  switch(k){
+  case 1:  // exponential
+    a_lat = mu_lat; // when use exponential latent
+    func_lat_pdf = gsl_ran_exponential_pdf(ti-te, a_lat);
+
+
+    break;
+
+  case 2:   // Gamma
+    a_lat = mu_lat*mu_lat/var_lat; // when use GAMMA latent
+    b_lat = var_lat/mu_lat;
+    func_lat_pdf = gsl_ran_gamma_pdf(ti-te, a_lat, b_lat);
+    break;
+  default:  // cyclic
+    double h=mu_lat*(1+var_lat*cos(c1*(ti-15)));
+  double f=mu_lat*(ti-te - var_lat/c1*(sin(c1*(ti-15))-sin(c1*(te-15))));
+  func_lat_pdf=1/2.0*h*f*f*exp(-f);
+
+  }
+
+  return(func_lat_pdf);
+}
+
+
+
+//' @export
+// [[Rcpp::export]]
+double norma_cons(const double& beta, const double& d){
+  return(beta/(((1+d)*120+(1-d)*245)/365));
+}
+
+//Compute the integral on the cycle part.
+//' @export
+// [[Rcpp::export]]
+double integral_forc(double a, double b){
+  double result;
+  int ss=(a>59) + (a>=304);
+  int ss1=(b>59) + (b>=304);
+  switch(ss){
+  case 0:{
+    switch(ss1){
+    case 0:{
+    result=(b-a);
+     }
+    case 1:{
+    result=(59-a) -(b-59);
+    }
+    case 2:{
+    result=(59-a) -245 +(b-304);
+    }
+    }
+
+  }
+  case 1:{
+    switch(ss1){
+  case 1:{
+    result=-(b-a);
+  }
+  case 2:{
+    result=-(304-a) +(b-304);
+  }
+  }
+  }
+  case 2:{
+    result=(b-a);
+  }
+  }
+  //}
+  return(result);
+}
