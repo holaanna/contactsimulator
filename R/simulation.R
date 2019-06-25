@@ -233,7 +233,7 @@ Simulate_contact_model<- function(param, grid_lines, pop_grid, grid_size=5000, a
   # index_coor_y <- stats::runif(m_start,min_coor_y,max_coor_y)
   dt<- stats::rexp(1)/epsilon    # Sellke
 
-  index_t_e <- rep(t0,m_start) # all assumed to infected at time=t0
+  index_t_e <- rep(t0+dt,m_start) # all assumed to infected at time=t0
 
   # Latent period depending on the model
 
@@ -340,7 +340,9 @@ Simulate_contact_model<- function(param, grid_lines, pop_grid, grid_size=5000, a
     # ru <- .47
     m_1=n_1=1000
     pop_grid_before = pop_grid
+
     while(x_new<min_coor_x | x_new>max_coor_x | y_new<min_coor_y | y_new>max_coor_y ){
+      # show(c(x_new,y_new,min_coor_x,max_coor_x,min_coor_y,max_coor_y,source))
       pop_grid = pop_grid_before
       if (source!=9999){
       # show(kern_model)
@@ -349,11 +351,16 @@ Simulate_contact_model<- function(param, grid_lines, pop_grid, grid_size=5000, a
       # show(alpha2)
 
         r <- abs(Samp_dis (kern_model,ru, alpha1, alpha2))
+if((length(x_intervals)==2) & length(x_intervals)==2){
+  n_set_points <- 0
+}
+else{
+  set_points <- circle_line_intersections (circle_x=simulated_epi$coor_x[source+1],circle_y=simulated_epi$coor_y[source+1], r,  n_line=n_line, grid_lines=grid_lines)
 
-        set_points <- circle_line_intersections (circle_x=simulated_epi$coor_x[source+1],circle_y=simulated_epi$coor_y[source+1], r,  n_line=n_line, grid_lines=grid_lines)
+  n_set_points <-  nrow(set_points)
 
-        n_set_points = nrow(set_points)
-        #print(c(r,n_set_points))
+}
+                #print(c(r,n_set_points))
         if (n_set_points>=1) {
           # show(set_points)
           # show(source)
@@ -432,7 +439,7 @@ Simulate_contact_model<- function(param, grid_lines, pop_grid, grid_size=5000, a
 
           x_new <- simulated_epi$coor_x[source+1] + r*cos(theta_from_y_eq_0) # the coor_x of the new infection
           y_new <- simulated_epi$coor_y[source+1] + r*sin(theta_from_y_eq_0) # the coor_x of the new infection
-
+# show(c(x_new,y_new,r,theta_from_y_eq_0,simulated_epi$coor_x[source+1],simulated_epi$coor_y[source+1]))
           n=ceiling((x_new-min_coor_x)/grid_size)
           m=ceiling((y_new-min_coor_y)/grid_size)
           m_1 = m
@@ -449,11 +456,14 @@ Simulate_contact_model<- function(param, grid_lines, pop_grid, grid_size=5000, a
         #print(pop_grid)
         k_grid <- sample(1:length(as.numeric(pop_grid)),size=1, prob=as.numeric(pop_grid))
         m_grid <- k_grid%%nrow(pop_grid) # the mth row of the grids
+
         if(m_grid==0) m_grid <- nrow(pop_grid)
         n_grid <- ceiling(k_grid/nrow(pop_grid))  # nth column ..
+        # show(x_intervals)
+        # show(y_intervals)
         x_new <- stats::runif(1,min=x_intervals[n_grid],max=x_intervals[n_grid+1]) # random lands at a point in the grid selected
         y_new <- stats::runif(1,min=y_intervals[m_grid],max=y_intervals[m_grid+1])
-
+        # show(c(x_new,y_new))
         n=n_grid
         m=m_grid
         m_1 = m

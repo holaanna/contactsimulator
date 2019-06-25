@@ -1,0 +1,22 @@
+{
+    "collab_server" : "",
+    "contents" : "",
+    "created" : 1533844736276.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "0",
+    "id" : "5A23FB8A",
+    "lastKnownWriteTime" : 1534353469,
+    "last_content_update" : 1534353469,
+    "path" : "~/Dropbox/package/contactsimulator/src/contactfunctions.cpp",
+    "project_path" : "src/contactfunctions.cpp",
+    "properties" : {
+        "cursorPosition" : "265,0",
+        "scrollLine" : "253"
+    },
+    "relative_order" : 2,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "cpp"
+}

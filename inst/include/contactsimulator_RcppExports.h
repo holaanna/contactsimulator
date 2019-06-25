@@ -39,8 +39,10 @@ namespace contactsimulator {
         }
         if (rcpp_result_gen.inherits("interrupted-error"))
             throw Rcpp::internal::InterruptedException();
+        if (Rcpp::internal::isLongjumpSentinel(rcpp_result_gen))
+            throw Rcpp::LongjumpException(rcpp_result_gen);
         if (rcpp_result_gen.inherits("try-error"))
-            throw Rcpp::exception(as<std::string>(rcpp_result_gen).c_str());
+            throw Rcpp::exception(Rcpp::as<std::string>(rcpp_result_gen).c_str());
         return Rcpp::as<double >(rcpp_result_gen);
     }
 
@@ -58,8 +60,10 @@ namespace contactsimulator {
         }
         if (rcpp_result_gen.inherits("interrupted-error"))
             throw Rcpp::internal::InterruptedException();
+        if (Rcpp::internal::isLongjumpSentinel(rcpp_result_gen))
+            throw Rcpp::LongjumpException(rcpp_result_gen);
         if (rcpp_result_gen.inherits("try-error"))
-            throw Rcpp::exception(as<std::string>(rcpp_result_gen).c_str());
+            throw Rcpp::exception(Rcpp::as<std::string>(rcpp_result_gen).c_str());
         return Rcpp::as<double >(rcpp_result_gen);
     }
 
@@ -77,8 +81,10 @@ namespace contactsimulator {
         }
         if (rcpp_result_gen.inherits("interrupted-error"))
             throw Rcpp::internal::InterruptedException();
+        if (Rcpp::internal::isLongjumpSentinel(rcpp_result_gen))
+            throw Rcpp::LongjumpException(rcpp_result_gen);
         if (rcpp_result_gen.inherits("try-error"))
-            throw Rcpp::exception(as<std::string>(rcpp_result_gen).c_str());
+            throw Rcpp::exception(Rcpp::as<std::string>(rcpp_result_gen).c_str());
         return Rcpp::as<DataFrame >(rcpp_result_gen);
     }
 
@@ -96,8 +102,10 @@ namespace contactsimulator {
         }
         if (rcpp_result_gen.inherits("interrupted-error"))
             throw Rcpp::internal::InterruptedException();
+        if (Rcpp::internal::isLongjumpSentinel(rcpp_result_gen))
+            throw Rcpp::LongjumpException(rcpp_result_gen);
         if (rcpp_result_gen.inherits("try-error"))
-            throw Rcpp::exception(as<std::string>(rcpp_result_gen).c_str());
+            throw Rcpp::exception(Rcpp::as<std::string>(rcpp_result_gen).c_str());
         return Rcpp::as<DataFrame >(rcpp_result_gen);
     }
 
@@ -115,8 +123,10 @@ namespace contactsimulator {
         }
         if (rcpp_result_gen.inherits("interrupted-error"))
             throw Rcpp::internal::InterruptedException();
+        if (Rcpp::internal::isLongjumpSentinel(rcpp_result_gen))
+            throw Rcpp::LongjumpException(rcpp_result_gen);
         if (rcpp_result_gen.inherits("try-error"))
-            throw Rcpp::exception(as<std::string>(rcpp_result_gen).c_str());
+            throw Rcpp::exception(Rcpp::as<std::string>(rcpp_result_gen).c_str());
         return Rcpp::as<double >(rcpp_result_gen);
     }
 
@@ -134,27 +144,178 @@ namespace contactsimulator {
         }
         if (rcpp_result_gen.inherits("interrupted-error"))
             throw Rcpp::internal::InterruptedException();
+        if (Rcpp::internal::isLongjumpSentinel(rcpp_result_gen))
+            throw Rcpp::LongjumpException(rcpp_result_gen);
         if (rcpp_result_gen.inherits("try-error"))
-            throw Rcpp::exception(as<std::string>(rcpp_result_gen).c_str());
+            throw Rcpp::exception(Rcpp::as<std::string>(rcpp_result_gen).c_str());
         return Rcpp::as<double >(rcpp_result_gen);
     }
 
-    inline double Inv_trans(double& r, double x_lo, double x_hi, double t, double l) {
-        typedef SEXP(*Ptr_Inv_trans)(SEXP,SEXP,SEXP,SEXP,SEXP);
+    inline double g1(double x0, double I, double A, double B) {
+        typedef SEXP(*Ptr_g1)(SEXP,SEXP,SEXP,SEXP);
+        static Ptr_g1 p_g1 = NULL;
+        if (p_g1 == NULL) {
+            validateSignature("double(*g1)(double,double,double,double)");
+            p_g1 = (Ptr_g1)R_GetCCallable("contactsimulator", "_contactsimulator_g1");
+        }
+        RObject rcpp_result_gen;
+        {
+            RNGScope RCPP_rngScope_gen;
+            rcpp_result_gen = p_g1(Shield<SEXP>(Rcpp::wrap(x0)), Shield<SEXP>(Rcpp::wrap(I)), Shield<SEXP>(Rcpp::wrap(A)), Shield<SEXP>(Rcpp::wrap(B)));
+        }
+        if (rcpp_result_gen.inherits("interrupted-error"))
+            throw Rcpp::internal::InterruptedException();
+        if (Rcpp::internal::isLongjumpSentinel(rcpp_result_gen))
+            throw Rcpp::LongjumpException(rcpp_result_gen);
+        if (rcpp_result_gen.inherits("try-error"))
+            throw Rcpp::exception(Rcpp::as<std::string>(rcpp_result_gen).c_str());
+        return Rcpp::as<double >(rcpp_result_gen);
+    }
+
+    inline double h(double x0, double E, double a, double b) {
+        typedef SEXP(*Ptr_h)(SEXP,SEXP,SEXP,SEXP);
+        static Ptr_h p_h = NULL;
+        if (p_h == NULL) {
+            validateSignature("double(*h)(double,double,double,double)");
+            p_h = (Ptr_h)R_GetCCallable("contactsimulator", "_contactsimulator_h");
+        }
+        RObject rcpp_result_gen;
+        {
+            RNGScope RCPP_rngScope_gen;
+            rcpp_result_gen = p_h(Shield<SEXP>(Rcpp::wrap(x0)), Shield<SEXP>(Rcpp::wrap(E)), Shield<SEXP>(Rcpp::wrap(a)), Shield<SEXP>(Rcpp::wrap(b)));
+        }
+        if (rcpp_result_gen.inherits("interrupted-error"))
+            throw Rcpp::internal::InterruptedException();
+        if (Rcpp::internal::isLongjumpSentinel(rcpp_result_gen))
+            throw Rcpp::LongjumpException(rcpp_result_gen);
+        if (rcpp_result_gen.inherits("try-error"))
+            throw Rcpp::exception(Rcpp::as<std::string>(rcpp_result_gen).c_str());
+        return Rcpp::as<double >(rcpp_result_gen);
+    }
+
+    inline double h1(double x0, double I, double a, double b) {
+        typedef SEXP(*Ptr_h1)(SEXP,SEXP,SEXP,SEXP);
+        static Ptr_h1 p_h1 = NULL;
+        if (p_h1 == NULL) {
+            validateSignature("double(*h1)(double,double,double,double)");
+            p_h1 = (Ptr_h1)R_GetCCallable("contactsimulator", "_contactsimulator_h1");
+        }
+        RObject rcpp_result_gen;
+        {
+            RNGScope RCPP_rngScope_gen;
+            rcpp_result_gen = p_h1(Shield<SEXP>(Rcpp::wrap(x0)), Shield<SEXP>(Rcpp::wrap(I)), Shield<SEXP>(Rcpp::wrap(a)), Shield<SEXP>(Rcpp::wrap(b)));
+        }
+        if (rcpp_result_gen.inherits("interrupted-error"))
+            throw Rcpp::internal::InterruptedException();
+        if (Rcpp::internal::isLongjumpSentinel(rcpp_result_gen))
+            throw Rcpp::LongjumpException(rcpp_result_gen);
+        if (rcpp_result_gen.inherits("try-error"))
+            throw Rcpp::exception(Rcpp::as<std::string>(rcpp_result_gen).c_str());
+        return Rcpp::as<double >(rcpp_result_gen);
+    }
+
+    inline double tau(double x0, double E, double a, double b) {
+        typedef SEXP(*Ptr_tau)(SEXP,SEXP,SEXP,SEXP);
+        static Ptr_tau p_tau = NULL;
+        if (p_tau == NULL) {
+            validateSignature("double(*tau)(double,double,double,double)");
+            p_tau = (Ptr_tau)R_GetCCallable("contactsimulator", "_contactsimulator_tau");
+        }
+        RObject rcpp_result_gen;
+        {
+            RNGScope RCPP_rngScope_gen;
+            rcpp_result_gen = p_tau(Shield<SEXP>(Rcpp::wrap(x0)), Shield<SEXP>(Rcpp::wrap(E)), Shield<SEXP>(Rcpp::wrap(a)), Shield<SEXP>(Rcpp::wrap(b)));
+        }
+        if (rcpp_result_gen.inherits("interrupted-error"))
+            throw Rcpp::internal::InterruptedException();
+        if (Rcpp::internal::isLongjumpSentinel(rcpp_result_gen))
+            throw Rcpp::LongjumpException(rcpp_result_gen);
+        if (rcpp_result_gen.inherits("try-error"))
+            throw Rcpp::exception(Rcpp::as<std::string>(rcpp_result_gen).c_str());
+        return Rcpp::as<double >(rcpp_result_gen);
+    }
+
+    inline double tau1(double x0, double I, double a, double b) {
+        typedef SEXP(*Ptr_tau1)(SEXP,SEXP,SEXP,SEXP);
+        static Ptr_tau1 p_tau1 = NULL;
+        if (p_tau1 == NULL) {
+            validateSignature("double(*tau1)(double,double,double,double)");
+            p_tau1 = (Ptr_tau1)R_GetCCallable("contactsimulator", "_contactsimulator_tau1");
+        }
+        RObject rcpp_result_gen;
+        {
+            RNGScope RCPP_rngScope_gen;
+            rcpp_result_gen = p_tau1(Shield<SEXP>(Rcpp::wrap(x0)), Shield<SEXP>(Rcpp::wrap(I)), Shield<SEXP>(Rcpp::wrap(a)), Shield<SEXP>(Rcpp::wrap(b)));
+        }
+        if (rcpp_result_gen.inherits("interrupted-error"))
+            throw Rcpp::internal::InterruptedException();
+        if (Rcpp::internal::isLongjumpSentinel(rcpp_result_gen))
+            throw Rcpp::LongjumpException(rcpp_result_gen);
+        if (rcpp_result_gen.inherits("try-error"))
+            throw Rcpp::exception(Rcpp::as<std::string>(rcpp_result_gen).c_str());
+        return Rcpp::as<double >(rcpp_result_gen);
+    }
+
+    inline double f1(double x0, double E, double a, double b, int n) {
+        typedef SEXP(*Ptr_f1)(SEXP,SEXP,SEXP,SEXP,SEXP);
+        static Ptr_f1 p_f1 = NULL;
+        if (p_f1 == NULL) {
+            validateSignature("double(*f1)(double,double,double,double,int)");
+            p_f1 = (Ptr_f1)R_GetCCallable("contactsimulator", "_contactsimulator_f1");
+        }
+        RObject rcpp_result_gen;
+        {
+            RNGScope RCPP_rngScope_gen;
+            rcpp_result_gen = p_f1(Shield<SEXP>(Rcpp::wrap(x0)), Shield<SEXP>(Rcpp::wrap(E)), Shield<SEXP>(Rcpp::wrap(a)), Shield<SEXP>(Rcpp::wrap(b)), Shield<SEXP>(Rcpp::wrap(n)));
+        }
+        if (rcpp_result_gen.inherits("interrupted-error"))
+            throw Rcpp::internal::InterruptedException();
+        if (Rcpp::internal::isLongjumpSentinel(rcpp_result_gen))
+            throw Rcpp::LongjumpException(rcpp_result_gen);
+        if (rcpp_result_gen.inherits("try-error"))
+            throw Rcpp::exception(Rcpp::as<std::string>(rcpp_result_gen).c_str());
+        return Rcpp::as<double >(rcpp_result_gen);
+    }
+
+    inline double f2(double x0, double I, double a, double b, int n) {
+        typedef SEXP(*Ptr_f2)(SEXP,SEXP,SEXP,SEXP,SEXP);
+        static Ptr_f2 p_f2 = NULL;
+        if (p_f2 == NULL) {
+            validateSignature("double(*f2)(double,double,double,double,int)");
+            p_f2 = (Ptr_f2)R_GetCCallable("contactsimulator", "_contactsimulator_f2");
+        }
+        RObject rcpp_result_gen;
+        {
+            RNGScope RCPP_rngScope_gen;
+            rcpp_result_gen = p_f2(Shield<SEXP>(Rcpp::wrap(x0)), Shield<SEXP>(Rcpp::wrap(I)), Shield<SEXP>(Rcpp::wrap(a)), Shield<SEXP>(Rcpp::wrap(b)), Shield<SEXP>(Rcpp::wrap(n)));
+        }
+        if (rcpp_result_gen.inherits("interrupted-error"))
+            throw Rcpp::internal::InterruptedException();
+        if (Rcpp::internal::isLongjumpSentinel(rcpp_result_gen))
+            throw Rcpp::LongjumpException(rcpp_result_gen);
+        if (rcpp_result_gen.inherits("try-error"))
+            throw Rcpp::exception(Rcpp::as<std::string>(rcpp_result_gen).c_str());
+        return Rcpp::as<double >(rcpp_result_gen);
+    }
+
+    inline double Inv_trans(double& r, double x_lo, double x_hi, double t, double l, double b, double a) {
+        typedef SEXP(*Ptr_Inv_trans)(SEXP,SEXP,SEXP,SEXP,SEXP,SEXP,SEXP);
         static Ptr_Inv_trans p_Inv_trans = NULL;
         if (p_Inv_trans == NULL) {
-            validateSignature("double(*Inv_trans)(double&,double,double,double,double)");
+            validateSignature("double(*Inv_trans)(double&,double,double,double,double,double,double)");
             p_Inv_trans = (Ptr_Inv_trans)R_GetCCallable("contactsimulator", "_contactsimulator_Inv_trans");
         }
         RObject rcpp_result_gen;
         {
             RNGScope RCPP_rngScope_gen;
-            rcpp_result_gen = p_Inv_trans(Shield<SEXP>(Rcpp::wrap(r)), Shield<SEXP>(Rcpp::wrap(x_lo)), Shield<SEXP>(Rcpp::wrap(x_hi)), Shield<SEXP>(Rcpp::wrap(t)), Shield<SEXP>(Rcpp::wrap(l)));
+            rcpp_result_gen = p_Inv_trans(Shield<SEXP>(Rcpp::wrap(r)), Shield<SEXP>(Rcpp::wrap(x_lo)), Shield<SEXP>(Rcpp::wrap(x_hi)), Shield<SEXP>(Rcpp::wrap(t)), Shield<SEXP>(Rcpp::wrap(l)), Shield<SEXP>(Rcpp::wrap(b)), Shield<SEXP>(Rcpp::wrap(a)));
         }
         if (rcpp_result_gen.inherits("interrupted-error"))
             throw Rcpp::internal::InterruptedException();
+        if (Rcpp::internal::isLongjumpSentinel(rcpp_result_gen))
+            throw Rcpp::LongjumpException(rcpp_result_gen);
         if (rcpp_result_gen.inherits("try-error"))
-            throw Rcpp::exception(as<std::string>(rcpp_result_gen).c_str());
+            throw Rcpp::exception(Rcpp::as<std::string>(rcpp_result_gen).c_str());
         return Rcpp::as<double >(rcpp_result_gen);
     }
 
@@ -172,8 +333,94 @@ namespace contactsimulator {
         }
         if (rcpp_result_gen.inherits("interrupted-error"))
             throw Rcpp::internal::InterruptedException();
+        if (Rcpp::internal::isLongjumpSentinel(rcpp_result_gen))
+            throw Rcpp::LongjumpException(rcpp_result_gen);
         if (rcpp_result_gen.inherits("try-error"))
-            throw Rcpp::exception(as<std::string>(rcpp_result_gen).c_str());
+            throw Rcpp::exception(Rcpp::as<std::string>(rcpp_result_gen).c_str());
+        return Rcpp::as<NumericVector >(rcpp_result_gen);
+    }
+
+    inline NumericVector BTFinv3(double E, double a, double b, int n) {
+        typedef SEXP(*Ptr_BTFinv3)(SEXP,SEXP,SEXP,SEXP);
+        static Ptr_BTFinv3 p_BTFinv3 = NULL;
+        if (p_BTFinv3 == NULL) {
+            validateSignature("NumericVector(*BTFinv3)(double,double,double,int)");
+            p_BTFinv3 = (Ptr_BTFinv3)R_GetCCallable("contactsimulator", "_contactsimulator_BTFinv3");
+        }
+        RObject rcpp_result_gen;
+        {
+            RNGScope RCPP_rngScope_gen;
+            rcpp_result_gen = p_BTFinv3(Shield<SEXP>(Rcpp::wrap(E)), Shield<SEXP>(Rcpp::wrap(a)), Shield<SEXP>(Rcpp::wrap(b)), Shield<SEXP>(Rcpp::wrap(n)));
+        }
+        if (rcpp_result_gen.inherits("interrupted-error"))
+            throw Rcpp::internal::InterruptedException();
+        if (Rcpp::internal::isLongjumpSentinel(rcpp_result_gen))
+            throw Rcpp::LongjumpException(rcpp_result_gen);
+        if (rcpp_result_gen.inherits("try-error"))
+            throw Rcpp::exception(Rcpp::as<std::string>(rcpp_result_gen).c_str());
+        return Rcpp::as<NumericVector >(rcpp_result_gen);
+    }
+
+    inline NumericVector BTFinv4(double I, double a, double b, int n) {
+        typedef SEXP(*Ptr_BTFinv4)(SEXP,SEXP,SEXP,SEXP);
+        static Ptr_BTFinv4 p_BTFinv4 = NULL;
+        if (p_BTFinv4 == NULL) {
+            validateSignature("NumericVector(*BTFinv4)(double,double,double,int)");
+            p_BTFinv4 = (Ptr_BTFinv4)R_GetCCallable("contactsimulator", "_contactsimulator_BTFinv4");
+        }
+        RObject rcpp_result_gen;
+        {
+            RNGScope RCPP_rngScope_gen;
+            rcpp_result_gen = p_BTFinv4(Shield<SEXP>(Rcpp::wrap(I)), Shield<SEXP>(Rcpp::wrap(a)), Shield<SEXP>(Rcpp::wrap(b)), Shield<SEXP>(Rcpp::wrap(n)));
+        }
+        if (rcpp_result_gen.inherits("interrupted-error"))
+            throw Rcpp::internal::InterruptedException();
+        if (Rcpp::internal::isLongjumpSentinel(rcpp_result_gen))
+            throw Rcpp::LongjumpException(rcpp_result_gen);
+        if (rcpp_result_gen.inherits("try-error"))
+            throw Rcpp::exception(Rcpp::as<std::string>(rcpp_result_gen).c_str());
+        return Rcpp::as<NumericVector >(rcpp_result_gen);
+    }
+
+    inline NumericVector rBTFinv3(int EI_model, NumericVector E, double a, double b, int n) {
+        typedef SEXP(*Ptr_rBTFinv3)(SEXP,SEXP,SEXP,SEXP,SEXP);
+        static Ptr_rBTFinv3 p_rBTFinv3 = NULL;
+        if (p_rBTFinv3 == NULL) {
+            validateSignature("NumericVector(*rBTFinv3)(int,NumericVector,double,double,int)");
+            p_rBTFinv3 = (Ptr_rBTFinv3)R_GetCCallable("contactsimulator", "_contactsimulator_rBTFinv3");
+        }
+        RObject rcpp_result_gen;
+        {
+            RNGScope RCPP_rngScope_gen;
+            rcpp_result_gen = p_rBTFinv3(Shield<SEXP>(Rcpp::wrap(EI_model)), Shield<SEXP>(Rcpp::wrap(E)), Shield<SEXP>(Rcpp::wrap(a)), Shield<SEXP>(Rcpp::wrap(b)), Shield<SEXP>(Rcpp::wrap(n)));
+        }
+        if (rcpp_result_gen.inherits("interrupted-error"))
+            throw Rcpp::internal::InterruptedException();
+        if (Rcpp::internal::isLongjumpSentinel(rcpp_result_gen))
+            throw Rcpp::LongjumpException(rcpp_result_gen);
+        if (rcpp_result_gen.inherits("try-error"))
+            throw Rcpp::exception(Rcpp::as<std::string>(rcpp_result_gen).c_str());
+        return Rcpp::as<NumericVector >(rcpp_result_gen);
+    }
+
+    inline NumericVector rBTFinv4(int EI_model, NumericVector I, double a, double b, int n) {
+        typedef SEXP(*Ptr_rBTFinv4)(SEXP,SEXP,SEXP,SEXP,SEXP);
+        static Ptr_rBTFinv4 p_rBTFinv4 = NULL;
+        if (p_rBTFinv4 == NULL) {
+            validateSignature("NumericVector(*rBTFinv4)(int,NumericVector,double,double,int)");
+            p_rBTFinv4 = (Ptr_rBTFinv4)R_GetCCallable("contactsimulator", "_contactsimulator_rBTFinv4");
+        }
+        RObject rcpp_result_gen;
+        {
+            RNGScope RCPP_rngScope_gen;
+            rcpp_result_gen = p_rBTFinv4(Shield<SEXP>(Rcpp::wrap(EI_model)), Shield<SEXP>(Rcpp::wrap(I)), Shield<SEXP>(Rcpp::wrap(a)), Shield<SEXP>(Rcpp::wrap(b)), Shield<SEXP>(Rcpp::wrap(n)));
+        }
+        if (rcpp_result_gen.inherits("interrupted-error"))
+            throw Rcpp::internal::InterruptedException();
+        if (Rcpp::internal::isLongjumpSentinel(rcpp_result_gen))
+            throw Rcpp::LongjumpException(rcpp_result_gen);
+        if (rcpp_result_gen.inherits("try-error"))
+            throw Rcpp::exception(Rcpp::as<std::string>(rcpp_result_gen).c_str());
         return Rcpp::as<NumericVector >(rcpp_result_gen);
     }
 
@@ -191,8 +438,10 @@ namespace contactsimulator {
         }
         if (rcpp_result_gen.inherits("interrupted-error"))
             throw Rcpp::internal::InterruptedException();
+        if (Rcpp::internal::isLongjumpSentinel(rcpp_result_gen))
+            throw Rcpp::LongjumpException(rcpp_result_gen);
         if (rcpp_result_gen.inherits("try-error"))
-            throw Rcpp::exception(as<std::string>(rcpp_result_gen).c_str());
+            throw Rcpp::exception(Rcpp::as<std::string>(rcpp_result_gen).c_str());
         return Rcpp::as<double >(rcpp_result_gen);
     }
 
@@ -210,8 +459,10 @@ namespace contactsimulator {
         }
         if (rcpp_result_gen.inherits("interrupted-error"))
             throw Rcpp::internal::InterruptedException();
+        if (Rcpp::internal::isLongjumpSentinel(rcpp_result_gen))
+            throw Rcpp::LongjumpException(rcpp_result_gen);
         if (rcpp_result_gen.inherits("try-error"))
-            throw Rcpp::exception(as<std::string>(rcpp_result_gen).c_str());
+            throw Rcpp::exception(Rcpp::as<std::string>(rcpp_result_gen).c_str());
         return Rcpp::as<double >(rcpp_result_gen);
     }
 
@@ -229,8 +480,10 @@ namespace contactsimulator {
         }
         if (rcpp_result_gen.inherits("interrupted-error"))
             throw Rcpp::internal::InterruptedException();
+        if (Rcpp::internal::isLongjumpSentinel(rcpp_result_gen))
+            throw Rcpp::LongjumpException(rcpp_result_gen);
         if (rcpp_result_gen.inherits("try-error"))
-            throw Rcpp::exception(as<std::string>(rcpp_result_gen).c_str());
+            throw Rcpp::exception(Rcpp::as<std::string>(rcpp_result_gen).c_str());
         return Rcpp::as<double >(rcpp_result_gen);
     }
 
@@ -248,8 +501,10 @@ namespace contactsimulator {
         }
         if (rcpp_result_gen.inherits("interrupted-error"))
             throw Rcpp::internal::InterruptedException();
+        if (Rcpp::internal::isLongjumpSentinel(rcpp_result_gen))
+            throw Rcpp::LongjumpException(rcpp_result_gen);
         if (rcpp_result_gen.inherits("try-error"))
-            throw Rcpp::exception(as<std::string>(rcpp_result_gen).c_str());
+            throw Rcpp::exception(Rcpp::as<std::string>(rcpp_result_gen).c_str());
         return Rcpp::as<NumericVector >(rcpp_result_gen);
     }
 
@@ -267,8 +522,10 @@ namespace contactsimulator {
         }
         if (rcpp_result_gen.inherits("interrupted-error"))
             throw Rcpp::internal::InterruptedException();
+        if (Rcpp::internal::isLongjumpSentinel(rcpp_result_gen))
+            throw Rcpp::LongjumpException(rcpp_result_gen);
         if (rcpp_result_gen.inherits("try-error"))
-            throw Rcpp::exception(as<std::string>(rcpp_result_gen).c_str());
+            throw Rcpp::exception(Rcpp::as<std::string>(rcpp_result_gen).c_str());
         return Rcpp::as<NumericVector >(rcpp_result_gen);
     }
 
@@ -286,8 +543,178 @@ namespace contactsimulator {
         }
         if (rcpp_result_gen.inherits("interrupted-error"))
             throw Rcpp::internal::InterruptedException();
+        if (Rcpp::internal::isLongjumpSentinel(rcpp_result_gen))
+            throw Rcpp::LongjumpException(rcpp_result_gen);
         if (rcpp_result_gen.inherits("try-error"))
-            throw Rcpp::exception(as<std::string>(rcpp_result_gen).c_str());
+            throw Rcpp::exception(Rcpp::as<std::string>(rcpp_result_gen).c_str());
+        return Rcpp::as<double >(rcpp_result_gen);
+    }
+
+    inline Rcpp::IntegerVector which2(Rcpp::NumericVector x, int t) {
+        typedef SEXP(*Ptr_which2)(SEXP,SEXP);
+        static Ptr_which2 p_which2 = NULL;
+        if (p_which2 == NULL) {
+            validateSignature("Rcpp::IntegerVector(*which2)(Rcpp::NumericVector,int)");
+            p_which2 = (Ptr_which2)R_GetCCallable("contactsimulator", "_contactsimulator_which2");
+        }
+        RObject rcpp_result_gen;
+        {
+            RNGScope RCPP_rngScope_gen;
+            rcpp_result_gen = p_which2(Shield<SEXP>(Rcpp::wrap(x)), Shield<SEXP>(Rcpp::wrap(t)));
+        }
+        if (rcpp_result_gen.inherits("interrupted-error"))
+            throw Rcpp::internal::InterruptedException();
+        if (Rcpp::internal::isLongjumpSentinel(rcpp_result_gen))
+            throw Rcpp::LongjumpException(rcpp_result_gen);
+        if (rcpp_result_gen.inherits("try-error"))
+            throw Rcpp::exception(Rcpp::as<std::string>(rcpp_result_gen).c_str());
+        return Rcpp::as<Rcpp::IntegerVector >(rcpp_result_gen);
+    }
+
+    inline Rcpp::IntegerVector traj(Rcpp::NumericVector x, NumericVector times) {
+        typedef SEXP(*Ptr_traj)(SEXP,SEXP);
+        static Ptr_traj p_traj = NULL;
+        if (p_traj == NULL) {
+            validateSignature("Rcpp::IntegerVector(*traj)(Rcpp::NumericVector,NumericVector)");
+            p_traj = (Ptr_traj)R_GetCCallable("contactsimulator", "_contactsimulator_traj");
+        }
+        RObject rcpp_result_gen;
+        {
+            RNGScope RCPP_rngScope_gen;
+            rcpp_result_gen = p_traj(Shield<SEXP>(Rcpp::wrap(x)), Shield<SEXP>(Rcpp::wrap(times)));
+        }
+        if (rcpp_result_gen.inherits("interrupted-error"))
+            throw Rcpp::internal::InterruptedException();
+        if (Rcpp::internal::isLongjumpSentinel(rcpp_result_gen))
+            throw Rcpp::LongjumpException(rcpp_result_gen);
+        if (rcpp_result_gen.inherits("try-error"))
+            throw Rcpp::exception(Rcpp::as<std::string>(rcpp_result_gen).c_str());
+        return Rcpp::as<Rcpp::IntegerVector >(rcpp_result_gen);
+    }
+
+    inline double I_to_R(double& r, double x_lo, double x_hi, double t, double l, double b, double a) {
+        typedef SEXP(*Ptr_I_to_R)(SEXP,SEXP,SEXP,SEXP,SEXP,SEXP,SEXP);
+        static Ptr_I_to_R p_I_to_R = NULL;
+        if (p_I_to_R == NULL) {
+            validateSignature("double(*I_to_R)(double&,double,double,double,double,double,double)");
+            p_I_to_R = (Ptr_I_to_R)R_GetCCallable("contactsimulator", "_contactsimulator_I_to_R");
+        }
+        RObject rcpp_result_gen;
+        {
+            RNGScope RCPP_rngScope_gen;
+            rcpp_result_gen = p_I_to_R(Shield<SEXP>(Rcpp::wrap(r)), Shield<SEXP>(Rcpp::wrap(x_lo)), Shield<SEXP>(Rcpp::wrap(x_hi)), Shield<SEXP>(Rcpp::wrap(t)), Shield<SEXP>(Rcpp::wrap(l)), Shield<SEXP>(Rcpp::wrap(b)), Shield<SEXP>(Rcpp::wrap(a)));
+        }
+        if (rcpp_result_gen.inherits("interrupted-error"))
+            throw Rcpp::internal::InterruptedException();
+        if (Rcpp::internal::isLongjumpSentinel(rcpp_result_gen))
+            throw Rcpp::LongjumpException(rcpp_result_gen);
+        if (rcpp_result_gen.inherits("try-error"))
+            throw Rcpp::exception(Rcpp::as<std::string>(rcpp_result_gen).c_str());
+        return Rcpp::as<double >(rcpp_result_gen);
+    }
+
+    inline NumericVector r_IR(int n, double I, double a, double b) {
+        typedef SEXP(*Ptr_r_IR)(SEXP,SEXP,SEXP,SEXP);
+        static Ptr_r_IR p_r_IR = NULL;
+        if (p_r_IR == NULL) {
+            validateSignature("NumericVector(*r_IR)(int,double,double,double)");
+            p_r_IR = (Ptr_r_IR)R_GetCCallable("contactsimulator", "_contactsimulator_r_IR");
+        }
+        RObject rcpp_result_gen;
+        {
+            RNGScope RCPP_rngScope_gen;
+            rcpp_result_gen = p_r_IR(Shield<SEXP>(Rcpp::wrap(n)), Shield<SEXP>(Rcpp::wrap(I)), Shield<SEXP>(Rcpp::wrap(a)), Shield<SEXP>(Rcpp::wrap(b)));
+        }
+        if (rcpp_result_gen.inherits("interrupted-error"))
+            throw Rcpp::internal::InterruptedException();
+        if (Rcpp::internal::isLongjumpSentinel(rcpp_result_gen))
+            throw Rcpp::LongjumpException(rcpp_result_gen);
+        if (rcpp_result_gen.inherits("try-error"))
+            throw Rcpp::exception(Rcpp::as<std::string>(rcpp_result_gen).c_str());
+        return Rcpp::as<NumericVector >(rcpp_result_gen);
+    }
+
+    inline int SGcycle(double t) {
+        typedef SEXP(*Ptr_SGcycle)(SEXP);
+        static Ptr_SGcycle p_SGcycle = NULL;
+        if (p_SGcycle == NULL) {
+            validateSignature("int(*SGcycle)(double)");
+            p_SGcycle = (Ptr_SGcycle)R_GetCCallable("contactsimulator", "_contactsimulator_SGcycle");
+        }
+        RObject rcpp_result_gen;
+        {
+            RNGScope RCPP_rngScope_gen;
+            rcpp_result_gen = p_SGcycle(Shield<SEXP>(Rcpp::wrap(t)));
+        }
+        if (rcpp_result_gen.inherits("interrupted-error"))
+            throw Rcpp::internal::InterruptedException();
+        if (Rcpp::internal::isLongjumpSentinel(rcpp_result_gen))
+            throw Rcpp::LongjumpException(rcpp_result_gen);
+        if (rcpp_result_gen.inherits("try-error"))
+            throw Rcpp::exception(Rcpp::as<std::string>(rcpp_result_gen).c_str());
+        return Rcpp::as<int >(rcpp_result_gen);
+    }
+
+    inline double func_latent_pdf(double ti, double te, double mu_lat, double var_lat, int k) {
+        typedef SEXP(*Ptr_func_latent_pdf)(SEXP,SEXP,SEXP,SEXP,SEXP);
+        static Ptr_func_latent_pdf p_func_latent_pdf = NULL;
+        if (p_func_latent_pdf == NULL) {
+            validateSignature("double(*func_latent_pdf)(double,double,double,double,int)");
+            p_func_latent_pdf = (Ptr_func_latent_pdf)R_GetCCallable("contactsimulator", "_contactsimulator_func_latent_pdf");
+        }
+        RObject rcpp_result_gen;
+        {
+            RNGScope RCPP_rngScope_gen;
+            rcpp_result_gen = p_func_latent_pdf(Shield<SEXP>(Rcpp::wrap(ti)), Shield<SEXP>(Rcpp::wrap(te)), Shield<SEXP>(Rcpp::wrap(mu_lat)), Shield<SEXP>(Rcpp::wrap(var_lat)), Shield<SEXP>(Rcpp::wrap(k)));
+        }
+        if (rcpp_result_gen.inherits("interrupted-error"))
+            throw Rcpp::internal::InterruptedException();
+        if (Rcpp::internal::isLongjumpSentinel(rcpp_result_gen))
+            throw Rcpp::LongjumpException(rcpp_result_gen);
+        if (rcpp_result_gen.inherits("try-error"))
+            throw Rcpp::exception(Rcpp::as<std::string>(rcpp_result_gen).c_str());
+        return Rcpp::as<double >(rcpp_result_gen);
+    }
+
+    inline double norma_cons(const double& beta, const double& d) {
+        typedef SEXP(*Ptr_norma_cons)(SEXP,SEXP);
+        static Ptr_norma_cons p_norma_cons = NULL;
+        if (p_norma_cons == NULL) {
+            validateSignature("double(*norma_cons)(const double&,const double&)");
+            p_norma_cons = (Ptr_norma_cons)R_GetCCallable("contactsimulator", "_contactsimulator_norma_cons");
+        }
+        RObject rcpp_result_gen;
+        {
+            RNGScope RCPP_rngScope_gen;
+            rcpp_result_gen = p_norma_cons(Shield<SEXP>(Rcpp::wrap(beta)), Shield<SEXP>(Rcpp::wrap(d)));
+        }
+        if (rcpp_result_gen.inherits("interrupted-error"))
+            throw Rcpp::internal::InterruptedException();
+        if (Rcpp::internal::isLongjumpSentinel(rcpp_result_gen))
+            throw Rcpp::LongjumpException(rcpp_result_gen);
+        if (rcpp_result_gen.inherits("try-error"))
+            throw Rcpp::exception(Rcpp::as<std::string>(rcpp_result_gen).c_str());
+        return Rcpp::as<double >(rcpp_result_gen);
+    }
+
+    inline double integral_forc(double a, double b) {
+        typedef SEXP(*Ptr_integral_forc)(SEXP,SEXP);
+        static Ptr_integral_forc p_integral_forc = NULL;
+        if (p_integral_forc == NULL) {
+            validateSignature("double(*integral_forc)(double,double)");
+            p_integral_forc = (Ptr_integral_forc)R_GetCCallable("contactsimulator", "_contactsimulator_integral_forc");
+        }
+        RObject rcpp_result_gen;
+        {
+            RNGScope RCPP_rngScope_gen;
+            rcpp_result_gen = p_integral_forc(Shield<SEXP>(Rcpp::wrap(a)), Shield<SEXP>(Rcpp::wrap(b)));
+        }
+        if (rcpp_result_gen.inherits("interrupted-error"))
+            throw Rcpp::internal::InterruptedException();
+        if (Rcpp::internal::isLongjumpSentinel(rcpp_result_gen))
+            throw Rcpp::LongjumpException(rcpp_result_gen);
+        if (rcpp_result_gen.inherits("try-error"))
+            throw Rcpp::exception(Rcpp::as<std::string>(rcpp_result_gen).c_str());
         return Rcpp::as<double >(rcpp_result_gen);
     }
 

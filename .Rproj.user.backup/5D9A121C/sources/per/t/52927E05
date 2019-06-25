@@ -1,0 +1,20 @@
+{
+    "collab_server" : "",
+    "contents" : "",
+    "created" : 1535561294156.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "2018231098",
+    "id" : "52927E05",
+    "lastKnownWriteTime" : 1534857407,
+    "last_content_update" : 1534857407,
+    "path" : "/run/user/1000/gvfs/sftp:host=login-cpu.hpc.cam.ac.uk,user=ha411/home/ha411/big_space/BBTV/QLD_17_08_18/expo-kernel/bbtv.submit",
+    "project_path" : null,
+    "properties" : {
+    },
+    "relative_order" : 16,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "text"
+}

@@ -1,0 +1,21 @@
+]0;/media/sf_D_DRIVE/BBTV_PROJECT/contactsimulator]0;hola@hola-VirtualBox: /media/sf_D_DRIVE/BBTV_PROJECT/contactsimulator[01;32mhola@hola-VirtualBox[00m:[01;34m/media/sf_D_DRIVE/BBTV_PROJECT/contactsimulator[00m$  R C MD SHLIB --help
+Usage: R CMD SHLIB [options] files | linker options
+
+Build a shared object for dynamic loading from the specified source or
+object files (which are automagically made from their sources) or
+linker options.  If not given via '--output', the name for the shared
+object is determined from the first source or object file.
+
+Options:
+  -h, --help		print short help message and exit
+  -v, --version		print version info and exit
+  -o, --output=LIB	use LIB as (full) name for the built library
+  -c, --clean		remove files created during compilation
+  --preclean		remove files created during a previous run
+  -n, --dry-run		dry run, showing commands that would be used
+
+Windows only:
+  -d, --debug		build a debug DLL
+
+Report bugs at <https://bugs.R-project.org>.
+]0;/media/sf_D_DRIVE/BBTV_PROJECT/contactsimulator]0;hola@hola-VirtualBox: /media/sf_D_DRIVE/BBTV_PROJECT/contactsimulator[01;32mhola@hola-VirtualBox[00m:[01;34m/media/sf_D_DRIVE/BBTV_PROJECT/contactsimulator[00m$ 

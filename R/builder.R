@@ -1,5 +1,5 @@
 #Function to create the cpp module
-#' @include contact_fun.R
+#' @include contact_class.R cppsnippet.R
 NULL
 
 contactCBuilder <- function (name = NULL, snips, statenames, paramnames, covarnames, obsnames, params,

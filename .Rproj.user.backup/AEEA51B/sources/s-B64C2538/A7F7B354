@@ -1,0 +1,23 @@
+{
+    "collab_server" : "",
+    "contents" : "",
+    "created" : 1532825575014.000,
+    "dirty" : true,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "0",
+    "id" : "A7F7B354",
+    "lastKnownWriteTime" : 1533739220,
+    "last_content_update" : 1533923991611,
+    "path" : "~/Dropbox/package/contactsimulator/R/control_alternative.R",
+    "project_path" : "R/control_alternative.R",
+    "properties" : {
+        "cursorPosition" : "40,13",
+        "scrollLine" : "19",
+        "tempName" : "Untitled1"
+    },
+    "relative_order" : 15,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_source"
+}

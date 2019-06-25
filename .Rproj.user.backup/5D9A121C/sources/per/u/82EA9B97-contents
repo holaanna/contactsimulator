@@ -1,0 +1,60 @@
+# Combined raster
+# f<- system.file("external/rast_SEQ.tif", package="contactsimulator")
+
+f <-paste0("/media/sf_D_DRIVE/BBTV_PROJECT/Montville/rast_mont_SEQ",".tif")
+rast<- raster(f)
+size<- raster::res(rast)[1]
+# Extract infos on the grid
+
+
+n_row_grid=nrow_grid=raster::nrow(rast)
+n_col_grid=ncol_grid=raster::ncol(rast)
+grid_size=raster::res(rast)[1]     # Resolution
+
+n_line=(nrow_grid+1) + (ncol_grid +1)  # Number of grid  lines
+
+x_min=raster::xmin(rast)  # min max of the bounding box
+x_max=raster::xmax(rast)
+
+y_min=raster::ymin(rast)
+y_max=raster::ymax(rast)
+
+pop_per_grid=round(raster::values(rast)*size^2)
+pop_per_grid[is.na(pop_per_grid)]=0
+mat=matrix(pop_per_grid,nrow = nrow_grid, byrow = TRUE)
+pop_grid=mat     # population per grid
+
+# Structure of the grid
+x=seq(x_min,x_max,grid_size)
+y=seq(y_min,y_max,grid_size)
+
+grid_lines=array(0,c(n_line,6))
+for(i in 1:n_line){
+  if(i<=(nrow_grid +1)){
+    grid_lines[i,]=c(i,1,x[1],y[i],x[length(x)],y[i])
+  }
+  else{
+    grid_lines[i,]=c(i,2,x[i-length(y)],y[1],x[i-length(y)],y[length(y)])
+  }
+}
+
+grid_lines=as.data.frame(grid_lines)
+colnames(grid_lines)<- c("indx","orient_line","coor_x_1","coor_y_1","coor_x_2","coor_y_2")
+
+M=read.table("/run/user/1000/gvfs/sftp:host=login-cpu.hpc.cam.ac.uk,user=ha411/home/ha411/big_space/BBTV/Montville/parameters_current.txt",fill=T)
+samp=sample(50000:nrow(M),1);Param=data.frame(epsilon=M[samp,1],beta=M[samp,2],c=M[samp,5],b1=M[samp,6],alpha1=M[samp,7],alpha2=M[samp,8],t0=M[samp,9],omega=M[samp,10],mu_lat=M[samp,3],var_lat=M[samp,4])
+
+epsilon <- Param$epsilon/365
+beta <- Param$beta/365
+alpha1 <- Param$alpha1
+alpha2 <- Param$alpha2
+mu_lat <- Param$mu_lat
+var_lat <- Param$var_lat
+omega <- Param$omega
+c<- Param$c
+t0<- Param$t0
+b1 <- Param$b1
+i<- 1
+
+param=data.frame(alpha1=1/alpha1[i],alpha2=alpha2[i], beta=beta[i], b1=b1[i], epsilon=epsilon[i], omega=omega[i], mu_lat=mu_lat[i], var_lat=var_lat[i], t0=t0[i], c=c[i], gama=0.5)
+epi<- Simulate_contact_model(param, grid_lines, pop_grid,t_max = 2343.868,t_intervention = 5000,EI_model =1, kern_model = 5,grid_size = grid_size )

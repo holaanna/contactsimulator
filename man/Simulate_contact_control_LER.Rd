@@ -10,7 +10,7 @@ Simulate_contact_control_LER(f_rast = NULL, b_rast = NULL,
   m_start = 1, t_b = 1e+05, t_max = 1000, t_intervention = 1e+05,
   t_obs = 3703, EI_model = 1, kern_model = 4, rad = 1000,
   sweep_prop = c(0.5, 0.5), back_p = c(0.7, 0.5), rate_det = c(0.3,
-  1), int_det = c(30, 90, 180), nb_in_b = 1, nb = 30, leav = c(3,
+  1), int_det = c(30, 90, 180), nb_in_b = 1, nb = 3, leav = c(3,
   6), ini = NULL)
 }
 \arguments{

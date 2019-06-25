@@ -1,0 +1,20 @@
+files<- list.files(pattern = "^risk_E_full")
+
+
+fil<- "rast"
+M<-read.table(files[1])
+for(i in 2:length(files)){
+  M1<- read.table(files[i])
+  M[,3:68]<- M[,3:68] + M1[,3:68]
+}
+
+for(j in 1:68){
+  M2<- array(0,c(nrow(rast),ncol(rast)))
+  for(k in 1:nrow(M1)){
+    M2[M[k,1],M[k,2]]<- M[k,j+2]
+  }
+  M2<- as.vector(t(flipdim(M2)))
+  rasterfil<- rast
+  rasterfil[]<- M2/length(files)
+  writeRaster(rasterfil,paste0("/media/sf_D_DRIVE/BBTV_PROJECT/rastermovie/rast",j),format="GTiff",overwrite=T)
+}

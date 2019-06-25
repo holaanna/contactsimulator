@@ -4,23 +4,10 @@
 #'
 #'\code{Conf_Band} Provide a 95% credible band.
 #'
-#' @param rast Raster object.
-#' @inheritParams Plot_dyn
-#' @param Param The 8 colums data frame with columns names:
-#'      \describe{
-#'         \item{epsion}{The primary infection rate. See \code{\link{func_time_beta}}}
-#'         \item{beta}{Rate of infection. See \code{\link{func_time_beta}}}
-#'         \item{alpha}{The dispersal kernel parameter.}
-#'         \item{mu_lat,var_lat}{mean and variance of the latent period. See \code{\link{E_to_I}} for details.}
-#'         \item{omega}{Parameter characterising the seasality. See \code{\link{func_time_beta}}}
-#'        }
-#' @param Dat_obs A 2 columns data frame wiht compoents:
-#'          \describe{
-#'            \item{times}{ The sequence of times at which the observations are made}
-#'            \item{remov}{the number of reovals recorded at a given time}
-#'          }
-#' @seealso \code{\link[raster]{raster}}, \code{\link{Plot_dyn}}, \code{\link{Simulate_contact_model}}, \code{\link{func_time_beta}}, \code{\link{E_to_I}}
-#' @note The number of rows in \code{Param} corresponds to the size of the simulation expected.
+#' @param OBS Trajectory. See \code{\link{Trajectory_all}}
+#' @param samp Tinning axis label
+#' @param labl Axis label
+#' @param t0bs limit of the observed time. This is used if user one want both observed and predicted band on the same graph,
 #' @return A 95% credible band for the obsrvation. By default it considers the removals.
 #'
 #' @examples
@@ -29,89 +16,94 @@
 #' data(Param)
 #' #Conf_Band(rast2,Param,Dat_obs=Dat_obs)
 #' @export
-Conf_Band<-function(rast,Param, age_level=c(1,1),age_dist=c(1,0), m_start=1, t_max=118, t_intervention=365, EI_model=3, Dat_obs){
+Conf_Band<-function(OBS,samp=NULL,labl=NULL,ylbl=NULL, tobs=NULL){
   #Extrct infos from the raster
-  n_row_grid=nrow_grid=raster::nrow(rast)  # number of rows of grids
-  n_col_grid=ncol_grid=raster::ncol(rast)  # number of cols of grids
-  grid_size=raster::res(rast)[1]     # Resolution
+  df3<- t(apply(OBS[,3:ncol(OBS)],1,quantile,c(0.025,.5,.975)))
+  colnames(df3)<- c("min","median","max")
+  df3<-as.data.frame(df3,row.names = FALSE)
+  df3$times1<- OBS$times
+  df3$obs<-   OBS$obs
 
-  n_line=(nrow_grid+1) + (ncol_grid +1)  # Number of grid  lines
+  lab=c("Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec")
 
-  min_coor_x<- x_min<- raster::xmin(rast)  # min max of the bounding box
-  max_coor_x <- x_max<- raster::xmax(rast)
-
-  min_coor_y <- y_min<- raster::ymin(rast)
-  max_coor_y <- y_max<- raster::ymax(rast)
-
-  da=as.data.frame(pointsinaustraliangrid)
-
-  pop_per_grid=raster::values(rast)
-  pop_per_grid[is.na(pop_per_grid)]=0
-  mat=matrix(pop_per_grid,nrow = nrow_grid, byrow = TRUE )
-  pop_grid=apply(mat,2,rev)     # population per grid
-
-  # Structure of the grid
-  x_intervals <- x<- seq(x_min,x_max,grid_size)
-  y_intervals <- y<- seq(y_min,y_max,grid_size)
-
-  grid_lines=array(0,c(n_line,6))
-  for(i in 1:n_line){
-    if(i<=(nrow_grid +1)){
-      grid_lines[i,]=c(i,1,x[1],y[i],x[length(x)],y[i])
-    }
-    else{
-      grid_lines[i,]=c(i,2,x[i-length(y)],y[1],x[i-length(y)],y[length(y)])
-    }
+  if(is.null(ylbl)){
+    ylbl="Incidence"
   }
 
-  grid_lines=as.data.frame(grid_lines)
-  colnames(grid_lines)<- c("indx","orient_line","coor_x_1","coor_y_1","coor_x_2","coor_y_2")
+  if(is.null(tobs)){
+    if(is.null(samp) & is.null(labl)){
+    ggplot2::ggplot(df3,aes(times1,obs))+
+      ggplot2::geom_point()+ ggplot2::geom_line(aes(times,median), color="red")+ ggplot2::geom_line()+
+      ggplot2::geom_ribbon(aes(ymin=min,ymax=max),alpha=0.3) + xlab("Date") + ylab(ylbl) +
+      theme(text = element_text(size = 15))
 
-  #Set parameters
-  epsilon <- Param$epsilon
-  beta <- Param$beta
-  alpha <- Param$alpha
-  mu_lat <- Param$mu_lat
-  var_lat <- Param$var_lat
-  omega <- Param$omega
-  c<- Param$c
-  t0<- Param$t0
+  }
+  else{
+    ggplot2::ggplot(df3,aes(times1,obs))+
+      ggplot2::geom_point()+ ggplot2::geom_line(aes(times1,median), color="red")+ ggplot2::geom_line()+
+      ggplot2::geom_ribbon(aes(ymin=min,ymax=max),alpha=0.3) + ggplot2::scale_x_discrete(limits=times1[samp],labels=labl[samp])+
+      ggplot2::theme(axis.text.x = element_text(angle = 45, hjust = 1))+ xlab("Date") + ylab(ylbl) +
+      theme(text = element_text(size = 15))
 
+  }
+  }
 
-  N_sim<- nrow(Param)
+  else{
+    if(is.null(samp) & is.null(labl)){
+    ggplot2::ggplot(df3,aes(times1,obs))+
+      ggplot2::geom_point()+ ggplot2::geom_line(aes(times,median), color="red")+ ggplot2::geom_line()+
+      ggplot2::geom_ribbon(aes(ymin=min,ymax=max, fill=times1<=tobs),alpha=0.3) + xlab("Date") + ylab(ylbl) +
+      theme(text = element_text(size = 15))+
+        scale_fill_manual(values=c("pink", "gray"), name="fill")
 
-  times<- Dat_obs[,"times"]
-  obs<- Dat_obs[,"remov"]
-  rem_siz=array(0,c(N_sim,(length(times)-1)))
-  for(i in 1:N_sim){
-    times[1]<- t0[i]
-    param=data.frame(alpha=1/alpha[i], beta=beta[i], epsilon=epsilon[i], omega=omega[i], mu_lat=mu_lat[i], var_lat=var_lat[i], t0=t0[i], c=c[i])
-    simulated_epi<- Simulate_contact_model(param, grid_lines, pop_grid, age_level, age_dist, m_start, t_max, t_intervention, EI_model)
-    for(j in 2:(length(times))){
-       rem_siz[i,j-1]<- length(which(simulated_epi[,"t_r"]>times[j-1] & simulated_epi[,"t_r"]<=times[j]))
-    }
+  }
+  else{
+    ggplot2::ggplot(df3,aes(times1,obs))+
+      ggplot2::geom_point()+ ggplot2::geom_line(aes(times1,median), color="red")+ ggplot2::geom_line()+
+      ggplot2::geom_ribbon(aes(ymin=min,ymax=max),alpha=0.3) +
+      ggplot2::geom_ribbon(aes(ymin=min,ymax=max, fill=times1<=tobs),alpha=0.3) +
+      ggplot2::scale_x_discrete(limits=times1[samp],labels=labl[samp])+
+      ggplot2::theme(axis.text.x = element_text(angle = 45, hjust = 1))+ xlab("Date") + ylab(ylbl) +
+      theme(text = element_text(size = 15)) +
+       scale_fill_manual(values=c("pink", "gray"), name="fill", labels = c("Out of sample", "In sample"))+
+      theme(legend.title = element_blank(), legend.position="top")
+      # scale_fill_discrete( labels = c("Out of sample", "In sample"))
 
+  }
   }
 
 
-  yv=times[-1]
-  mat=rem_siz
-  qv=c(0.05,0.1,0.15,0.2,0.25,0.3,0.35,0.4,0.45)
-  ny=length(yv)
-  yy=c(yv,yv[ny:1])
-  graphics::plot(yv,obs,type='n',xlim=c(0,times[length(times)]),ylim=c(0,2*max(mat)),xlab='Time (days)',ylab='Removed')
-  graphics::points((Dat_obs[,"times"])[-1],(Dat_obs[,"remov"])[-1],type='p')
 
-  for(i in 1:length(qv)){
-    v1=yv*0
-    v2=v1
-    for(j in 1:ny){
-      v1[j]=stats::quantile(mat[j,],qv[i])
-      v2[j]=stats::quantile(mat[j,],1-qv[i])
-    }
-    vv=c(v1,v2[ny:1])
-    graphics::polygon(yy,vv,border=NA,col=grDevices::rgb(0,(0.5-qv[i])*2,(0.5-qv[i])*2))
-  }
+
+
+
+}
+
+
+#' @export
+Conf_Band_year<-function(OBS,df1){
+  #Extrct infos from the raster
+  df3<- do.call(rbind,OBS)
+  colnames(df3)<- c("min","median","max")
+  df<-as.data.frame(df3,row.names = FALSE)
+  df$times<- df1$times
+  df$obs<-   df1$obs
+  df$year<- df1$year
+
+  lab=c("Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec")
+  latentt<- c("beta[1]==0","omega==2*pi")
+  trans1=c("Cyclic ","Gamma ","Exponential ")
+  year = c("2011","2012","2013","2014","2015","2016","2017")
+
+  ggplot(df,aes(times,obs,group=year))+
+    geom_point()+ geom_line(aes(times,median), color="red")+ geom_line()+
+    geom_ribbon(aes(ymin=min,ymax=max),alpha=0.3) +
+    facet_wrap(~year, ncol=3) + scale_x_discrete(limits=times,labels=lab)+
+    theme(axis.text.x = element_text(angle = 90, hjust = 1)) + xlab("Months") + ylab("Number removed")
+
+
+
+
 
 
 }

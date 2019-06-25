@@ -1,0 +1,215 @@
+library(ggplot2)
+library(dplyr)
+library(gtools)
+library(parallel)
+
+# Plot trajectories
+times<- seq(2192,4352,30)
+times2<- times
+times1<- c(0,times)
+
+
+
+sub_dir<- c("Two-kernels/exp-cau")
+
+
+
+latent=c("_latent_omegapi")
+trans=c("gama")
+
+
+size=500
+
+Li=Di=vector("list",length = 7)
+k=1
+
+sublo<- 11:17
+j=2
+
+Removal<- function(files,times){
+  rem<- mclapply(1:length(files),function(i){
+
+    epi<- read.table(files[i],header=T)
+    M<- numeric(length(times))
+    for(k in 1:(length(times)-1)){
+      t1<- times[k]
+      t2<- times[k+1]
+      sub_epi<- subset(epi,t_r< t2 & t_r>=t1)
+      M[k]<- nrow(sub_epi)
+    }
+
+    return(M)
+
+  })
+  do.call(rbind,rem)
+  Mean_rem<- apply(N_rem,2,quantile,c(0.025,.5,.975))
+  return( t(Mean_rem))
+  #return(rem)
+}
+
+rad=0.5
+
+for(id in c(1)){
+  #dir_name<- paste(sub_dir[4],paste0("reso_500/BBTV-",sublo[j]),sep = "/")
+  dir_name<- paste(sub_dir[1],paste0("BBTV-full/reso_",size),sep = "/")
+
+  oak=paste("/run/user/1000/gvfs/sftp:host=login-cpu.hpc.cam.ac.uk/home/ha411/big_space/BBTV/QLD_25_07_18",dir_name,sep="/")
+  setwd(paste(oak,paste0(trans,latent,"/scale",id),sep="/"))
+  # #files<- list.files(pattern = "^dpc_snapshot")
+  L<- L1 <- vector("list",length = 19)
+  L1[[1]]<- list.files(pattern = paste0("^baseline__rad_",rad))
+  A_B<- c(360,540,720)
+  C_D<- c(30,90,180)
+  Rat<- c(0.3,1)
+  ss<- 2
+  for(k in 1:1){
+
+    for(k1 in 1:3){
+      for(k2 in 1:3){
+        L1[[ss]]<- list.files(pattern = paste0("^scenarioAB_",A_B[k1],"_CD_",C_D[k2],"_rad_",rad,"_",Rat[k],"_",15))
+        ss<- ss+1
+      }
+    }
+
+  }
+
+  # paste("scale",nb,"/scenarioAB_",A_B[i_ab+1],"_CD_",C_D[i_cde+1],"_rad_",rad,"_",Rat[rat+1],"_",nb_in_b,"_",process,".txt",sep = "")
+  #files<- sort(files)
+  #L<- vector("list",length = 4)
+
+  times<- seq(2192,4352,30)
+  for(ii in 1:10){
+    files<- L1[[ii]]
+    rem<- mclapply(1:length(files),function(i){
+
+      epi<- read.table(files[i],header=T)
+      M<- numeric(length(times))
+      for(k in 1:(length(times)-1)){
+        t1<- times[k]
+        t2<- times[k+1]
+        sub_epi<- subset(epi,t_r< t2 & t_r>=t1)
+        M[k]<- nrow(sub_epi)
+      }
+
+      return(M)
+
+    })
+    N_rem=do.call(rbind,rem)
+    Mean_rem<- apply(N_rem,2,quantile,c(0.025,.5,.975))
+    L[[ii]]<- (Mean_rem[,-73])
+  }
+
+  M<- do.call(cbind,L)
+  df1<- as.data.frame(t(M))
+  cont<- c("Baseline")
+  for(ii in 1:9){
+    cont<- c(cont,paste0("Scenario ",ii))
+  }
+  #cont<- c("Baseline","100% sweep", "Senario 1", "Senario 2")
+  df1$control<- rep(cont,each=length(times[-73]))
+
+  # write.table(Mean_rem,paste("obs_removal",id,".txt",sep = ""),row.names = FALSE,col.names = FALSE)
+
+
+  colnames(df1)[1:3]<- c("min","median","max")
+  df1$times<- rep(times[1:72],9)
+
+  # ggplot(df, aes(x=times, y=median,group=control,colour=control)) +
+  #   geom_line() + scale_colour_manual(values=rainbow(19))+
+  #   geom_point()+ theme(legend.position="top")+
+  #   #geom_errorbar(aes(ymin=min, ymax=max), width=15,
+  #   #             position=position_dodge(.9))+
+  #   scale_x_discrete(limits=times[samp],labels=labl[samp])+
+  #   theme(axis.text.x = element_text(angle = 90, hjust = 1))
+  #
+  # ggsave(paste0("removed",id,".png"),path ="/media/sf_D_DRIVE/BBTV_PROJECT/draft_project/images/control-senarios/" )
+   #write.table(df1,paste0("/media/sf_D_DRIVE/BBTV_PROJECT/Scenarios_controls/exposed_",id,".txt"),row.names = F,col.names = T)
+  write.table(df1,paste0("/media/sf_D_DRIVE/BBTV_PROJECT/Scenarios_controls/removed_",rad,"_",id,".txt"),row.names = F,col.names = T)
+
+}
+
+id<- 1
+
+removal_nonexp<- read.table(paste0("/media/sf_D_DRIVE/BBTV_PROJECT/Scenarios_controls/removed_",id,".txt"), header = T)
+exposed_nonexp<- read.table(paste0("/media/sf_D_DRIVE/BBTV_PROJECT/Scenarios_controls/exposed_",id,".txt"), header = T)
+removal_exp<- read.table(paste0("/media/sf_D_DRIVE/BBTV_PROJECT/Scenarios_controls/expert_removed_",id,".txt"), header = T)
+exposed_exp<- read.table(paste0("/media/sf_D_DRIVE/BBTV_PROJECT/Scenarios_controls/expert_exposed_",id,".txt"), header = T)
+
+
+cont<- c("Baseline")
+for(ii in 1:18){
+  cont<- c(cont,paste0("Scenario ",ii))
+}
+
+cont1<- cont
+for(ii in 1:9){
+  cont<- c(cont,paste0("exper_Scenario ",ii))
+  cont1<- c(cont1,paste0("Expert Scenario ",ii))
+}
+df<- rbind(removal_nonexp,removal_exp)
+df1<- rbind(exposed_nonexp,exposed_exp)
+
+times<- seq(2192,4352,30)
+samp<- seq(1,12*6,4)
+lab=c("Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec")
+labl<- paste(rep(lab,6),rep(2017:2022,each=12),sep = "-")
+for(i in 26:28){
+  df%>%dplyr::filter(control%in%cont[c(1,i)])%>%ggplot( aes(x=times, y=median,group=control,colour=control)) +
+    geom_line(show.legend = FALSE) + scale_colour_manual(values=c("red","green"))+
+    geom_point(show.legend = FALSE)+ theme(legend.position="top",legend.title = element_blank())+
+    geom_ribbon(aes(ymin=min, ymax=max,fill=control, linetype=NA), alpha=0.2)+
+    #             position=position_dodge(.9))+
+    scale_x_discrete(limits=times[samp],labels=labl[samp])+
+    theme(axis.text.x = element_text(angle = 90, hjust = 1))+ ylim(0,875)+
+     ylab("Number removed") + xlab("Dates")# + guides(linetype = guide_legend(ncol = 2,keywidth=4))
+
+  ggsave(paste0("removed",i-1,".png"),path ="/media/sf_D_DRIVE/BBTV_PROJECT/Scenarios_controls/" )
+
+  df1%>%dplyr::filter(control%in%cont[c(1,i)])%>%ggplot( aes(x=times, y=median,group=control,colour=control)) +
+      geom_line(show.legend = FALSE) + scale_colour_manual(values=c("red","green"))+
+      geom_point(show.legend = FALSE)+ theme(legend.position="top",legend.title = element_blank())+
+      geom_ribbon(aes(ymin=min, ymax=max,fill=control, linetype=NA), alpha=0.2)+
+      #             position=position_dodge(.9))+
+      scale_x_discrete(limits=times[samp],labels=labl[samp])+
+      theme(axis.text.x = element_text(angle = 90, hjust = 1))+ ylim(0,500)+
+      ylab("Number exposed") + xlab("Dates")# + guides(linetype = guide_legend(ncol = 2,keywidth=4))
+  
+  ggsave(paste0("exposed",i-1,".png"),path ="/media/sf_D_DRIVE/BBTV_PROJECT/Scenarios_controls/" )
+
+
+}
+
+geom_col() +  
+    
+# Plot distribution of the median 2019 onward
+sel<- 25:72
+for(i in 2:28){
+    s1<- seq(sel[length(sel)] + 25,72*i)
+    sel<- c(sel,s1)
+}
+
+df1$ord<- as.factor(rep(1:28,each=72))
+df$ord<- as.factor(rep(1:28,each=72))
+bre<- as.character(c(1,5:7,11:13,26:28))
+df[sel,]%>%dplyr::filter(control%in%cont[c(1,5:7,11:13,26:28)])%>%group_by(ord)%>%summarise(m=mean(median),min=quantile(median,0.025),max=quantile(median,.975),sd=sd(median))%>%ggplot( aes(x=ord, y=m))+
+    geom_col()+
+    geom_errorbar(aes(ymin=min, ymax=m+sd), colour="black", width=.25,position = position_dodge(0.1)) +
+    geom_point(position = position_dodge(0.1),shape=21, size=3, fill="white") +
+    scale_x_discrete(breaks=bre,labels=cont1[c(1,5:7,11:13,26:28)])+
+    theme(axis.text.x = element_text(angle = 80, hjust = 1)) + ylab("Median number removed") + xlab("")
+   
+ggsave(paste0("Removed_median.png"),path ="/media/sf_D_DRIVE/BBTV_PROJECT/Scenarios_controls/" )
+    
+
+df1[sel,]%>%dplyr::filter(control%in%cont[c(1,5:7,11:13,26:28)])%>%group_by(ord)%>%summarise(m=mean(median),min=quantile(median,0.025),max=quantile(median,.975))%>%ggplot( aes(x=ord, y=m))+
+    geom_col()+
+    geom_point(position = position_dodge(0.1),size=3,color="red") + geom_errorbar(aes(ymin=max, ymax=min), colour="black", width=.75,position = position_dodge(0.1)) +
+    scale_x_discrete(breaks=bre,labels=cont1[c(1,5:7,11:13,26:28)])+
+    theme(axis.text.x = element_text(angle = 90, hjust = 1)) + ylab("Median number exposed") + xlab("")
+
+ggsave(paste0("Exposed_median.png"),path ="/media/sf_D_DRIVE/BBTV_PROJECT/Scenarios_controls/" )
+
+
+
+# Plot maps 
+

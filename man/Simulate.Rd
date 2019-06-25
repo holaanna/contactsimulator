@@ -4,9 +4,10 @@
 \alias{Simulate}
 \title{Generate a certain number of temporal observation from the process}
 \usage{
-Simulate(param, grid_lines, pop_grid, grid_size = 5000, age_level = c(1, 1),
-  age_dist = c(1, 0), m_start = 1, t_max = 118, t_intervention = 365,
-  EI_model = 1, kern_model = 4, times, obs, nsim)
+Simulate(param, grid_lines, pop_grid, grid_size = 5000,
+  age_level = c(1, 1), age_dist = c(1, 0), m_start = 1,
+  t_max = 118, t_intervention = 365, EI_model = 1, kern_model = 4,
+  times, obs, nsim)
 }
 \arguments{
 \item{param}{Indicating a data frame containing a vector of parameters including:

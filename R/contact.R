@@ -1,7 +1,347 @@
 ## This file defines "contact model", the basic constructor of the contact class
-#' @include contact_class.R
+#' Constructor of the basic contact object
+#'
+#' This function constructs a \sQuote{contact} object, encoding a partially-observed process model together with a spatio-temporal date.
+#' As such, it is central to all the package's functionality.
+#' One implements the \acronym{contact type} model by specifying some or all of its \emph{basic components}.
+#' These comprise:
+#' \describe{
+#' \item{kernelmodel,}{which indicate the kenel to sample from;}
+#' \item{r.process,}{the simulator of the unobserved Markov state process;}
+#' \item{d.process,}{the evaluator of the probability density function for transitions of the unobserved Markov state process;}
+#' \item{r.measure,}{the simulator of the observed process, conditional on the unobserved state;}
+#' \item{d.measure,}{the evaluator of the measurement model probability density function;}
+#' \item{r.prior,}{which samples from a prior probability distribution on the parameters;}
+#' \item{d.prior,}{which evaluates the prior probability density function;}
+#' \item{partrans,}{which performs parameter transformations.}
+#' }
+#'
+#' Each basic component is supplied via an argument of the same name.
+#' These can be given in the call to \code{contact}, or to many of the package's other functions.
+#' In any case, the effect is the same: to add, remove, or modify the basic component.
+#'
+#' Each basic component can be furnished using C snippets, \R functions, or pre-compiled native routine available in user-provided dynamically loaded libraries.
+#'
+#' @name contact
+#' @rdname contact
+#' @include contact_class.R contact_fun.R cppsnippet.R  builder.R
+#' @importFrom stats setNames
+#'
+#'
+#' @param data either a data frame holding the time series data,
+#' or an object of class \sQuote{contact},
+#' i.e., the output of another \pkg{contact} calculation.
+#'
+#' @param rast an object of class rasterlayer containing the landscape informationn.
+#'
+#' @param initializer the initial state contaning
+#'       \describe{
+#'         \item{row}{The row at which the cell containing the host lies in}
+#'         \item{col}{The column at which the cell containing the host lies in}
+#'         \item{typ}{The type of the host (e.g. backyard 1 /plantation 0 hosts)}
+#'         \item{x}{x-coordinate}
+#'         \item{y}{y-coordinate}
+#'         \item{t_e}{exposure time}
+#'         \item{t_i}{infection time}
+#'        }
+#' @inheritParams Simulate_contact_model
+#' @param times the times at which observations are made.
+#' \code{times} must indicate the column of observation times by name or index.
+#' The time vector must be numeric and non-decreasing.
+#' Internally, \code{data} will be internally coerced to an array with storage-mode \code{double}.
+#'
+#' @param t0 The zero-time, i.e., the time of the initial state.
+#' This must be no later than the time of the first observation, i.e., \code{t0 <= times[1]}.
+#'
+#' @param grid.lines A 6 columns data frame with columns names as coor_x_1, coor_y_1, coor_x_2, coor_y_2, orient_line.
+#' \describe{
+#'     \item{coor_x_1, coor_y_1}{Coordinates of the left end point of the grid line }
+#'     \item{coor_x_2, coor_y_2}{Coordinates of the right end point of the grid line }
+#'     \item{orient_line}{Line orientation}
+#'     \enumerate{
+#'        \item indicates horizontal orientation
+#'        \item indicates vetical orientation
+#'     }
+#'     \item{k_line}{Line numbering: bottom to top, then left to right}
+#' }
+#'
+#' @param pop.grid  Population density of the grid a case resides. This is filled from bottom to top, then left to right.
+#'
+#' @param age.level,age.dist Vectors of age level and the propportion of each age group respectively. See details.
+#'                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          max  Final observation time.
+#' @param t_intervention Start of the intervention if any.
+#'
+#' @param EI_model Take integer values to specify the type of model used for the latent period. See \code{\link{E_to_I}}
+#' @param kern.  model Take integer values to specify the type of dispersal kernel used. See \code{\link{Samp_dis}}
+
+#'
+#' @param r.process simulator of the latent state process.
+#' Setting \code{r.process=NULL} removes the latent-state simulator.
+#'
+#' @param d.process optional;
+#' specification of the probability density evaluation function of the unobserved state process.
+#' Setting \code{dprocess=NULL} removes the latent-state density evaluator.
+#'
+#' @param r.measure simulator of the measurement model, specified either as a C snippet, an \R function, or the name of a pre-compiled native routine available in a dynamically loaded library.
+#' Setting \code{rmeasure=NULL} removes the measurement model simulator.
+#'
+#' @param d.measure evaluator of the measurement model density, specified either as a C snippet, an \R function, or the name of a pre-compiled native routine available in a dynamically loaded library.
+#' Setting \code{dmeasure=NULL} removes the measurement density evaluator.
+#'
+#'
+#' @param r.prior optional; prior distribution sampler, specified either as a C snippet, an \R function, or the name of a pre-compiled native routine available in a dynamically loaded library.
+#' Setting \code{rprior=NULL} removes the prior distribution sampler.
+#'
+#' @param d.prior optional; prior distribution density evaluator, specified either as a C snippet, an \R function, or the name of a pre-compiled native routine available in a dynamically loaded library.
+#' Setting \code{dprior=NULL} resets the prior distribution to its default, which is a flat improper prior.
+#'
+#' @param partrans optional parameter transformations, constructed using.
+#'
+#'
+#' If a covariate table is supplied, then the value of each of the covariates is interpolated as needed.
+#' The resulting interpolated values are made available to the appropriate basic components.
+#' See the documentation for \code{\link{covariate_table}} for details.
+#'
+#' @param params optional; named numeric vector of parameters.
+#' This will be coerced internally to storage mode \code{double}.
+#'
+#' @param obsnames optional character vector;
+#' names of the observables.
+#' It is not usually necessary to specify \code{obsnames} since, by default,
+#' these are read from the names of the data variables.
+#'
+#' @param statenames optional character vector;
+#' names of the latent state variables.
+#' It is typically only necessary to supply \code{statenames} when C snippets are in use.
+#'
+#' @param paramnames optional character vector;
+#' names of model parameters.
+#' It is typically only necessary to supply \code{paramnames} when C snippets are in use.
+#'
+#' @param covarnames optional character vector;
+#' names of the covariates.
+#' It is not usually necessary to specify \code{covarnames} since, by default,
+#' these are read from the names of the covariates.
+#'
+#' @param \dots additional arguments supply new or modify existing model characteristics or components.
+#' See \code{\link{contact}} for a full list of recognized arguments.
+#'
+#' When named arguments not recognized by \code{\link{contact}} are provided, these are made available to all basic components via the so-called \dfn{userdata} facility.
+#' This allows the user to pass information to the basic components outside of the usual routes of covariates (\code{covar}) and model parameters (\code{params}).
+#'
+#' @param verbose logical; if \code{TRUE}, diagnostic messages will be printed to the console.
+#'
+#' @return
+#' The \code{contact} constructor function returns an object, call it \code{C}, of class \sQuote{contact}.
+#' \code{C} contains, in addition to the data, any elements of the model that have been specified as arguments to the \code{contact} constructor function.
+#' One can add or modify elements of \code{C} by means of further calls to \code{contact}, using \code{C} as the first argument in such calls.
+#' One can pass \code{C} to most of the \pkg{contact} package methods via their \code{data} argument.
+#'
+#' @section Note:
+#'
+#' \strong{It is not typically necessary (or indeed often feasible) to define all of the basic components for any given purpose.
+#' Each \pkg{contact} algorithm makes use of only a subset of these components.
+#' Any algorithm requiring a component that is not present will generate an error letting you know that you have not provided a needed component.
+#' FIXME }
+#'
+#' @author Hola K. Adrakey
+#'
 NULL
-contact.internal <- function(data, initializer, times, t0, grid.lines,
+
+#' @rdname contact
+#' @export
+contact <- function (data, rast, initializer, times, t0, ..., grid.lines,
+                     pop.grid, params, grid.size, age.level, nkernls,
+                     age.dist, t.max, t.intervention, kernelmodel,
+                     obsnames, statenames, paramnames, covarnames, zeronames,
+                     rmodel, r.model, PACKAGE,
+                     d.model){
+
+  ep <- paste0("in ", sQuote("contact"),": ")
+
+  if (missing(data))
+    stop(ep,sQuote("data")," is a required argument",call.=FALSE)
+
+  if (is(data,"contact")){
+    ## data is a contact object:
+    ## extract missing arguments from it
+
+    if (nargs()==1) return(data)
+
+    if(missing(times)) times <- data@times
+    if (missing(t0))   t0 <- data@t0
+    if (missing(grid.lines)) grid.lines <- data@grid.lines
+    if (missing(pop.grid))  pop.grid <- data@pop.grid
+    if (missing(params))  params <- data@params
+    if (missing(grid.size))  grid.size <- data@grid.size
+    if (missing(age.level))  age.level <- data@age.level
+    if (missing(age.dist))  age.dist <- data@age.dist
+    if(missing(t.max)) t.max <- data@t.max
+    if (missing(t.intervention))   t.intervention <- data@t.intervention
+    if (missing(kernelmodel)) kernelmodel <- data@kernelmodel
+    if (missing(rmodel))  rmodel <- data@rmodel
+    if (missing(r.model))  r.model <- data@r.model
+    if (missing(d.model))  d.model <- data@d.model
+    if (missing(nkernls)) nkernls <- data@nkernls
+    if (missing(zeronames)) zeronames <- data@zeronames
+    if (missing(obsnames)) obsnames <- character(0)
+    if (missing(statenames)) statenames <- character(0)
+    if (missing(paramnames)) paramnames <- character(0)
+    if (missing(covarnames)) covarnames <- character(0)
+    if (missing(PACKAGE)) PACKAGE <- character(0)
+
+    tryCatch(
+      contact.internal(
+        data=data@data,
+        initializer = initializer,
+        times = times,
+        t0 = t0,
+        grid.lines = grid.lines,
+        pop.grid = pop.grid,
+        params = params,
+        grid.size = grid.size,
+        age.level = age.level,
+        age.dist = age.dist,
+        t.max = t.max,
+        t.intervention = t.intervention,
+        kernelmodel = kernelmodel,
+        rmodel = rmodel,
+        r.model = r.model,
+        PACKAGE = PACKAGE,
+        d.model = d.model,
+        nkernls = nkernls,
+        userdata=data@userdata,
+        statenames=statenames,
+        paramnames=paramnames,
+        covarnames=covarnames,
+        obsnames=obsnames,
+        zeronames=zeronames,
+        ...
+      ),
+      error = function (e) {
+        stop(ep,conditionMessage(e),call.=FALSE)
+      }
+    )
+  }
+  else{
+  ## construct a contact object de nouveau
+
+    if (is.data.frame(data)){
+
+      ## data is a data frame
+      if ((is.numeric(times) && (times<1 || times>ncol(data) ||times!=as.integer(times))) ||
+          (is.character(times) && (!(times%in%names(data)))) ||
+          (!is.numeric(times) && !is.character(times)) ||
+          length(times)!=1) {
+        stop(ep,"when ",sQuote("data")," is a data frame, ",sQuote("times"),
+             " must identify a single column of ",sQuote("data"),
+             " either by name or by index.",call.=FALSE)
+      }
+
+      if (is.numeric(times)) {
+        tpos <- as.integer(times)
+      } else if (is.character(times)) {
+        tpos <- match(times,names(data))
+      }
+      times <- data[[tpos]]
+      data <- do.call(rbind, lapply(data[-tpos], as.numeric))
+      data <- as.data.frame(data)
+
+    }
+    else {
+      stop(ep,sQuote("data"),
+           " must be a data frame or an object of class ",sQuote("contact"),
+           call.=FALSE)
+    }
+
+
+    if (missing(rast) | all(is.na(raster::values(rast)))) {
+      if (missing(grid.lines)) stop(ep,"when ", sQuote("rast"), " is missing or null values",sQuote("grid.lines")," must be specified",call. = FALSE)
+      if (missing(pop.grid)) stop(ep,"when ", sQuote("rast"), " is missing or null values",sQuote("pop.grid")," must be specified",call. = FALSE)
+      if (missing(grid.size)) stop(ep,"when ", sQuote("rast"), " is missing or null values",sQuote("grid.size")," must be specified",call. = FALSE)
+    }
+    else{
+      size<- raster::res(rast)[1]
+      n_row_grid <- nrow_grid <- raster::nrow(rast)
+      n_col_grid <- ncol_grid <- raster::ncol(rast)
+      grid.size <- raster::res(rast)[1]     # Resolution
+
+      n_line <- (nrow_grid+1) + (ncol_grid +1)  # Number of grid  lines
+
+      x_min <- raster::xmin(rast)  # min max of the bounding box
+      x_max <- raster::xmax(rast)
+
+      y_min <- raster::ymin(rast)
+      y_max <- raster::ymax(rast)
+
+      pop_per_grid <- round(raster::values(rast)*size^2)
+      pop_per_grid[is.na(pop_per_grid)] <- 0
+      mat <- matrix(pop_per_grid,nrow  <-  nrow_grid, byrow = TRUE)
+      pop.grid <- flipdim(mat)     # population per grid
+
+      # Structure of the grid
+      x <- seq(x_min,x_max,grid.size)
+      y <- seq(y_min,y_max,grid.size)
+
+      grid.lines <- array(0,c(n_line,6))
+      for(i in 1:n_line){
+        if(i<=(nrow_grid +1)){
+          grid.lines[i,] <- c(i,1,x[1],y[i],x[length(x)],y[i])
+        }
+        else{
+          grid.lines[i,] <- c(i,2,x[i-length(y)],y[1],x[i-length(y)],y[length(y)])
+        }
+      }
+
+      grid.lines <- as.data.frame(grid.lines)
+      colnames(grid.lines)<- c("indx","orient_line","coor_x_1","coor_y_1","coor_x_2","coor_y_2")
+    }
+
+   if(missing(t.max)) t.max <- max(times) +1
+
+
+    #if(all(raster::values(rast)))
+
+    tryCatch(
+      contact.internal(
+        data=data,
+        initializer = initializer,
+        times = times,
+        t0 = t0,
+        grid.lines = grid.lines,
+        pop.grid = pop.grid,
+        params = params,
+        grid.size = grid.size,
+        age.level = age.level,
+        age.dist = age.dist,
+        t.max = t.max,
+        t.intervention = t.intervention,
+        kernelmodel = kernelmodel,
+        rmodel = rmodel,
+        r.model = r.model,
+        PACKAGE = PACKAGE,
+        d.model = d.model,
+        nkernls = nkernls,
+        statenames=statenames,
+        paramnames=paramnames,
+        covarnames=covarnames,
+        obsnames=obsnames,
+        zeronames=zeronames,
+        ...
+      ),
+      error = function (e) {
+        stop(ep,conditionMessage(e),call.=FALSE)
+      }
+    )
+
+  }
+
+}
+
+
+
+
+contact.internal <- function(data, rast, initializer, times, t0, grid.lines,
                              pop.grid, params, grid.size, age.level,
                              age.dist, t.max, t.intervention, kernelmodel,
                              rmodel, r.model, PACKAGE, r.prior,zeronames,
@@ -15,9 +355,12 @@ contact.internal <- function(data, initializer, times, t0, grid.lines,
 
   ##preliminary error checking
   if (missing(times)) stop(sQuote("times")," is a requiered argument",call. = FALSE)
-  if (missing(grid.lines)) stop(sQuote("grid.lines")," is a requiered argument",call. = FALSE)
-  if (missing(pop.grid)) stop(sQuote("pop.grid")," is a requiered argument",call. = FALSE)
-  if (missing(grid.size)) stop(sQuote("grid.size")," is a requiered argument",call. = FALSE)
+  if (missing(rast)) {
+    if (missing(grid.lines)) stop(sQuote("grid.lines")," is a requiered argument",call. = FALSE)
+    if (missing(pop.grid)) stop(sQuote("pop.grid")," is a requiered argument",call. = FALSE)
+    if (missing(grid.size)) stop(sQuote("grid.size")," is a requiered argument",call. = FALSE)
+  }
+
   if (missing(t0))  stop(sQuote("t0")," is a requiered argument",call. = FALSE)
   if (missing(params)) params <- numeric(0)
   if (missing(userdata)) userdata <- list()
@@ -31,6 +374,9 @@ contact.internal <- function(data, initializer, times, t0, grid.lines,
     userdata[names(added.userdata)] <- added.userdata
   }
 
+  if(missing(age.level)) age.level<- c(1,1)
+  if(missing(age.dist)) age.dist <- c(1,0)
+  if(missing(t.intervention)) t.intervention <- 10000000
   ## name of shared object library
   if (missing(PACKAGE)) PACKAGE <- NULL
   PACKAGE <- as.character(PACKAGE)
@@ -42,7 +388,7 @@ contact.internal <- function(data, initializer, times, t0, grid.lines,
   if (missing(r.prior)) r.prior <- NULL
   if (missing(d.prior)) d.prior <- NULL
   if (missing(nkernls)) nkernls <- 1
-  if (missing(kernelmodel)) kernelmodel <- NULL
+  if (missing(kernelmodel)) kernelmodel <- 5  # Exponential
   if (missing(initializer))  initializer <- as.data.frame(array(data=0,dim = c(0,0)))
   if (missing(fromEstimationScale)) fromEstimationScale <- NULL
   if (missing(toEstimationScale)) toEstimationScale <- NULL
@@ -225,7 +571,7 @@ contact.internal <- function(data, initializer, times, t0, grid.lines,
   # }
 
   ## handle rmodel
-  rmodel <- contact.fun(
+  rmodel <- contact_fun(
     f=rmodel,
     PACKAGE=PACKAGE,
     libname=libname,
@@ -238,7 +584,7 @@ contact.internal <- function(data, initializer, times, t0, grid.lines,
   )
 
   ## handle r.model
-  r.model <- contact.fun(
+  r.model <- contact_fun(
     f=r.model,
     PACKAGE=PACKAGE,
     libname=libname,
@@ -251,7 +597,7 @@ contact.internal <- function(data, initializer, times, t0, grid.lines,
   )
 
   ## handle d.model
-  d.model <- contact.fun(
+  d.model <- contact_fun(
     f=d.model,
     PACKAGE=PACKAGE,
     libname=libname,
@@ -265,7 +611,7 @@ contact.internal <- function(data, initializer, times, t0, grid.lines,
 
 
   ## handle r.model
-  r.prior <- contact.fun(
+  r.prior <- contact_fun(
     f=r.prior,
     PACKAGE=PACKAGE,
     libname=libname,
@@ -278,7 +624,7 @@ contact.internal <- function(data, initializer, times, t0, grid.lines,
   )
 
   ## handle d.model
-  d.prior <- contact.fun(
+  d.prior <- contact_fun(
     f=d.prior,
     PACKAGE=PACKAGE,
     libname=libname,
@@ -291,17 +637,17 @@ contact.internal <- function(data, initializer, times, t0, grid.lines,
   )
 
   ## handle kernel model
-  kernelmodel <- contact.fun(
-    f=kernelmodel,
-    PACKAGE=PACKAGE,
-    libname=libname,
-    proto=quote(kernelmodel(r,params,...)),
-    statenames=statenames,
-    paramnames=paramnames,
-    obsnames=obsnames,
-    covarnames=covarnames,
-    slotname="kernelmodel"
-  )
+  # kernelmodel <- contact.fun(
+  #   f=kernelmodel,
+  #   PACKAGE=PACKAGE,
+  #   libname=libname,
+  #   proto=quote(kernelmodel(r,params,...)),
+  #   statenames=statenames,
+  #   paramnames=paramnames,
+  #   obsnames=obsnames,
+  #   covarnames=covarnames,
+  #   slotname="kernelmodel"
+  # )
 
 
 
@@ -331,144 +677,3 @@ contact.internal <- function(data, initializer, times, t0, grid.lines,
   )
 }
 
-contact <- function (data, initializer, times, t0, ..., grid.lines,
-                     pop.grid, params, grid.size, age.level, nkernls,
-                     age.dist, t.max, t.intervention, kernelmodel,
-                     obsnames, statenames, paramnames, covarnames, zeronames,
-                     rmodel, r.model, PACKAGE,
-                     d.model){
-
-  ep <- paste0("in ", sQuote("contact"),": ")
-
-  if (missing(data))
-    stop(ep,sQuote("data")," is a required argument",call.=FALSE)
-
-  if (is(data,"contact")){
-    ## data is a contact object:
-    ## extract missing arguments from it
-
-    if (nargs()==1) return(data)
-
-    if(missing(times)) times <- data@times
-    if (missing(t0))   t0 <- data@t0
-    if (missing(grid.lines)) grid.lines <- data@grid.lines
-    if (missing(pop.grid))  pop.grid <- data@pop.grid
-    if (missing(params))  params <- data@params
-    if (missing(grid.size))  grid.size <- data@grid.size
-    if (missing(age.level))  age.level <- data@age.level
-    if (missing(age.dist))  age.dist <- data@age.dist
-    if(missing(t.max)) t.max <- data@t.max
-    if (missing(t.intervention))   t.intervention <- data@t.intervention
-    if (missing(kernelmodel)) kernelmodel <- data@kernelmodel
-    if (missing(rmodel))  rmodel <- data@rmodel
-    if (missing(r.model))  r.model <- data@r.model
-    if (missing(d.model))  d.model <- data@d.model
-    if (missing(nkernls)) nkernls <- data@nkernls
-    if (missing(zeronames)) zeronames <- data@zeronames
-    if (missing(obsnames)) obsnames <- character(0)
-    if (missing(statenames)) statenames <- character(0)
-    if (missing(paramnames)) paramnames <- character(0)
-    if (missing(covarnames)) covarnames <- character(0)
-    if (missing(PACKAGE)) PACKAGE <- character(0)
-
-    tryCatch(
-      contact.internal(
-        data=data@data,
-        initializer = initializer,
-        times = times,
-        t0 = t0,
-        grid.lines = grid.lines,
-        pop.grid = pop.grid,
-        params = params,
-        grid.size = grid.size,
-        age.level = age.level,
-        age.dist = age.dist,
-        t.max = t.max,
-        t.intervention = t.intervention,
-        kernelmodel = kernelmodel,
-        rmodel = rmodel,
-        r.model = r.model,
-        PACKAGE = PACKAGE,
-        d.model = d.model,
-        nkernls = nkernls,
-        userdata=data@userdata,
-        statenames=statenames,
-        paramnames=paramnames,
-        covarnames=covarnames,
-        obsnames=obsnames,
-        zeronames=zeronames,
-        ...
-      ),
-      error = function (e) {
-        stop(ep,conditionMessage(e),call.=FALSE)
-      }
-    )
-  }
-  else{
-  ## construct a contact object de nouveau
-
-    if (is.data.frame(data)){
-
-      ## data is a data frame
-      if ((is.numeric(times) && (times<1 || times>ncol(data) ||times!=as.integer(times))) ||
-          (is.character(times) && (!(times%in%names(data)))) ||
-          (!is.numeric(times) && !is.character(times)) ||
-          length(times)!=1) {
-        stop(ep,"when ",sQuote("data")," is a data frame, ",sQuote("times"),
-             " must identify a single column of ",sQuote("data"),
-             " either by name or by index.",call.=FALSE)
-      }
-
-      if (is.numeric(times)) {
-        tpos <- as.integer(times)
-      } else if (is.character(times)) {
-        tpos <- match(times,names(data))
-      }
-      times <- data[[tpos]]
-      data <- do.call(rbind, lapply(data[-tpos], as.numeric))
-      data <- as.data.frame(data)
-
-    }
-    else {
-      stop(ep,sQuote("data"),
-           " must be a data frame or an object of class ",sQuote("contact"),
-           call.=FALSE)
-    }
-
-    #if()
-
-    tryCatch(
-      contact.internal(
-        data=data,
-        initializer = initializer,
-        times = times,
-        t0 = t0,
-        grid.lines = grid.lines,
-        pop.grid = pop.grid,
-        params = params,
-        grid.size = grid.size,
-        age.level = age.level,
-        age.dist = age.dist,
-        t.max = t.max,
-        t.intervention = t.intervention,
-        kernelmodel = kernelmodel,
-        rmodel = rmodel,
-        r.model = r.model,
-        PACKAGE = PACKAGE,
-        d.model = d.model,
-        nkernls = nkernls,
-        statenames=statenames,
-        paramnames=paramnames,
-        covarnames=covarnames,
-        obsnames=obsnames,
-        zeronames=zeronames,
-        ...
-      ),
-      error = function (e) {
-        stop(ep,conditionMessage(e),call.=FALSE)
-      }
-    )
-
-  }
-
-}

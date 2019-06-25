@@ -1,0 +1,22 @@
+{
+    "collab_server" : "",
+    "contents" : "",
+    "created" : 1535556356918.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "346301198",
+    "id" : "5CD8BB18",
+    "lastKnownWriteTime" : 1533921737,
+    "last_content_update" : 1533921737,
+    "path" : "/media/sf_D_DRIVE/BBTV_PROJECT/Ploting_code/plot_code_senarios.R",
+    "project_path" : null,
+    "properties" : {
+        "cursorPosition" : "58,38",
+        "scrollLine" : "49"
+    },
+    "relative_order" : 15,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_source"
+}

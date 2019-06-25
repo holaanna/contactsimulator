@@ -1,0 +1,54 @@
+f_e<- function(u1){
+  return(u1+14)
+}
+
+f_o<- function(u2){
+  return(u2+61)
+}
+
+pts_in_pol<- function(rast3,polyinaustraliangrid){
+  x_min<- xmin(rast3)
+  x_max<- xmax(rast3)
+  
+  y_min<- ymin(rast3)
+  y_max<- ymax(rast3)
+  
+  x_seq<- seq(x_min,x_max,0.1)
+  y_seq<- seq(y_min,y_max,2)
+  
+  
+  
+  samp<- 1
+  k<- 2
+  u1<- 1
+  u2<- 15
+  while(samp[k-1]<=length(x_seq)){
+    if(k%%2==0){
+      samp<- c(samp,f_e(samp[k-1]))
+    }
+    else{
+      samp<- c(samp,f_o(samp[k-1]))
+    }
+    
+    k<- k+1
+  }
+  xy<- expand.grid(x_seq[samp[-length(samp)]],y_seq)
+  
+  colnames(xy)<- c("longitude","latitude")
+  coordinates(xy) <- c("longitude","latitude")
+  proj4string(xy) <- proj4string(polyinaustraliangrid)
+  pts<- xy[polyinaustraliangrid,]
+  return(pts)
+}
+
+# f <-paste0("/media/sf_D_DRIVE/BBTV_PROJECT/Montville/rast_mont_SEQ",".tif")
+# rast<- raster(f)
+
+#pts<- pts_in_pol(rast,polyinaustraliangrid)
+
+# plot(rast3)
+# plot(pts,cex=.5,pch=19,col="green")
+# plot(polyinaustraliangrid, border = "red", add = TRUE)
+# points(M[,c("longitude","latitude")],cex=0.5,col="red",pch=19)
+
+

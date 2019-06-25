@@ -1,0 +1,149 @@
+library(geosphere)
+library(raster)
+library(rgdal)
+library(pracma)
+library(sp)
+dat=read.table("/media/sf_D_DRIVE/BBTV_PROJECT/Data/transform_all_updated.csv",sep=",",header = TRUE,stringsAsFactors = F)
+year <- c("2009/01/01","2010/01/01","2011/01/01","2012/01/01","2013/01/01","2014/01/01","2015/01/01","2016/01/01","2017/01/01")
+
+#path1="/run/user/1000/gvfs/sftp:host=oak--is.grid.private.cam.ac.uk/home/ha411/big_space/BBTV/NSW/Cauchy-kernel/"
+path1="/run/user/1000/gvfs/sftp:host=login-cpu.hpc.cam.ac.uk,user=ha411/home/ha411/big_space/BBTV/QLD_17_08_18/Cauchy-kernel/reso_500/"
+
+brisban<- data.frame(longitude=153.02809,latitude=-27.46794)
+coordinates(brisban)<- c("longitude", "latitude")
+proj4string(brisban) <- sp::CRS("+init=epsg:4326")
+australianCRS = CRS("+init=epsg:3577")
+
+brisinaustraliangrid = as.data.frame(spTransform(brisban,australianCRS))
+
+
+Dat2<-subset(dat,dat$latitude> brisinaustraliangrid$latitude & dat$BBTV%in%c("P&I") & difftime(as.Date(dat$inspectiondate), as.Date("2010/01/01"), unit="days")>=0)  # data up in queensland
+Dat2$treatmentdate[is.na(Dat2$treatmentdate)]<- Dat2$inspectiondate[is.na(Dat2$treatmentdate)]
+Datt <- Dat2
+
+Datt[which(Datt$leavesinfected=="LOTS"),"leavesinfected"]<- 45
+Datt[which(Datt$leavesinfected=="1,2,4"),"leavesinfected"]<- 2.3
+Datt[which(Datt$leavesinfected=="'3"),"leavesinfected"]<- 3
+Datt[which(Datt$leavesinfected=="2 +bunch"),"leavesinfected"]<- 2
+Datt[which(Datt$leavesinfected=="3 +bunch"),"leavesinfected"]<- 3
+Datt[which(Datt$leavesinfected=="4+BUNCH"),"leavesinfected"]<- 4
+Datt[which(Datt$leavesinfected=="avg 3.2"),"leavesinfected"]<- 3.2
+Datt[which(Datt$leavesinfected=="1-6, avg 3.5"),"leavesinfected"]<- 3.5
+Datt[which(Datt$leavesinfected=="all"),"leavesinfected"]<- 45
+leav=sapply(Datt[,"leavesinfected"],function(x){
+  gsub("all/","",x)
+})
+
+leav=sapply(leav,function(x){
+  gsub("/all","",x)
+})
+
+leav=sapply(leav,function(x){
+  gsub("[+]","",x)
+})
+
+#leav[grepl("[+]",leav)]<- 45  # Assuming 45 leaves on a plant
+
+Datt$leavesinfected<- leav
+
+# Reading the raster file
+f <-"/media/sf_D_DRIVE/BBTV_PROJECT/Data/rast_farms_SEQ_500.tif"
+rast3<- raster(f)
+
+ii=2
+Dat1 <- Datt
+Dat1$detection<-as.numeric(difftime(as.Date(Dat1$inspectiondate), as.Date(year[ii]), unit="days"))
+Dat1$removal<-as.numeric(difftime(as.Date(Dat1$treatmentdate), as.Date(year[ii]), unit="days"))
+#Dat1$removal[which(Dat1$removal<0)]<- Dat1$detection[which(Dat1$removal<0)]
+
+Dat1<- Dat1[-which(Dat1$BBTV=="P&I" & (Dat1$detection<0 | Dat1$detection>365*1)),]
+Datt1<-Dat1[,c("longitude","latitude","BBTV","leavesinfected","detection","removal","location")]
+
+df<- Datt1
+df1<- df[-which(df$BBTV=="P&I" & df$detection<365*1),]
+coordinates(df)<- c("longitude","latitude")
+coordinates(df1)<- c("longitude","latitude")
+
+r1<- rasterize(df,rast3,"detection",fun=max)
+
+r2<- rasterize(df1,rast3,"detection",fun=sum)
+
+r2[is.na(r2)]<- 0
+r1[is.na(r1)]<- 0
+pop_per_grid2=raster::values(r2)
+pop_per_grid1=raster::values(r1)
+mat1=matrix(pop_per_grid1,nrow = nrow(rast3), byrow = T )
+mat2=matrix(pop_per_grid2,nrow = nrow(rast3), byrow = T )
+dens_grid1=flipdim(mat1)     # population per grid
+dens_grid2=flipdim(mat2)     # population per grid
+
+rast3[is.na(rast3)]<- 0
+pop_per_grid=raster::values(rast3)
+dens_grid=mat=matrix(pop_per_grid,nrow = nrow(rast3), byrow = T )
+dens_grid=flipdim(mat)     # population per grid
+
+
+
+ind<- which(dens_grid>0,arr.ind = T)
+farm_pos_cat<- data.frame(ro=numeric(nrow(ind)),co=numeric(nrow(ind)),cat=numeric(nrow(ind)),vis_int=numeric(nrow(ind)),tim_lst_pos=numeric(nrow(ind)),nb_round=1,sweep=1)
+for(i in 1:nrow(ind)){
+  farm_pos_cat$ro[i]<- ind[i,1]
+  farm_pos_cat$co[i]<- ind[i,2]
+
+  if(dens_grid2[ind[i,1],ind[i,2]]==0){
+      if(dens_grid1[ind[i,1],ind[i,2]]==0){
+          farm_pos_cat$cat[i]<- "A"
+          farm_pos_cat$tim_lst_pos[i]<- -10000
+      }
+      else{
+          farm_pos_cat$cat[i]<- "B"
+          farm_pos_cat$tim_lst_pos[i]<- dens_grid1[ind[i,1],ind[i,2]]
+      }
+
+    farm_pos_cat$vis_int[i]<- 360
+
+
+  }
+ # else if(max(values(r1))-dens_grid1[ind[i,1],ind[i,2]]>=2*365){
+ #    farm_pos_cat$cat[i]<- "B"
+ #    farm_pos_cat$vis_int[i]<- 360
+ #    farm_pos_cat$tim_lst_pos[i]<- dens_grid1[ind[i,1],ind[i,2]]
+ #
+ #  }
+
+else {
+  # if(max(values(r1))-dens_grid1[ind[i,1],ind[i,2]]<=365){
+    if(dens_grid2[ind[i,1],ind[i,2]]==1){
+      farm_pos_cat$cat[i]<- "C"
+    }
+
+    if(dens_grid2[ind[i,1],ind[i,2]]>1 & dens_grid2[ind[i,1],ind[i,2]]<=10){
+      farm_pos_cat$cat[i]<- "D"
+    }
+
+    if(dens_grid2[ind[i,1],ind[i,2]]>10 ){
+      farm_pos_cat$cat[i]<- "E"
+    }
+
+    farm_pos_cat$vis_int[i]<- 30
+    farm_pos_cat$tim_lst_pos[i]<- dens_grid1[ind[i,1],ind[i,2]]
+
+}
+  # else{
+  #   farm_pos_cat$cat[i]<- "B"
+  #   farm_pos_cat$vis_int[i]<- 360
+  #   farm_pos_cat$tim_lst_pos[i]<- dens_grid1[ind[i,1],ind[i,2]] - 365
+  #
+  # }
+
+}
+
+
+# write.table(farm_pos_cat,"/run/user/1000/gvfs/sftp:host=login-cpu.hpc.cam.ac.uk/home/ha411/big_space/BBTV/NSW_25_07_18/Two-kernels/exp-cau/reso_500/BBTV-16/farm_pos_cat.txt",row.names = F)
+ write.table(farm_pos_cat,paste0(path1,"farm_pos_cat.txt"),row.names = F)
+
+
+ write.table(farm_pos_cat,"/run/user/1000/gvfs/sftp:host=login-cpu.hpc.cam.ac.uk/home/ha411/big_space/BBTV/QLD_25_07_18/Two-kernels/exp-cau/BBTV-full/reso_500/farm_pos_cat.txt",row.names = F)
+
+
+farm_pos_cat<- read.table("/media/sf_D_DRIVE/BBTV_PROJECT/Data/farm_pos_cat.txt",fill=T,header = T)

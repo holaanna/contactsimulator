@@ -1,0 +1,20 @@
+{
+    "collab_server" : "",
+    "contents" : "",
+    "created" : 1535458183826.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "3006757591",
+    "id" : "11DACFEA",
+    "lastKnownWriteTime" : 1533727104,
+    "last_content_update" : 1533727104,
+    "path" : "~/Dropbox/package/contactsimulator/R/control_baseline.R",
+    "project_path" : "R/control_baseline.R",
+    "properties" : {
+    },
+    "relative_order" : 5,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_source"
+}

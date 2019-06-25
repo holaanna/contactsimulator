@@ -1,0 +1,41 @@
+x_min<- xmin(rast3)
+x_max<- xmax(rast3)
+
+y_min<- ymin(rast3)
+y_max<- ymax(rast3)
+
+x<- seq(x_min,x_max,.1)
+y<- seq(y_min,y_max,2)
+
+
+
+f_e<- function(u1,p){
+  return(u1+9*(p-1))
+}
+
+
+f_o<- function(u2,p){
+  return(u2+61*(p-2))
+}
+
+
+samp<- c(1,10)
+x_tick<- 1
+k<- 3
+
+u1=1
+u2<- 10
+
+while(samp[k-1]<length(x_max)){
+  if(k%%2==0){
+    samp<- c(samp,f_e(u1,k))
+   
+  }
+  else{
+    samp<- c(samp,f_o(u2,k))
+    
+  }
+  k<- k+1
+}
+
+

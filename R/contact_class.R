@@ -2,12 +2,19 @@
 # Define the contact model class
 #============================================================================
 #' An S4 class to represent a contact model
-#' @include builder.R
-NULL
+#'
+#' The basic class implementing a contact type model with data
+#'
+#' @rdname contat_class
+#' @include contact_fun.R
+#' @include cppsnippet.R rsnippet.R
+#'
+#' @export
 setClass(
   "contact",
           slots = c(
             data = "data.frame",
+            rast = "RasterLayer",
             initializer = "data.frame",
             times= "numeric",
             t0 = 'numeric',
@@ -21,23 +28,24 @@ setClass(
             age.dist  ="numeric",
             t.max = "numeric",
             t.intervention = "numeric",
-            kernelmodel = "contact.fun",
-            rmodel = "contact.fun",
-            r.model = "contact.fun",
-            d.model = "contact.fun",
-            d.prior = 'contact.fun',
-            r.prior = 'contact.fun',
+            kernelmodel = "numeric",
+            rmodel = "contact_fun",
+            r.model = "contact_fun",
+            d.model = "contact_fun",
+            d.prior = "contact_fun",
+            r.prior = "contact_fun",
             states = "array",
             nkernls = "numeric",
             has.trans = 'logical',
-            from.trans = 'contact.fun',
-            to.trans = 'contact.fun',
+            from.trans = "contact_fun",
+            to.trans = "contact_fun",
             zeronames = "character",
             userdata = 'list'
           ),
 
   prototype = prototype(
     data = as.data.frame(array(data=numeric(0),dim=c(0,0))),
+    rast = raster::raster(),
     initializer = as.data.frame(array(data=numeric(0),dim=c(0,0))),
     times = numeric(0),
     t0=numeric(0),
@@ -51,16 +59,16 @@ setClass(
     t.intervention = numeric(0),
     covar=array(data=numeric(0),dim=c(0,0)),
     tcovar=numeric(0),
-    kernelmodel = contact.fun(slotname="kernelmodel"),
-    rmodel = contact.fun(slotname="rmodel"),
-    r.model = contact.fun(slotname="r.model"),
-    d.model = contact.fun(slotname="d.model"),
-    r.prior = contact.fun(slotname="r.prior"),
-    d.prior = contact.fun(slotname="d.prior"),
+    kernelmodel = numeric(0),
+    rmodel = contact_fun(slotname="rmodel"),
+    r.model = contact_fun(slotname="r.model"),
+    d.model = contact_fun(slotname="d.model"),
+    r.prior = contact_fun(slotname="r.prior"),
+    d.prior = contact_fun(slotname="d.prior"),
     states = array(data=numeric(0),dim=c(0,0)),
     nkernls = numeric(0),
-    from.trans=contact.fun(slotname="fromEstimationScale"),
-    to.trans=contact.fun(slotname="toEstimationScale"),
+    from.trans=contact_fun(slotname="fromEstimationScale"),
+    to.trans=contact_fun(slotname="toEstimationScale"),
     userdata=list()
 
   ),
@@ -72,33 +80,36 @@ setClass(
       append(retval,paste(sQuote("data"),"is a required argument"))
     if (length(object@grid.lines)<1)
       append(retval,paste(sQuote("grid.lines"),"is a required argument"))
-    if (length(object@pop.grid)<1)
-      append(retval,paste(sQuote("pop.grid"),"is a required argument"))
-    if ((ncol(object@pop.grid)+nrow(object@pop.grid) + 2)!=nrow(object@grid.lines))
-      retval <- append(retval,paste("the number of colums + the number of rows +2 should match the number of lines"))
+    # if (length(object@pop.grid)<1)
+    #   append(retval,paste(sQuote("pop.grid"),"is a required argument"))
+    # if ((ncol(object@pop.grid)+nrow(object@pop.grid) + 2)!=nrow(object@grid.lines))
+    #   retval <- append(retval,paste("the number of colums + the number of rows +2 should match the number of lines"))
     if (!is.numeric(object@params) || (length(object@params)>0 && is.null(names(object@params))))
       retval <- append(retval,paste(sQuote("params"),"must be a named numeric vector"))
     # if (ncol(object@data)!=length(object@times))
     #   retval <- append(retval,paste("the length of",sQuote("times"),"should match the number of observations"))
     if (length(object@t0)<1)
       retval <- append(retval,paste(sQuote("t0"),"is a required argument"))
-    if (length(object@t0)>1)
+    if (!is.numeric(object@t0) || !is.finite(object@t0) || length(object@t0)>1)
       retval <- append(retval,paste(sQuote("t0"),"must be a single number"))
+
     # if (object@t0 > object@times[1])
     #   retval <- append(retval,paste("the zero-time",sQuote("t0"),
     #                                 "must occur no later than the first observation"))
-    if(length(object@age.level)<1)
-      append(retval,paste(sQuote("age.level"),"is a required argument"))
-    if(length(object@age.dist)<1)
-      append(retval,paste(sQuote("age.dist"),"is a required argument"))
-    if(length(object@grid.size)<1)
-      append(retval,paste(sQuote("grid.size"),"is a required argument"))
+    # if(length(object@age.level)<1)
+    #   append(retval,paste(sQuote("age.level"),"is a required argument"))
+    # if(length(object@age.dist)<1)
+    #   append(retval,paste(sQuote("age.dist"),"is a required argument"))
+    # if(length(object@grid.size)<1)
+    #   append(retval,paste(sQuote("grid.size"),"is a required argument"))
     if(length(object@age.dist)!=length(object@age.level))
       retval <- append(retval,paste("the length of",sQuote("age.level"),"should match the number of age group"))
-    if (length(object@kernelmodel)==0)
-      retval <- append(retval,paste(sQuote("kernelmodel"),"is requiered"))
-    if (length(object@rmodel)==0)
-      retval <- append(retval,paste(sQuote("rmodel"),"is requiered"))
+    if (object@t0 > object@times[1])
+      retval <- append(retval,paste("the zero-time",sQuote("t0"),"must occur no later than the first observation"))
+    # if (length(object@kernelmodel)==0)
+    #   retval <- append(retval,paste(sQuote("kernelmodel"),"is requiered"))
+    # if (length(object@rmodel)==0)
+    #   retval <- append(retval,paste(sQuote("rmodel"),"is requiered"))
     # if(object@nkernls<=1 && missing(object@kernel.model1))
     #   retval <- append(retval,paste(sQuote("kernel.model1"),"is a required argument"))
     # if(object@nkernls==2 && (missing(object@kernel.model1) || missing(object@kernel.model2)) )

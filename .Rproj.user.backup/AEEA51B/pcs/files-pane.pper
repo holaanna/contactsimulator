@@ -1,0 +1,9 @@
+{
+    "path" : "/run/user/1000/gvfs/sftp:host=oak--is.grid.private.cam.ac.uk/home/ha411/big_space/BBTV/QLD/Cauchy-kernel/BBTV-11",
+    "sortOrder" : [
+        {
+            "ascending" : true,
+            "columnIndex" : 2
+        }
+    ]
+}

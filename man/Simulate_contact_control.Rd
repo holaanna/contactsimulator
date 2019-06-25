@@ -4,13 +4,14 @@
 \alias{Simulate_contact_control}
 \title{Simulation of the epidemic control process}
 \usage{
-Simulate_contact_control(f_rast, b_rast, farm_pos_cat, vis_int_per_cat, param,
-  grid_lines, pop_grid, grid_size = 1000, age_level = c(1, 1),
-  age_dist = c(1, 0), m_start = 1, t_b = 720, t_max = 1000,
-  t_intervention = 1e+05, t_obs = 3703, EI_model = 1, kern_model = 4,
-  rad = 1000, sweep_prop = c(0.5, 0.5), back_p = c(0.7, 0.5),
-  rate_det = 0.3, int_det = c(30, 90, 180), nb_in_b = 1, nb = 30,
-  leav = c(3, 6))
+Simulate_contact_control(f_rast = NULL, b_rast = NULL,
+  farm_pos_cat = NULL, vis_int_per_cat = NULL, param, grid_lines,
+  pop_grid, grid_size = 500, age_level = c(1, 1), age_dist = c(1, 0),
+  m_start = 1, t_b = 1e+05, t_max = 1000, t_intervention = 1e+05,
+  t_obs = 3703, EI_model = 1, kern_model = 4, rad = 1000,
+  sweep_prop = c(0.5, 0.5), back_p = c(0.7, 0.5), rate_det = c(0.3,
+  1), int_det = c(30, 90, 180), nb_in_b = 1, nb = 30, leav = c(3,
+  6))
 }
 \arguments{
 \item{f_rast}{Population density of the grid a farm plant resides. This is filled from bottom to top, then left to right.}
@@ -75,19 +76,19 @@ Simulate_contact_control(f_rast, b_rast, farm_pos_cat, vis_int_per_cat, param,
 
 \item{back_p}{A two element vector represention thes Backyard assessment proportion within sweep radius:}
 
-\item{rate_det}{Growers detection rate.
+\item{rate_det}{Detection rate.
 \describe{
-  \item{1st element}{proportion for baseline}
-  \item{2nd element}{proportion for alternative}
+  \item{1st element}{Detection rate for the grower}
+  \item{2nd element}{Detection rate for the expert}
  }}
 
-\item{int_det}{Three elements vecotor representing the revisit intervals:}
+\item{int_det}{Three elements vector representing the revisit intervals:}
 
 \item{nb_in_b}{The number of initial plants infected in category B farms}
 
 \item{nb}{The scaling factor of backyards}
 
-\item{leav}{The number of leaves to consider as a measurement for removal: 3 for expert to have a 100% detection}
+\item{leav}{The number of leaves to consider as a measurement for removal: 3 for expert to have a 100 detection}
 }
 \description{
 Epidemic simulation using the contact type model with the Australian control strategies.
@@ -96,7 +97,6 @@ Epidemic simulation using the contact type model with the Australian control str
 \code{Simulate_contact_control} provide the simulation of the epidemic process with the Australian BBTV management plan.
 }
 \examples{
-
 f<- system.file("external/rast_SEQ.tif", package="contactsimulator")
 rast<- raster(f)
  size<- raster::res(rast)[1]

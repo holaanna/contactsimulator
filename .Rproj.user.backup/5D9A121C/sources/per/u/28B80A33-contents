@@ -1,0 +1,112 @@
+path="/run/user/1000/gvfs/sftp:host=login-cpu.hpc.cam.ac.uk,user=ha411/home/ha411/big_space/BBTV/SIS-farms/Montville/"
+df=read.table(paste0(path,"Dout1"),fill = T,header = TRUE)
+df<- df[1:627,]
+times<- c(31,59,90, 120, 151, 181, 212, 243, 273, 304, 334, 365)
+
+times2<- times
+for(i in 1:7){
+  times<-c(times,365*i +times2)
+}
+times1<- c(0,times)
+obs<- numeric(length(times))
+for(i in 1:length(times)){
+  obs[i]<- length(which(df$Rmin<= times1[i+1] & df$Rmin> times1[i] ))
+}
+
+library(dplyr)
+df2<- data.frame(obs=obs, month=times)
+df1<- df2%>%filter(obs>0)
+
+
+
+times<- seq(2192,4352,30)
+times2<- times
+times1<- c(0,times)
+
+
+
+sub_dir<- c("Two-kernels/exp-cau")
+
+
+
+latent=c("_latent_omegapi")
+trans=c("gama")
+
+
+size=500
+
+rad=0.5
+
+  dir_name<- paste("cyclic_latent_omega0")
+  
+  id<- 1
+  oak=paste("/run/user/1000/gvfs/sftp:host=login-cpu.hpc.cam.ac.uk,user=ha411/home/ha411/big_space/BBTV/Montville")
+  setwd(paste(oak,paste0(trans,latent,"/scale",id),sep="/"))
+  # #files<- list.files(pattern = "^dpc_snapshot")
+  L1<- list.files(pattern = paste0("^scale",id))
+  L<- vector("list",length = 1)
+  times<- c(df1$month,df1$month[43]+30)
+  for(ii in 1:1){
+    files<- L1
+    rem<- mclapply(1:length(files),function(i){
+      
+      epi<- read.table(files[i],header=T)
+      M<- numeric(length(times)-1)
+      for(k in 1:(length(times)-1)){
+        t1<- times[k]
+        t2<- times[k+1]
+        sub_epi<- subset(epi,t_r< t2 & t_r>=t1)
+        M[k]<- nrow(sub_epi)
+      }
+      
+      return(M)
+      
+    })
+    N_rem=do.call(rbind,rem)
+    Mean_rem<- apply(N_rem,2,quantile,c(0.025,.5,.975))
+    L[[ii]]<- Mean_rem
+  }
+  
+  M<- do.call(cbind,L)
+  df1<- as.data.frame(t(M))
+  cont<- c("Baseline")
+  for(ii in 1:9){
+    cont<- c(cont,paste0("Scenario ",ii))
+  }
+  #cont<- c("Baseline","100% sweep", "Senario 1", "Senario 2")
+  df1$control<- rep(cont,each=length(times[-73]))
+  
+  # write.table(Mean_rem,paste("obs_removal",id,".txt",sep = ""),row.names = FALSE,col.names = FALSE)
+  
+  
+  colnames(df1)[1:3]<- c("min","median","max")
+  df1$times<- rep(times[1:72],9)
+  
+   write.table(df1,paste0("/media/sf_D_DRIVE/BBTV_PROJECT/Scenarios_controls/removed_",rad,"_",id,".txt"),row.names = F,col.names = T)
+  
+
+
+
+n=36
+plot(df1$month,df1$obs,type="l")
+points(df1$month,df1$obs,pch=19)
+colr=rainbow(1000)
+for(i in 1:500){
+  points(df1$month,rem[[i]],pch=19,col=colr[i])
+  lines(df1$month,rem[[i]],col=colr[i])
+}
+
+
+
+M1=read.table(paste0(path,"/HLBout"),fill = T)
+OBS=array(0,c(max(M1[,6]),nrow(df1)))
+
+library(spatstat)
+times3<- c(0,df1$month)
+for(j in 1:nrow(OBS)){
+  df11<- subset(M1,V6==j)
+  for(i in 1:nrow(df1)){
+    OBS[j,i]<- length(which(df11[,5]<= times3[i+1] & df11[,5]> times3[i] ))
+  }
+  
+}

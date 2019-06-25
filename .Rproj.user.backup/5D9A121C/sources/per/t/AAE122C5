@@ -1,0 +1,22 @@
+{
+    "collab_server" : "",
+    "contents" : "",
+    "created" : 1535561320458.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "544123318",
+    "id" : "AAE122C5",
+    "lastKnownWriteTime" : 1535531359,
+    "last_content_update" : 1535531359,
+    "path" : "/run/user/1000/gvfs/sftp:host=login-cpu.hpc.cam.ac.uk,user=ha411/home/ha411/big_space/BBTV/QLD_17_08_18/expo-kernel/simulation.submit",
+    "project_path" : null,
+    "properties" : {
+        "cursorPosition" : "66,0",
+        "scrollLine" : "56"
+    },
+    "relative_order" : 17,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "text"
+}

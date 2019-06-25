@@ -27,21 +27,20 @@
 #' @param sweep_prop  A two element vector represention the proportion of plantation to consider for the sweep
 #' @param back_p  A two element vector represention thes Backyard assessment proportion within sweep radius:
 #' @param nb  The scaling factor of backyards
-#' @param rate_det   Growers detection rate.
+#' @param rate_det   Detection rate.
 #'       \describe{
-#'         \item{1st element}{proportion for baseline}
-#'         \item{2nd element}{proportion for alternative}
+#'         \item{1st element}{Detection rate for the grower}
+#'         \item{2nd element}{Detection rate for the expert}
 #'        }
-#' @param int_det  Three elements vecotor representing the revisit intervals:
+#' @param int_det  Three elements vector representing the revisit intervals:
 #' @param nb_in_b  The number of initial plants infected in category B farms
-#' @param leav  The number of leaves to consider as a measurement for removal: 3 for expert to have a 100% detection
+#' @param leav  The number of leaves to consider as a measurement for removal: 3 for expert to have a 100 detection
 #' @inheritParams Simulate_contact_model
 #' @seealso  \code{\link{E_to_I}}, \code{\link{func_time_beta}}.
 #' @references
 #' \insertRef{KR08}{contactsimulator}
 #' \insertRef{Mee11}{contactsimulator}
 #' @examples
-#'
 #' f<- system.file("external/rast_SEQ.tif", package="contactsimulator")
 #' rast<- raster(f)
 #'  size<- raster::res(rast)[1]
@@ -105,7 +104,7 @@
 #'
 #'
 #' @export
-Simulate_contact_control<- function(f_rast, b_rast, farm_pos_cat, vis_int_per_cat, param, grid_lines, pop_grid, grid_size=1000, age_level=c(1,1),age_dist=c(1,0), m_start=1,t_b=720, t_max=1000, t_intervention=100000, t_obs=3703, EI_model=1, kern_model=4,rad=1000,sweep_prop=c(.5,.5),back_p=c(.7,.5),rate_det=0.3,int_det=c(30,90,180),nb_in_b=1,nb=30,leav=c(3,6)){
+Simulate_contact_control<- function(f_rast=NULL, b_rast=NULL, farm_pos_cat=NULL, vis_int_per_cat=NULL, param, grid_lines, pop_grid, grid_size=500, age_level=c(1,1),age_dist=c(1,0), m_start=1,t_b=100000, t_max=1000, t_intervention=100000, t_obs=3703, EI_model=1, kern_model=4,rad=1000,sweep_prop=c(.5,.5),back_p=c(.7,.5),rate_det=c(0.3,1),int_det=c(30,90,180),nb_in_b=1,nb=30,leav=c(3,6)){
 
   #Set parameters
   epsilon <- param$epsilon
@@ -137,6 +136,14 @@ Simulate_contact_control<- function(f_rast, b_rast, farm_pos_cat, vis_int_per_ca
   n_col_grid <- ncol(pop_grid)  # number of cols of grids
 
   pop_grid_old = pop_grid
+  #Plantations
+  if(is.null(f_rast) & is.null(b_rast) & is.null(farm_pos_cat) & is.null(farm_pos_cat)){
+    f_rast<- pop_grid
+    b_rast<- pop_grid*0
+    nb_in_b<- 0
+    farm_pos_cat<- data.frame(ro=1,co=1,cat="A",vis_int=360,tim_lst_pos=-10000,nb_round=1,sweep=1)
+
+  }
 
   simulated_epi <- data.frame(k=numeric(0), coor_x=numeric(0), coor_y=numeric(0), t_e=numeric(0), t_i=numeric(0), t_r=numeric(0),age=numeric(0), infected_source=numeric(0), row=numeric(0), col=numeric(0), typ=numeric(0))
   # Extract data from farm and bakckyard
@@ -166,30 +173,46 @@ Simulate_contact_control<- function(f_rast, b_rast, farm_pos_cat, vis_int_per_ca
   tp_indx<- n_indx<- m_indx<- index_coor_x <- index_coor_y<- numeric(m_start)
 
   for(i in 1:m_start){
-    ss<- which(farm_pos_cat$cat=="E" | farm_pos_cat$cat=="D" | farm_pos_cat$cat=="C" )
-    # if(length(ss)==0 | i<=nb_in_b ){
-    #   ss<- which(farm_pos_cat$cat=="B" )
-    #   #show(i)
-    #   # k_grid <- sample(1:length(as.numeric(pop_grid)),size=1, prob=as.numeric(pop_grid))
-    #   # m_grid <- k_grid%%nrow(pop_grid) # the mth row of the grids
-    #   # if(m_grid==0) m_grid <- nrow(pop_grid)
-    #   # n_grid <- ceiling(k_grid/nrow(pop_grid))  # nth column ..
-    # }
-
-   # else{
+    if(t0<t_obs){
+      ss<- 1:nrow(farm_pos_cat)
       k_grid <- sample(ss,size=1)
-      m_grid <-  farm_pos_cat$ro[k_grid]# the mth row of the grids
-      n_grid <-  farm_pos_cat$co[k_grid]# the mth row of the grids
+    }
+    else{
+      ss<- which(farm_pos_cat$cat=="E" | farm_pos_cat$cat=="D" | farm_pos_cat$cat=="C" )
+      if(length(ss)==0 ){
+        ss<- which(farm_pos_cat$cat=="B" )
+        if(length(ss)==0){
+          ss<- which(farm_pos_cat$cat=="A" )
+          if(length(ss)==0){
+            stop("Farm need to be in one of the categories: A, B, C or D")
 
-    #}
+          }
+        }
 
+        k_grid <- sample(ss,size=1)
+        #show(i)
+        # k_grid <- sample(1:length(as.numeric(pop_grid)),size=1, prob=as.numeric(pop_grid))
+        # m_grid <- k_grid%%nrow(pop_grid) # the mth row of the grids
+        # if(m_grid==0) m_grid <- nrow(pop_grid)
+        # n_grid <- ceiling(k_grid/nrow(pop_grid))  # nth column ..
+      }
+
+      else{
+        k_grid <- sample(ss,size=1)
+
+
+      }
+    }
+
+    m_grid <-  farm_pos_cat$ro[k_grid]# the mth row of the grids
+    n_grid <-  farm_pos_cat$co[k_grid]# the mth row of the grids
 
     index_coor_x[i] <- stats::runif(1,min=x_intervals[n_grid],max=x_intervals[n_grid+1]) # random lands at a point in the grid selected
     index_coor_y[i] <- stats::runif(1,min=y_intervals[m_grid],max=y_intervals[m_grid+1])
 
     n_indx[i]=n_grid
     m_indx[i]=m_grid
-
+    # show(c(m_grid,n_grid))
     u1<- f_rast_p[m_grid,n_grid]
     u2<- b_rast_p[m_grid,n_grid]
 
@@ -245,6 +268,7 @@ Simulate_contact_control<- function(f_rast, b_rast, farm_pos_cat, vis_int_per_ca
     #   }
     # }
     #if(tp_indx)
+    #pop_grid[m_grid,n_grid]<- pop_grid[m_grid,n_grid]-1
 
 
   }
@@ -293,7 +317,7 @@ Simulate_contact_control<- function(f_rast, b_rast, farm_pos_cat, vis_int_per_ca
 
   #show(simulated_epi)
   while(t_next<(t_max)){
-    # show(t_next)
+      #show(t_next)
     ### simulate the timings, and the source, of next infection ###
 
     simulated_epi_sub <- subset(simulated_epi, simulated_epi$t_i<=t_now & simulated_epi$t_r>t_now) # those are currently infectious
@@ -344,6 +368,7 @@ Simulate_contact_control<- function(f_rast, b_rast, farm_pos_cat, vis_int_per_ca
                      b_rast[simulated_epi[ll,"row"],simulated_epi[ll,"col"]]<- b_rast[simulated_epi[ll,"row"],simulated_epi[ll,"col"]] +1
 
                    }
+                   #pop_grid[simulated_epi[ll,"row"],simulated_epi[ll,"col"]]<- pop_grid[simulated_epi[ll,"row"],simulated_epi[ll,"col"]] +1
 
                  }
 
@@ -372,7 +397,7 @@ Simulate_contact_control<- function(f_rast, b_rast, farm_pos_cat, vis_int_per_ca
                         samp1<- plan_in_farm[which(plan_in_farm_det_tim<t_now)]
                         if(length(samp1)>0){
                           samp<- runif(length(samp1))
-                          indx_det<- samp1[which(samp<=rate_det)]
+                          indx_det<- samp1[which(samp<=rate_det[1])]
                           if(length(indx_det)>0){
                             plan_det<- indx_det
                           }
@@ -386,9 +411,20 @@ Simulate_contact_control<- function(f_rast, b_rast, farm_pos_cat, vis_int_per_ca
                         expert_det<- sapply(simulated_epi[plan_in_farm+1,"t_i"],function(t1) uniroot(fu,c(-1000,3*t_max),t1=t1,l=leav[1]-1)$root)
                         # print(plan_in_farm)
                         if(length(expert_det)>0){
-                          plan_det<- plan_in_farm[which(expert_det<t_now)]
+                         samp1<- plan_in_farm[which(expert_det<t_now)]
+
+                         if(length(samp1)>0){
+                           samp<- runif(length(samp1))
+                           indx_det<- samp1[which(samp<=rate_det[2])]
+                           if(length(indx_det)>0){
+                             plan_det<- indx_det
+                           }
+
+                         }
 
                         }
+
+
 
                       }
 
@@ -454,8 +490,8 @@ Simulate_contact_control<- function(f_rast, b_rast, farm_pos_cat, vis_int_per_ca
 
                   # }
 
-                 if(t_now==2552){
-                   show(c(farm_inf[mm_1,nn_1],farm_inf_on[mm_1,nn_1]))
+                 if(min_tim_cont==2552){
+                   # show(c(farm_inf[mm_1,nn_1],farm_inf_on[mm_1,nn_1]))
                    # show(farm_pos_cat[indx_con[i],])
                    # show(c(t_now,min_tim_cont-farm_pos_cat$tim_lst_pos[indx_con[i]]))
                  }
@@ -466,9 +502,9 @@ Simulate_contact_control<- function(f_rast, b_rast, farm_pos_cat, vis_int_per_ca
                   else{ # alternative
                     baseline_alt(farm_pos_cat,vis_int_per_cat,farm_inf,farm_inf_on,min_tim_cont,indx_rem,indx_con[i],mm_1,nn_1)
                   }
-                 if(t_now==2552){
+                 if(min_tim_cont==2552){
                    # show(c(farm_inf[mm_1,nn_1],farm_inf_on[mm_1,nn_1]))
-                   show(farm_pos_cat[indx_con[i],])
+                   # show(farm_pos_cat[indx_con[i],])
                    # show(c(t_now,min_tim_cont-farm_pos_cat$tim_lst_pos[indx_con[i]]))
                  }
                   # show(farm_inf[mm_1,nn_1])
@@ -560,10 +596,12 @@ Simulate_contact_control<- function(f_rast, b_rast, farm_pos_cat, vis_int_per_ca
     #
     # }
     # ru <- .47
+    # print(source)
     m_1=n_1=1000
-    pop_grid_before = pop_grid
-    while(x_new<min_coor_x | x_new>max_coor_x | y_new<min_coor_y | y_new>max_coor_y){
-      pop_grid = pop_grid_before
+    pop_grid = f_rast + b_rast
+    siz<- -1
+    while(x_new<min_coor_x | x_new>max_coor_x | y_new<min_coor_y | y_new>max_coor_y | siz<0){
+      #pop_grid = pop_grid_before
       if (source!=9999){
         # show(kern_model)
         # show(ru)
@@ -634,6 +672,7 @@ Simulate_contact_control<- function(f_rast, b_rast, farm_pos_cat, vis_int_per_ca
           if (sum_arcs_den==0){
             k_grid <- sample(1:length(as.numeric(pop_grid)),size=1, prob=as.numeric(pop_grid))
             m_grid <- k_grid%%nrow(pop_grid) # the mth row of the grids
+
             if(m_grid==0) m_grid <- nrow(pop_grid)
             n_grid <- ceiling(k_grid/nrow(pop_grid))  # nth column ..
             x_new <- stats::runif(1,min=x_intervals[n_grid],max=x_intervals[n_grid+1]) # random lands at a point in the grid selected
@@ -687,7 +726,7 @@ Simulate_contact_control<- function(f_rast, b_rast, farm_pos_cat, vis_int_per_ca
       }
 
 
-
+siz<- pop_grid[m,n]-1
     } # end while(x_new<min_coor_x | x_new>max_coor_x | y_new<min_coor_y | y_new>max_coor_y){
     #show(c(t_next,t_now,3))
     if(is.infinite(t_next)){
@@ -706,7 +745,7 @@ Simulate_contact_control<- function(f_rast, b_rast, farm_pos_cat, vis_int_per_ca
 
       if(all(c(u1,u2)==0)){
         tp<- 1
-        show(c(k,u1,u2))
+        show(c(k,u1,u2,source,n_set_points,sum_arcs_den,r,m,n))
       }
       else{
         u<- max(u1,u2)

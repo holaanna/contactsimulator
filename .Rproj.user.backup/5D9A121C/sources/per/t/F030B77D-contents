@@ -1,0 +1,265 @@
+Rcpp::sourceCpp('/media/sf_D_DRIVE/BBTV_PROJECT/Ploting_code/cppcodes.cpp')
+
+library(geosphere)
+library(raster)
+library(rgdal)
+
+library(sp)
+
+library(ggplot2)
+library(dplyr)
+library(parallel)
+dat=read.table("/media/sf_D_DRIVE/BBTV_PROJECT/Data/merged_bananas_2018.csv",sep=",",header = TRUE,stringsAsFactors = F)
+dat=dat[- which(dat$longitude==360),]
+# write.csv(dat,"/media/sf_D_DRIVE/BBTV_PROJECT/Data/merged_all_updated.csv")
+#dat=read.table("D:/BBTV_PROJECT/Data/merged_all.csv",sep=",",header = TRUE,stringsAsFactors = F)
+Dat<- dat[,c("longitude","latitude","BBTV","inspectiondate","leavesinfected","treatmentdate","location","growercode","stemsinfected")]
+year <- c("2009/01/01","2010/01/01","2011/01/01","2012/01/01","2013/01/01","2014/01/01","2015/01/01","2016/01/01","2017/01/01")
+
+#path1="/run/user/1000/gvfs/sftp:host=oak--is.grid.private.cam.ac.uk/home/ha411/big_space/BBTV/NSW/Cauchy-kernel/"
+path="/run/user/1000/gvfs/sftp:host=login-cpu.hpc.cam.ac.uk,user=ha411/home/ha411/big_space/BBTV/SIS-farms/Montville/"
+Dat2<-subset(Dat,growercode%in%c("MON01","mon01") & Dat$BBTV%in%c("P&I","P", "NI") & difftime(as.Date(Dat$inspectiondate), as.Date("2011/01/01"), unit="days")>=0)  # data up in queensland
+Dat2$treatmentdate[is.na(Dat2$treatmentdate)]<- Dat2$inspectiondate[is.na(Dat2$treatmentdate)]
+Datt <- Dat2
+
+leav<- gsub("all/","",Datt[,"leavesinfected"])
+leav<- gsub("/all","",leav)
+
+
+Datt$leavesinfected<- leav
+
+Datt[which(Datt$leavesinfected=="LOTS"),"leavesinfected"]<- 8
+Datt[which(Datt$leavesinfected=="1,2,4"),"leavesinfected"]<- 2.3
+Datt[which(Datt$leavesinfected=="'3"),"leavesinfected"]<- 3
+Datt[which(Datt$leavesinfected=="2 +bunch"),"leavesinfected"]<- 3
+Datt[which(Datt$leavesinfected=="3 +bunch"),"leavesinfected"]<- 4
+Datt[which(Datt$leavesinfected=="4+BUNCH"),"leavesinfected"]<- 5
+Datt[which(Datt$leavesinfected=="avg 3.2"),"leavesinfected"]<- 3.2
+Datt[which(Datt$leavesinfected=="1-6, avg 3.5"),"leavesinfected"]<- 3.5
+Datt[which(Datt$leavesinfected=="all"),"leavesinfected"]<- 8
+Datt[which(Datt$leavesinfected=="3 to 7"),"leavesinfected"]<- 5
+Datt[which(Datt$leavesinfected=="3B"),"leavesinfected"]<- 4
+Datt[which(Datt$leavesinfected=="2--5"),"leavesinfected"]<- 3.5
+Datt[which(Datt$leavesinfected=="0"),"leavesinfected"]<- 3
+Datt[which(Datt$leavesinfected==""),"leavesinfected"]<- 3
+
+
+leav<- Datt$leavesinfected
+leav[grepl("[+]",leav)]<- as.numeric(gsub("[+]","",leav[grepl("[+]",leav)])) + 1
+
+Datt$leavesinfected<- leav
+
+
+Dat1 <- unique(Datt)
+Dat1$detection<-as.numeric(difftime(as.Date(Dat1$inspectiondate), as.Date(year[3]), unit="days"))
+Dat1$removal<-as.numeric(difftime(as.Date(Dat1$treatmentdate), as.Date(year[3]), unit="days"))
+
+
+Datt=Dat1[with(Dat1,order(Dat1$detection)),]
+coordinates(Datt) <- c("longitude", "latitude")
+proj4string(Datt) <- sp::CRS("+init=epsg:4326")
+australianCRS = CRS("+init=epsg:3577")
+
+pointsinaustraliangrid = spTransform(Datt,australianCRS)
+da1=as.data.frame(pointsinaustraliangrid)
+# da<-rbind(subset(da1,BBTV=="P&I"),subset(da1,!(BBTV=="P&I")))
+da1<-subset(da1,BBTV=="P&I")
+
+
+# Import host distribution
+f <-paste0("/media/sf_D_DRIVE/BBTV_PROJECT/SIS-farms/Montville/rast_mont_SEQ",".tif")
+rast<- raster(f)
+source('/media/sf_D_DRIVE/BBTV_PROJECT/Ploting_code/extraction-plantation.R')
+
+datafolder="/media/sf_D_DRIVE/BBTV_PROJECT/New Data"
+dataglob=Sys.glob(paste0(datafolder,"/*MAP"))
+datafiles=substring(dataglob,nchar(datafolder)+2,nchar(dataglob)-4)
+ldatafiles=length(datafiles)
+retupoints=list()
+rapoly=NULL
+
+datafiles= datafiles
+dataglob= dataglob
+
+#ra1=readOGR(datafolder,datafiles[1],stringsAsFactors = TRUE)  # Nothern Queesland
+ra3=readOGR(datafolder,datafiles[3],stringsAsFactors = TRUE)  # SEQ
+
+#ra<- union(ra2,ra3)
+ra<- ra3[ra3$Code=="MON01",]  # Montville
+
+
+australianCRS = CRS("+init=epsg:3577")
+polyinaustraliangrid = spTransform(ra,australianCRS)
+
+pts<- pts_in_pol(rast,polyinaustraliangrid)
+df<- pts@coords
+
+# Find closest point on the grid
+ind_in_grid<- mclapply(1:nrow(da1),function(i){
+  pla<- as.matrix(da1[i,c("longitude","latitude")])
+  
+  dis<- distanc(pla,as.matrix(pts@coords))
+  indx<- which(dis==min(dis),arr.ind = T)
+  return(indx[2])
+  
+})
+
+# REconstruct the data
+rw<- as.numeric(ind_in_grid)
+M<- da1
+ row.names(M)<-c()
+M[,c("longitude","latitude")]<- pts@coords[rw,]
+indx<- mclapply(1:nrow(unique(M[,c("longitude","latitude")])),function(i){
+  M1<- unique(M[,c("longitude","latitude")])[i,]
+  ind<- which(apply(M[,c("longitude","latitude")], 1, function(x) all(x == M1)))
+  return(ind)
+})
+
+M$replant<- 0
+
+for(i in 1:length(indx)){
+  if(length(indx[[i]])>1){
+    ii<- M[indx[[i]],"detection"]
+    ll<- c(0,ii[2:length(ii)])
+    M$replant[indx[[i]]]<- ll
+  }
+  
+}
+
+M$removal <- M$removal + runif(nrow(M),0,1)
+df2<- data.frame(x=M$longitude, y=M$latitude, Rmin=M$removal, Rmax=M$removal, leav=as.numeric(M$leavesinfected),t0=M$replant,status=1)
+df3<- data.frame(x=df[-rw,1],y=df[-rw,2],Rmin=max(M$removal)+1,Rmax=max(M$removal)+2,leav=0,t0=0,status=0)
+Df<-rbind(df2,df3)
+
+# #plot(rast3)
+# plot(pts,cex=.5,pch=19,col="green")
+# plot(polyinaustraliangrid, border = "red", add = TRUE)
+# points(M[,c("longitude","latitude")],cex=0.5,col="red",pch=19)
+
+
+write.table(Df,paste0(path,"/Dout1"),row.names = FALSE, col.names = TRUE)
+
+write.table(df,paste0(path,"/Dout"),row.names = FALSE, col.names = TRUE)
+# -----------------------------------------------------------------------------------------------
+#                                            Visualisation of the data
+#-------------------------------------------------------------------------------------------------
+
+plot(pts,cex=.5,pch=19,col="green")
+plot(polyinaustraliangrid, border = "red", add = TRUE)
+points(M[,c("longitude","latitude")],cex=0.5,col="red",pch=19)
+
+#-------------------------------------------------------------------------------------
+#                                      Pair distances
+#-------------------------------------------------------------------------------------
+# For MCMC
+
+N=nrow(Df)
+d=numeric(choose(N,2))
+
+d<- distanc_vec(as.matrix(Df[,c("x","y")]),d)
+
+a<-c("# distance"," on a rectangular grid")
+write.table(t(a),paste0(path,"/Rout1"),quote = FALSE,row.names = FALSE,col.names = FALSE)
+write.table(d,paste0(path,"/Rout1"),row.names = FALSE,col.names = FALSE,append = TRUE)
+
+# For Simulaton
+
+N=nrow(df)
+d=numeric(choose(N,2))
+
+d<- distanc_vec(as.matrix(df[,1:2]),d)
+
+a<-c("# distance"," on a rectangular grid")
+write.table(t(a),paste0(path,"/Rout"),quote = FALSE,row.names = FALSE,col.names = FALSE)
+write.table(d,paste0(path,"/Rout"),row.names = FALSE,col.names = FALSE,append = TRUE)
+
+#-------------------------------------------------------------------------------
+#                    Temporal evolution of Newrybar far
+#---------------------------------------------------------------------------
+df=read.table("/media/sf_D_DRIVE/BBTV_PROJECT/Montville/Dout1",fill = T,header = TRUE)
+path="/media/sf_D_DRIVE/BBTV_PROJECT/Montville"
+times<- c(31,59,90, 120, 151, 181, 212, 243, 273, 304, 334, 365)
+
+times2<- times
+for(i in 1:7){
+  times<-c(times,365*i +times2)
+}
+times1<- c(0,times)
+obs<- numeric(length(times))
+for(i in 1:length(times)){
+  obs[i]<- length(which(df$Rmin<= times1[i+1] & df$Rmin> times1[i] ))
+}
+
+library(dplyr)
+df2<- data.frame(obs=obs, month=times)
+df1<- df2%>%filter(obs>0)
+
+M1=read.table(paste0(path,"/HLBout"),fill = T)
+OBS=array(0,c(max(M1[,6]),nrow(df1)))
+
+# Ripley's K and L function
+library(spatstat)
+min_x<- min(df$x)
+min_y<- min(df$y)
+max_x<- max(df$x)
+max_y<- max(df$y)
+win_x<- c(min_x-1,max_x+1)
+win_y<- c(min_y-1,max_y+1)
+u<- ppp(df$x,df$y,win_x,win_y)
+L<- as.data.frame(Linhom(u))
+DF<- array(c(L$r,L$iso),c(nrow(L),2))
+times3<- c(0,df1$month)
+for(j in 1:nrow(OBS)){
+  df11<- subset(M1,V6==j)
+  for(i in 1:nrow(df1)){
+    OBS[j,i]<- length(which(df11[,5]<= times3[i+1] & df11[,5]> times3[i] ))
+  }
+  u<- ppp(df[df11[,8],1],df[df11[,8],2],win_x,win_y)
+  L<- as.data.frame(Linhom(u))
+  DF<- cbind(DF,L$iso)
+}
+
+
+n=36
+plot(df1$month,df1$obs,type="l")
+points(df1$month,df1$obs,pch=19)
+colr=rainbow(1000)
+for(i in 1:1000){
+  points(df1$month,OBS[i,],pch=19,col=colr[i])
+  lines(df1$month,OBS[i,],col=colr[i])
+}
+
+
+#------------------ Parameter sample for simulation-----------------
+M=read.table(paste0(path,"cyclic/BZcyout"),fill = T)
+samp=sample(50000:nrow(M),1000)
+M2=M[samp,1:8]
+write.table(M2,paste0(path,"/para"),row.names = FALSE,col.names = FALSE)
+
+df3=t(apply(OBS,2,quantile,c(0.025,.5,.975)))
+colnames(df3)<- c("min","median","max")
+df3<-as.data.frame(df3,row.names = FALSE)
+df3$times<- df1$month
+df3$obs<-   df1$obs
+samp<- seq(6,12*8-4,4)
+lab=c("Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec")
+labl<- paste(rep(lab,8),rep(2011:2017,each=12),sep = "-")
+ggplot(df3,aes(times,obs))+
+  geom_point()+ geom_line(aes(times,median), color="red")+ geom_line()+
+  geom_ribbon(aes(ymin=min,ymax=max),alpha=0.3) + scale_x_discrete(limits=times[samp],labels=labl[samp])+
+    theme(axis.text.x = element_text(angle = 90, hjust = 1))
+
+
+#----------------- Crdible region for the ripley L functioin-------------
+df4=t(apply(DF[,3:1002],1,quantile,c(0.025,0.05,.5,0.95,.975)))
+colnames(df4)<- c("min","min1","median","max1","max")
+df4<-as.data.frame(df4,row.names = FALSE)
+df4$r<- DF[,1]
+df4$obs<- DF[,2]
+df5<- df4[seq(13,513,10),]
+ggplot(df5,aes(r,obs))+
+    geom_line()+ geom_line(aes(r,median), color="red")+ geom_line()+
+    geom_ribbon(aes(ymin=min,ymax=max),alpha=0.1) +
+    geom_ribbon(aes(ymin=min1,ymax=max1),alpha=0.3)+ xlab("Distance (m)") + ylab("Ripley's L")+
+    theme(axis.text=element_text(size=12),
+          axis.title=element_text(size=14,face="bold"))

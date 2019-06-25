@@ -4,7 +4,7 @@
 \alias{Inv_trans}
 \title{Sample from the cyclic latent period using Brent method (Inverse tranform).}
 \usage{
-Inv_trans(r, x_lo, x_hi, t, l)
+Inv_trans(r, x_lo, x_hi, t, l, b, a)
 }
 \arguments{
 \item{r}{The initial value.}

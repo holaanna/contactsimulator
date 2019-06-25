@@ -1,0 +1,227 @@
+
+
+distribution_plot<-function(img_dir,sub_dir,size){
+  
+  
+  latent=c("_latent_omegapi")
+  trans=c("gama")
+  
+  sublo<- 11:17
+  Li=Di=vector("list",length = 9)
+  k=1
+  # for(i in 1:length(sub_dir){
+  for(j in 1:(length(sublo))){
+    dir_name<- paste(sub_dir,paste0("reso_",size,"/BBTV-",sublo[j]),sep = "/")
+    oak=paste("/run/user/1000/gvfs/sftp:host=login-cpu.hpc.cam.ac.uk/home/ha411/big_space/BBTV/QLD_25_07_18/",dir_name,sep="/")
+    setwd(paste(oak,paste0(trans,latent),sep="/"))
+    M=read.table("parameters_current.txt",fill=T)
+    # dis=read.table("infected_distance_current.txt",fill=T)
+    # dis[dis==-99]=NA
+    # Di[[k]]=dis
+    Li[[k]]=M
+    k=k+1
+  }
+  # }
+  M=read.table("/run/user/1000/gvfs/sftp:host=login-cpu.hpc.cam.ac.uk/home/ha411/big_space/BBTV/QLD_25_07_18/expo-kernel/BBTV-full/reso_500/gama_latent_omegapi/parameters_current.txt",fill=T)
+  Li[[8]]=M
+  
+  
+  
+  # Plot parameters distribution
+  N=100000
+  M11=Li[[1]][50000:N,]   #  cyclic latent 0
+  M12=Li[[2]][50000:N,]  # Cyclic latent pi
+  
+  M13=Li[[3]][50000:N,]   #  cyclic latent 0
+  M14=Li[[4]][50000:N,]  # Cyclic latent pi
+  
+  M15=Li[[5]][50000:N,]   #  gama latent 0
+  M16=Li[[6]][50000:N,]  # gama latent pi
+  
+  M17=Li[[7]][50000:N,]   #  expo latent 0
+  M=Li[[8]][50000:N,]   #  expo latent 0
+  # M16=Li[[8]][50000:N,]  # expo latent pi
+  
+  # M17=Li[[9]][50000:N,]   #  expo latent 0
+  # M16=Li[[6]][50000:N,]  # expo latent pi
+  
+  
+  #Distance from source to infected premisse
+  # Dcy_0= colMeans(Di[[1]],na.rm = T)   #  cyclic latent 0
+  # Dcy_pi= colMeans(Di[[2]],na.rm = T)  # Cyclic latent pi
+  # Dcy_va= colMeans(Di[[3]],na.rm = T)  # cyclic var latent
+  #
+  # Dga_0= colMeans(Di[[4]],na.rm = T)   #  gama latent 0
+  # Dga_pi= colMeans(Di[[5]],na.rm = T)  # gama latent pi
+  # Dga_va= colMeans(Di[[6]],na.rm = T)  # gama var latent
+  #
+  # Dex_0= colMeans(Di[[7]],na.rm = T)  #  expo latent 0
+  # Dex_pi= colMeans(Di[[8]],na.rm = T)  # expo latent pi
+  # Dex_va= colMeans(Di[[9]],na.rm = T)  # expo var latent
+  #          # Min
+  # Dcy_0= apply(Di[[1]],2,min,na.rm = T)   #  cyclic latent 0
+  # Dcy_pi= apply(Di[[2]],2,min,na.rm = T)  # Cyclic latent pi
+  # Dcy_va= apply(Di[[3]],2,min,na.rm = T)  # cyclic var latent
+  #
+  # Dga_0= apply(Di[[4]],2,min,na.rm = T)   #  gama latent 0
+  # Dga_pi= apply(Di[[5]],2,min,na.rm = T)  # gama latent pi
+  # Dga_va= apply(Di[[6]],2,min,na.rm = T)  # gama var latent
+  #
+  # Dex_0= apply(Di[[7]],2,min,na.rm = T)  #  expo latent 0
+  # Dex_pi= apply(Di[[8]],2,min,na.rm = T)  # expo latent pi
+  # Dex_va= apply(Di[[9]],2,min,na.rm = T)  # expo var latent
+  setwd(img_dir)
+  
+  ######################## Mean distance from source to infection ##########################################
+  
+  # latentt<- c("omega==0","omega==pi","omega")
+  # trans1=c("Cyclic ","Gamma ","Exponential ")
+  # histogr1<-data.frame(simul=c(Dcy_0,Dcy_pi,Dcy_va,Dga_0,Dga_pi,Dga_va,Dex_0,Dex_pi,Dex_va),trans=rep(trans1,each=359*3),laten=rep(rep(latentt,each=359),3), anno=c(rep(c("D","G","A"),each=359),rep(c("F","I","C"),each=359),rep(c("E","H","B"),each=359)))
+  #
+  # qplot(simul,data=histogr1,geom='histogram',ylim=c(0,60))+ geom_histogram(aes(fill = ..count..),bins = 100) +theme(legend.position="none")+
+  #   facet_grid(laten~trans,scales = "free",labeller = label_parsed, switch = "y") + geom_vline(xintercept = 20,col="red")+
+  #   xlab("Transmission distance (m)") + geom_text(aes(x=2.5,y=60,label=anno))
+  #
+  #   ggsave(paste0("dis_all",size,".png"))
+  #
+  #
+  
+  
+  ######################### Primary infection rate ##########################################
+  
+  i=1
+  #latentt1<- c("a","b","c","d","e","f","g","h","i")
+  latentt<- c("black","red","yellow","cyan","gray","darkgoldenrod1","blue","green")
+  latentt <- sort(latentt)
+  legd=c(expression(paste("2011")), expression(paste("2012")),
+         expression(paste("2013")), expression(paste("2014")),
+         expression(paste("2015")), expression(paste("2016")),
+         expression(paste("2017")), expression(paste("2011-2017")))
+  
+  
+  
+  #names(latentt)<- latentt
+  df<- data.frame(value=c(M11[,i],M12[,i],M13[,i],M14[,i],M15[,i],M16[,i],M17[,i],M[,i]),Model=rep(latentt,each=50001),stringsAsFactors = FALSE)
+  ggplot(df, aes(value, colour=Model)) +geom_density(adjust = 5,show.legend=FALSE) + stat_density(aes(value, colour=Model), geom="line",position="identity", size = 0) +
+    guides(colour = guide_legend(override.aes=list(size=1)))+
+    scale_color_manual(labels=legd,values=latentt) + xlab(expression(paste(epsilon," (","days"^-1,")")))
+  #theme_bw()+ guides(colour = guide_legend(override.aes=list(size=1)))
+  
+  ggsave(paste0("epsilon_all.png"))
+  
+  ######################### secondary infection rata ##########################################
+  
+  i=2
+  
+  df<- data.frame(value=c(M11[,i],M12[,i],M13[,i],M14[,i],M15[,i],M16[,i],M17[,i],M[,i]),Model=rep(latentt,each=50001),stringsAsFactors = FALSE)
+  ggplot(df, aes(value, colour=Model)) +geom_density(adjust = 5,show.legend=FALSE)+ stat_density(aes(value, colour=Model), geom="line",position="identity", size = 0) +
+    guides(colour = guide_legend(override.aes=list(size=1))) +
+    scale_color_manual(labels=legd,values=latentt) + xlab(expression(paste(beta[0]," (","days"^-1,")"))) + xlim(0,.025) + ylim(0,1000)
+  #theme_bw()+ guides(colour = guide_legend(override.aes=list(size=1)))
+  
+  ggsave(paste0("beta_all.png"))
+  
+  
+  ######################### Removal period ##########################################
+  
+  i=5
+  
+  df<- data.frame(value=c(M11[,i],M12[,i],M13[,i],M14[,i],M15[,i],M16[,i],M17[,i],M[,i]),Model=rep(latentt,each=50001),stringsAsFactors = FALSE)
+  ggplot(df, aes(value, colour=Model)) +geom_density(adjust = 5,show.legend=FALSE) + stat_density(aes(value, colour=Model), geom="line",position="identity", size = 0) +
+    guides(colour = guide_legend(override.aes=list(size=1)))+
+    scale_color_manual(labels=legd,values=latentt) + xlab(expression(paste(gamma," (","days",")"))) + xlim(0,200)
+  #theme_bw()+ guides(colour = guide_legend(override.aes=list(size=1)))
+  
+  ggsave(paste0("c_all.png"))
+  
+  ######################### Mean dispersal  parameter ##########################################
+  if(grepl("Two",sub_dir)){
+    i=7
+    
+    if(grepl("exp-cau",sub_dir)){
+      df<- data.frame(value=1/c(M11[,i],M12[,i],M13[,i],M14[,i],M15[,i],M16[,i],M17[,i],M[,i]),Model=rep(latentt,each=50001),stringsAsFactors = FALSE)
+      
+    }
+    else{
+      df<- data.frame(value=c(M11[,i],M12[,i],M13[,i],M14[,i],M15[,i],M16[,i],M17[,i],M[,i]),Model=rep(latentt,each=50001),stringsAsFactors = FALSE)
+      
+    }
+    ggplot(df, aes(value, colour=Model)) +geom_density(adjust = 5,show.legend=FALSE) + stat_density(aes(value, colour=Model), geom="line",position="identity", size = 0) +
+      guides(colour = guide_legend(override.aes=list(size=1)))+
+      scale_color_manual(labels=legd,values=latentt) + xlab(expression(paste(alpha[1]," (","m",")"))) + xlim(0,100) + ylim(0,.25)
+    
+    ggsave(paste0("alpha_all.png"))
+    
+    i=8
+    
+    df<- data.frame(value=c(M11[,i],M12[,i],M13[,i],M14[,i],M15[,i],M16[,i],M[,i]),Model=rep(latentt[-c(7)],each=50001),stringsAsFactors = FALSE)
+    ggplot(df, aes(value, colour=Model)) +geom_density(adjust = 5,show.legend=FALSE) + stat_density(aes(value, colour=Model), geom="line",position="identity", size = 0) +
+      guides(colour = guide_legend(override.aes=list(size=1)))+
+      scale_color_manual(labels=legd[-c(7)],values=latentt[-c(7)]) + xlab(expression(paste(alpha[2]," (","m",")"))) + xlim(0,25000) + ylim(0,0.0020)
+    
+    
+    ggsave(paste0("alpha2_all.png"))
+    
+    
+  }
+  else{
+    i=7
+    
+    if(grepl("exp",sub_dir)){
+      df<- data.frame(value=1/c(M11[,i],M12[,i],M13[,i],M14[,i],M15[,i],M16[,i],M17[,i],M[,i]),Model=rep(latentt,each=50001),stringsAsFactors = FALSE)
+      
+    }
+    else{
+      df<- data.frame(value=c(M11[,i],M12[,i],M13[,i],M14[,i],M15[,i],M16[,i],M17[,i],M[,i]),Model=rep(latentt,each=50001),stringsAsFactors = FALSE)
+      
+    }
+    ggplot(df, aes(value, colour=Model)) +geom_density(adjust = 5,show.legend=FALSE) + stat_density(aes(value, colour=Model), geom="line",position="identity", size = 0) +
+      guides(colour = guide_legend(override.aes=list(size=1)))+
+      scale_color_manual(labels=legd,values=latentt) + xlab(expression(paste(alpha," (","m",")")))
+    
+    ggsave(paste0("alpha_all.png"))
+  }
+  
+  
+  
+  ####################### First infection ##########################################
+  i=9
+  
+  df<- data.frame(value=c(M11[,i],M12[,i],M13[,i],M14[,i],M15[,i],M16[,i],M17[,i],M[,i]),Model=rep(latentt,each=50001),stringsAsFactors = FALSE)
+  ggplot(df, aes(value, colour=Model)) +geom_density(adjust = 5,show.legend=FALSE) + stat_density(aes(value, colour=Model), geom="line",position="identity", size = 0) +
+    guides(colour = guide_legend(override.aes=list(size=1)))+
+    scale_color_manual(labels=legd,values=latentt) + xlab(expression(paste(t[0]," (","days",")")))
+  
+  ggsave(paste0("t0_all.png"))
+  
+  
+  
+  ######################### Amplitude  ##########################################
+  
+  i=6
+  
+  #names(latentt)<- latentt
+  df<- data.frame(value=c(M11[,i],M12[,i],M13[,i],M14[,i],M15[,i],M16[,i],M17[,i],M[,i]),Model=rep(latentt,each=50001),stringsAsFactors = FALSE)
+  ggplot(df, aes(value, colour=Model)) +geom_density(adjust = 5,show.legend=FALSE) + stat_density(aes(value, colour=Model), geom="line",position="identity", size = 0) +
+    guides(colour = guide_legend(override.aes=list(size=1)))+
+    scale_color_manual(labels=legd,values=latentt) + xlab(expression(paste(beta[1]," (","days"^-1,")")))
+  #theme_bw()+ guides(colour = guide_legend(override.aes=list(size=1)))
+  
+  ggsave(paste0("beta1_all.png"))
+  
+  
+}
+size<- 500
+sub_dir<- c("expo-kernel","Cauchy-kernel","Two-kernels/exp-cau","Two-kernels/cau-cau")
+
+library(ggplot2)
+
+for(i in 1:1){
+  #For cauchy simulations
+  # img_dir<- paste("/media/sf_D_DRIVE/BBTV_PROJECT/draft_project/images",sub_dir[i],"BBTV-12-17",sep = "/")        #          #For exponential simulations
+  img_dir<- paste("/media/sf_D_DRIVE/BBTV_PROJECT/draft_project/images",sub_dir[i],paste0("QLD-25-07-2018/reso_",size),sep = "/")            #For exponential simulations
+  # img_dir<- paste0("/media/sf_D_DRIVE/BBTV_PROJECT/draft_project/images/Two-kernls/exp-exp/reso_",size[i])
+  distribution_plot(img_dir,sub_dir[i],size)
+  
+}
+

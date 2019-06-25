@@ -1,0 +1,43 @@
+dat=read.table("/media/sf_D_DRIVE/BBTV_PROJECT/Data/merged_bananas_2018.csv",sep=",",header = TRUE,stringsAsFactors = F)
+dat=dat[- which(dat$longitude==360),]
+#write.csv(dat,"/media/sf_D_DRIVE/BBTV_PROJECT/Data/merged_all_updated.csv")
+#dat=read.table("D:/BBTV_PROJECT/Data/merged_all.csv",sep=",",header = TRUE,stringsAsFactors = F)
+Dat<- dat[,c("longitude","latitude","BBTV","inspectiondate","leavesinfected","treatmentdate","location")]
+Dat1<-subset(Dat,Dat$latitude> -27.4698 & Dat$BBTV%in%c("P&I","P", "NI") & difftime(as.Date(Dat$inspectiondate), as.Date("2010/01/01"), unit="days")>=0)  # data up in queensland
+Dat1$treatmentdate[is.na(Dat1$treatmentdate)]<- Dat1$inspectiondate[is.na(Dat1$treatmentdate)]
+Dat1$detection<-as.numeric(difftime(as.Date(Dat1$inspectiondate), as.Date("2010/01/01"), unit="days"))
+Dat1$removal<-as.numeric(difftime(as.Date(Dat1$treatmentdate), as.Date("2010/01/01"), unit="days"))
+Dat1$removal[which(Dat1$removal<0)]<- Dat1$detection[which(Dat1$removal<0)]
+Datt<-Dat1[,c("longitude","latitude","BBTV","leavesinfected","detection","removal")]
+
+da1 <- subset(Datt,Datt$BBTV=="P&I")
+times<- c(31,59,90, 120, 151, 181, 212, 243, 273, 304, 334, 365)
+times2<- times
+for(i in 1:7){
+  times<-c(times,365*i +times2)
+}
+times1<- c(0,times)
+obs<- numeric(length(times))
+for(i in 1:length(times)){
+  obs[i]<- length(which(da1$detection<= times1[i+1] & da1$detection> times1[i] ))
+ 
+}
+
+times<- c(31,59,90, 120, 151, 181, 212, 243, 273, 304, 334, 365)
+df<- data.frame(obs=obs, year=rep(2010:2017,each=12),month=rep(times,8))
+df1<- df%>%filter(df$obs>0)
+lab=c("Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec")
+library(ggplot2)
+ggplot(df1,aes(month,obs))+
+  geom_point() + geom_line()+
+  facet_wrap(~year, ncol = 3) + scale_x_discrete(limits=times,labels=lab)+
+  theme(axis.text.x = element_text(angle = 90, hjust = 1))
+
+# Confidence band
+OBS=array(0,c(1000,nrow(df1)))
+times3<- c(0,df1$month)
+
+  for(i in 1:nrow(df1)){
+    OBS[j,i]<- length(which(epi$t_r<= times1[i+1] & epi$t_r> times1[i] ))
+
+}

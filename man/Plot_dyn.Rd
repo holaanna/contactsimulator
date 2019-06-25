@@ -5,8 +5,8 @@
 \title{Visualisation of the dynamic of the epidemic}
 \usage{
 Plot_dyn(rast, param, grid_lines, pop_grid, age_level = c(1, 1),
-  age_dist = c(1, 0), m_start = 1, t_max = 118, t_intervention = 365,
-  EI_model = 3, k, kern_model = 4)
+  age_dist = c(1, 0), m_start = 1, t_max = 118,
+  t_intervention = 365, EI_model = 3, k, kern_model = 4)
 }
 \arguments{
 \item{rast}{The raser object provided.}

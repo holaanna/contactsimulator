@@ -1,0 +1,20 @@
+{
+    "collab_server" : "",
+    "contents" : "",
+    "created" : 1533413145159.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "862815881",
+    "id" : "334F3493",
+    "lastKnownWriteTime" : 1533371844,
+    "last_content_update" : 1533371844,
+    "path" : "D:/BBTV_PROJECT/contactsimulator/R/simulation_control.R",
+    "project_path" : "R/simulation_control.R",
+    "properties" : {
+    },
+    "relative_order" : 2,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_source"
+}

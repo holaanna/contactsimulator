@@ -1,0 +1,22 @@
+{
+    "collab_server" : "",
+    "contents" : "",
+    "created" : 1535452465996.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "3147316330",
+    "id" : "D456B427",
+    "lastKnownWriteTime" : 1535462518,
+    "last_content_update" : 1535462518352,
+    "path" : "/media/sf_D_DRIVE/BBTV_PROJECT/Ploting_code/initial-condition-for-simulation.R",
+    "project_path" : null,
+    "properties" : {
+        "cursorPosition" : "125,0",
+        "scrollLine" : "0"
+    },
+    "relative_order" : 3,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_source"
+}

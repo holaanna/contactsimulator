@@ -1,0 +1,22 @@
+{
+    "collab_server" : "",
+    "contents" : "",
+    "created" : 1533429855866.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "465332290",
+    "id" : "B86D3B63",
+    "lastKnownWriteTime" : 1533722792,
+    "last_content_update" : 1533722792288,
+    "path" : "~/Dropbox/package/contactsimulator/examples/grid_example.R",
+    "project_path" : "examples/grid_example.R",
+    "properties" : {
+        "cursorPosition" : "169,19",
+        "scrollLine" : "0"
+    },
+    "relative_order" : 6,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_source"
+}

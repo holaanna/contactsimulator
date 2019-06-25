@@ -1,0 +1,353 @@
+[
+    {
+        "definitions" : [
+        ],
+        "file" : "D:/BBTV_PROJECT/contactsimulator/inst/include/contactsimulator.h",
+        "file_last_write" : 1516375087
+    },
+    {
+        "definitions" : [
+            {
+                "column" : 8,
+                "file" : "D:/BBTV_PROJECT/contactsimulator/src/contactfunctions.cpp",
+                "kind" : 6,
+                "line" : 24,
+                "name" : "func_time_beta(const double &, const double &, const double &, const double &, const double &, const double &)",
+                "parent_name" : "",
+                "usr" : "c:@F@func_time_beta#&1d#S0_#S0_#S0_#S0_#S0_#"
+            },
+            {
+                "column" : 8,
+                "file" : "D:/BBTV_PROJECT/contactsimulator/src/contactfunctions.cpp",
+                "kind" : 6,
+                "line" : 67,
+                "name" : "simulate_NHPP_next_event(const double, const double, const double, const double, const double, const double, double)",
+                "parent_name" : "",
+                "usr" : "c:@F@simulate_NHPP_next_event#1d#1d#1d#1d#1d#1d#d#"
+            },
+            {
+                "column" : 27,
+                "file" : "D:/BBTV_PROJECT/contactsimulator/src/contactfunctions.cpp",
+                "kind" : 6,
+                "line" : 111,
+                "name" : "circle_line_intersections_C(double, double, double, int &, grid_lines_struct &)",
+                "parent_name" : "",
+                "usr" : "c:@F@circle_line_intersections_C#d#d#d#&I#&$@S@grid_lines_struct#"
+            },
+            {
+                "column" : 11,
+                "file" : "D:/BBTV_PROJECT/contactsimulator/src/contactfunctions.cpp",
+                "kind" : 6,
+                "line" : 257,
+                "name" : "circle_line_intersections(double, double, double, int, DataFrame)",
+                "parent_name" : "",
+                "usr" : "c:@F@circle_line_intersections#d#d#d#I#$@N@Rcpp@C@DataFrame_Impl>#@N@Rcpp@CT>1#T@PreserveStorage#"
+            },
+            {
+                "column" : 25,
+                "file" : "D:/BBTV_PROJECT/contactsimulator/src/contactfunctions.cpp",
+                "kind" : 6,
+                "line" : 285,
+                "name" : "func_segments_attributes(DataFrame &, NumericMatrix &, double &, para_aux &)",
+                "parent_name" : "",
+                "usr" : "c:@F@func_segments_attributes#&$@N@Rcpp@C@DataFrame_Impl>#@N@Rcpp@CT>1#T@PreserveStorage#&$@N@Rcpp@C@Matrix>#VI14#@N@Rcpp@CT>1#T@PreserveStorage#&d#&$@S@para_aux#"
+            },
+            {
+                "column" : 11,
+                "file" : "D:/BBTV_PROJECT/contactsimulator/src/contactfunctions.cpp",
+                "kind" : 6,
+                "line" : 541,
+                "name" : "func_arcs_attributes(DataFrame, NumericMatrix &, double, double, double, double, double, double)",
+                "parent_name" : "",
+                "usr" : "c:@F@func_arcs_attributes#$@N@Rcpp@C@DataFrame_Impl>#@N@Rcpp@CT>1#T@PreserveStorage#&$@N@Rcpp@C@Matrix>#VI14#@N@Rcpp@CT>1#T@PreserveStorage#d#d#d#d#d#d#"
+            },
+            {
+                "column" : 8,
+                "file" : "D:/BBTV_PROJECT/contactsimulator/src/contactfunctions.cpp",
+                "kind" : 6,
+                "line" : 591,
+                "name" : "f(double, double, double)",
+                "parent_name" : "",
+                "usr" : "c:@F@f#d#d#d#"
+            },
+            {
+                "column" : 8,
+                "file" : "D:/BBTV_PROJECT/contactsimulator/src/contactfunctions.cpp",
+                "kind" : 6,
+                "line" : 603,
+                "name" : "g(double, double, double, double)",
+                "parent_name" : "",
+                "usr" : "c:@F@g#d#d#d#d#"
+            },
+            {
+                "column" : 3,
+                "file" : "D:/BBTV_PROJECT/contactsimulator/src/contactfunctions.cpp",
+                "kind" : 6,
+                "line" : 621,
+                "name" : "quadratic(double, void *)",
+                "parent_name" : "",
+                "usr" : "c:@F@quadratic#d#*v#"
+            },
+            {
+                "column" : 3,
+                "file" : "D:/BBTV_PROJECT/contactsimulator/src/contactfunctions.cpp",
+                "kind" : 6,
+                "line" : 640,
+                "name" : "quadratic_deriv(double, void *)",
+                "parent_name" : "",
+                "usr" : "c:@F@quadratic_deriv#d#*v#"
+            },
+            {
+                "column" : 3,
+                "file" : "D:/BBTV_PROJECT/contactsimulator/src/contactfunctions.cpp",
+                "kind" : 6,
+                "line" : 657,
+                "name" : "quadratic_fdf(double, void *, double *, double *)",
+                "parent_name" : "",
+                "usr" : "c:@F@quadratic_fdf#d#*v#*d#S1_#"
+            },
+            {
+                "column" : 8,
+                "file" : "D:/BBTV_PROJECT/contactsimulator/src/contactfunctions.cpp",
+                "kind" : 6,
+                "line" : 697,
+                "name" : "Inv_trans(double &, double, double, double, double)",
+                "parent_name" : "",
+                "usr" : "c:@F@Inv_trans#&d#d#d#d#d#"
+            },
+            {
+                "column" : 15,
+                "file" : "D:/BBTV_PROJECT/contactsimulator/src/contactfunctions.cpp",
+                "kind" : 6,
+                "line" : 738,
+                "name" : "BTFinv1(double, double, double)",
+                "parent_name" : "",
+                "usr" : "c:@F@BTFinv1#d#d#d#"
+            },
+            {
+                "column" : 15,
+                "file" : "D:/BBTV_PROJECT/contactsimulator/src/contactfunctions.cpp",
+                "kind" : 6,
+                "line" : 760,
+                "name" : "BTFinv2(double, double, double, double)",
+                "parent_name" : "",
+                "usr" : "c:@F@BTFinv2#d#d#d#d#"
+            },
+            {
+                "column" : 8,
+                "file" : "D:/BBTV_PROJECT/contactsimulator/src/contactfunctions.cpp",
+                "kind" : 6,
+                "line" : 816,
+                "name" : "E_to_I(int, double, double, double)",
+                "parent_name" : "",
+                "usr" : "c:@F@E_to_I#I#d#d#d#"
+            },
+            {
+                "column" : 8,
+                "file" : "D:/BBTV_PROJECT/contactsimulator/src/contactfunctions.cpp",
+                "kind" : 6,
+                "line" : 847,
+                "name" : "beta_by_age(int, NumericVector)",
+                "parent_name" : "",
+                "usr" : "c:@F@beta_by_age#I#$@N@Rcpp@C@Vector>#VI14#@N@Rcpp@CT>1#T@PreserveStorage#"
+            },
+            {
+                "column" : 8,
+                "file" : "D:/BBTV_PROJECT/contactsimulator/src/contactfunctions.cpp",
+                "kind" : 6,
+                "line" : 879,
+                "name" : "Samp_dis(int, double, double, double)",
+                "parent_name" : "",
+                "usr" : "c:@F@Samp_dis#I#d#d#d#"
+            },
+            {
+                "column" : 15,
+                "file" : "D:/BBTV_PROJECT/contactsimulator/src/contactfunctions.cpp",
+                "kind" : 6,
+                "line" : 943,
+                "name" : "Sub_set(NumericVector, NumericVector)",
+                "parent_name" : "",
+                "usr" : "c:@F@Sub_set#$@N@Rcpp@C@Vector>#VI14#@N@Rcpp@CT>1#T@PreserveStorage#S0_#"
+            },
+            {
+                "column" : 15,
+                "file" : "D:/BBTV_PROJECT/contactsimulator/src/contactfunctions.cpp",
+                "kind" : 6,
+                "line" : 956,
+                "name" : "distanc(NumericMatrix, NumericVector)",
+                "parent_name" : "",
+                "usr" : "c:@F@distanc#$@N@Rcpp@C@Matrix>#VI14#@N@Rcpp@CT>1#T@PreserveStorage#$@N@Rcpp@C@Vector>#VI14#@N@Rcpp@CT>1#T@PreserveStorage#"
+            },
+            {
+                "column" : 8,
+                "file" : "D:/BBTV_PROJECT/contactsimulator/src/contactfunctions.cpp",
+                "kind" : 6,
+                "line" : 971,
+                "name" : "fu(double, double, double)",
+                "parent_name" : "",
+                "usr" : "c:@F@fu#d#d#d#"
+            }
+        ],
+        "file" : "D:/BBTV_PROJECT/contactsimulator/src/contactfunctions.cpp",
+        "file_last_write" : 1533325244
+    },
+    {
+        "definitions" : [
+            {
+                "column" : 8,
+                "file" : "D:/BBTV_PROJECT/contactsimulator/src/header.h",
+                "kind" : 3,
+                "line" : 56,
+                "name" : "para_key",
+                "parent_name" : "",
+                "usr" : "c:@S@para_key"
+            },
+            {
+                "column" : 8,
+                "file" : "D:/BBTV_PROJECT/contactsimulator/src/header.h",
+                "kind" : 3,
+                "line" : 72,
+                "name" : "para_aux",
+                "parent_name" : "",
+                "usr" : "c:@S@para_aux"
+            },
+            {
+                "column" : 8,
+                "file" : "D:/BBTV_PROJECT/contactsimulator/src/header.h",
+                "kind" : 3,
+                "line" : 96,
+                "name" : "epi_struct",
+                "parent_name" : "",
+                "usr" : "c:@S@epi_struct"
+            },
+            {
+                "column" : 8,
+                "file" : "D:/BBTV_PROJECT/contactsimulator/src/header.h",
+                "kind" : 3,
+                "line" : 153,
+                "name" : "grid_lines_struct",
+                "parent_name" : "",
+                "usr" : "c:@S@grid_lines_struct"
+            },
+            {
+                "column" : 8,
+                "file" : "D:/BBTV_PROJECT/contactsimulator/src/header.h",
+                "kind" : 3,
+                "line" : 165,
+                "name" : "set_points_struct",
+                "parent_name" : "",
+                "usr" : "c:@S@set_points_struct"
+            },
+            {
+                "column" : 8,
+                "file" : "D:/BBTV_PROJECT/contactsimulator/src/header.h",
+                "kind" : 3,
+                "line" : 178,
+                "name" : "by_theta",
+                "parent_name" : "",
+                "usr" : "c:@S@by_theta"
+            },
+            {
+                "column" : 8,
+                "file" : "D:/BBTV_PROJECT/contactsimulator/src/header.h",
+                "kind" : 7,
+                "line" : 179,
+                "name" : "operator(const set_points_struct &, const set_points_struct &)",
+                "parent_name" : "by_theta",
+                "usr" : "c:@S@by_theta@F@operator()#&1$@S@set_points_struct#S0_#"
+            },
+            {
+                "column" : 8,
+                "file" : "D:/BBTV_PROJECT/contactsimulator/src/header.h",
+                "kind" : 3,
+                "line" : 186,
+                "name" : "segments_struct",
+                "parent_name" : "",
+                "usr" : "c:@S@segments_struct"
+            },
+            {
+                "column" : 8,
+                "file" : "D:/BBTV_PROJECT/contactsimulator/src/header.h",
+                "kind" : 3,
+                "line" : 200,
+                "name" : "paired_to_t_e",
+                "parent_name" : "",
+                "usr" : "c:@S@paired_to_t_e"
+            },
+            {
+                "column" : 8,
+                "file" : "D:/BBTV_PROJECT/contactsimulator/src/header.h",
+                "kind" : 3,
+                "line" : 206,
+                "name" : "by_t_e",
+                "parent_name" : "",
+                "usr" : "c:@S@by_t_e"
+            },
+            {
+                "column" : 8,
+                "file" : "D:/BBTV_PROJECT/contactsimulator/src/header.h",
+                "kind" : 7,
+                "line" : 207,
+                "name" : "operator(const paired_to_t_e &, const paired_to_t_e &)",
+                "parent_name" : "by_t_e",
+                "usr" : "c:@S@by_t_e@F@operator()#&1$@S@paired_to_t_e#S0_#"
+            },
+            {
+                "column" : 8,
+                "file" : "D:/BBTV_PROJECT/contactsimulator/src/header.h",
+                "kind" : 3,
+                "line" : 213,
+                "name" : "lh_SQUARE",
+                "parent_name" : "",
+                "usr" : "c:@S@lh_SQUARE"
+            },
+            {
+                "column" : 8,
+                "file" : "D:/BBTV_PROJECT/contactsimulator/src/header.h",
+                "kind" : 3,
+                "line" : 226,
+                "name" : "quadratic_params",
+                "parent_name" : "",
+                "usr" : "c:@S@quadratic_params"
+            },
+            {
+                "column" : 7,
+                "file" : "D:/BBTV_PROJECT/contactsimulator/src/header.h",
+                "kind" : 2,
+                "line" : 265,
+                "name" : "FUNC",
+                "parent_name" : "",
+                "usr" : "c:@C@FUNC"
+            },
+            {
+                "column" : 8,
+                "file" : "D:/BBTV_PROJECT/contactsimulator/src/header.h",
+                "kind" : 7,
+                "line" : 323,
+                "name" : "set_para(para_key &, para_aux &, vector<vector<double> > &, vector<int>, vector<int>, vector<int>, vector<int>, vector<int>, vector<int>, vector<int>, vector<double>, vector<double>, vector<double>, vector<double> &, vector<double> &, vector<int>, vector<int> &, vector<int>, vector<vector<double> > &, grid_lines_struct &)",
+                "parent_name" : "FUNC",
+                "usr" : "c:@C@FUNC@F@set_para#&$@S@para_key#&$@S@para_aux#&$@N@std@C@vector>#$@N@std@C@vector>#d#$@N@std@C@allocator>#d#$@N@std@C@allocator>#S6_#$@N@std@C@vector>#I#$@N@std@C@allocator>#I#S9_#S9_#S9_#S9_#S9_#S9_#S6_#S6_#S6_#&S6_#S11_#S9_#&S9_#S9_#S4_#&$@S@grid_lines_struct#"
+            },
+            {
+                "column" : 7,
+                "file" : "D:/BBTV_PROJECT/contactsimulator/src/header.h",
+                "kind" : 2,
+                "line" : 415,
+                "name" : "mcmc_UPDATE",
+                "parent_name" : "",
+                "usr" : "c:@C@mcmc_UPDATE"
+            },
+            {
+                "column" : 8,
+                "file" : "D:/BBTV_PROJECT/contactsimulator/src/header.h",
+                "kind" : 7,
+                "line" : 462,
+                "name" : "set_para(para_aux &, vector<vector<double> > &, vector<int> &, vector<double> &, vector<vector<double> > &, grid_lines_struct &)",
+                "parent_name" : "mcmc_UPDATE",
+                "usr" : "c:@C@mcmc_UPDATE@F@set_para#&$@S@para_aux#&$@N@std@C@vector>#$@N@std@C@vector>#d#$@N@std@C@allocator>#d#$@N@std@C@allocator>#S4_#&$@N@std@C@vector>#I#$@N@std@C@allocator>#I#&S4_#S2_#&$@S@grid_lines_struct#"
+            }
+        ],
+        "file" : "D:/BBTV_PROJECT/contactsimulator/src/header.h",
+        "file_last_write" : 1531907538
+    }
+]

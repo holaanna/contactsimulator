@@ -1,0 +1,131 @@
+
+library(ggplot2)
+library(dplyr)
+library(gtools)
+
+# Plot trajectories
+times<- seq(2343,4413,30)
+times2<- times
+times1<- c(0,times)
+
+
+
+sub_dir<- c("expo-kernel","Cauchy-kernel","Two-kernels/cau-cau","Two-kernels/exp-cau")
+
+
+
+  latent=c("_latent_omegapi")
+  trans=c("gama")
+  
+  
+  zise=500
+  
+  Li=Di=vector("list",length = 7)
+  k=1
+  
+  sublo<- 11:17
+  j=2
+  # for(i in 1:length(sub_dir){
+  for(j in 1:1)){
+    #dir_name<- paste(sub_dir[4],paste0("reso_500/BBTV-",sublo[j]),sep = "/")
+    dir_name<- paste(sub_dir[4],paste0("BBTV-full/reso_",size),sep = "/")
+    
+    oak=paste("/run/user/1000/gvfs/sftp:host=login-cpu.hpc.cam.ac.uk/home/ha411/big_space/BBTV/QLD_25_07_18",dir_name,sep="/")
+    setwd(paste(oak,paste0(trans,latent),sep="/"))
+    #files<- list.files(pattern = "^dpc_snapshot")
+    files<- list.files(pattern = "^detected_full_snapshot")
+    files<- list.files(pattern = "^best")
+    
+    files<- list.files(pattern = "^Risk_E")
+    #files<- sort(files)
+    M1=M=read.table(files[1])
+    Ms=M[1,]
+    Mb=M[2,]
+    for(l in 1:(length(files)-1)){
+      M2<- read.table(files[l+1])
+      if(nrow(M2)==nrow(M1)){
+        Ms=rbind(Ms,M2[1,])
+        Mb=rbind(Mb,M2[2,])
+        
+      }
+      
+    }
+    
+    M<- read.table(files[1])
+    for(l in 1:(length(files)-1)){
+        M2<- read.table(files[l+1])
+        M=cbind(M,M2)
+        
+    
+    }
+    
+    k=1
+    Li[[k]]=t(apply(Ms,2,quantile,c(0.025,.5,.975)))
+    k=k+1
+    Li[[k]]=t(apply(Mb,2,quantile,c(0.025,.5,.975)))
+    k=k+1
+    Li[[k]]=t(apply(M,1,quantile,c(0.025,.5,.975)))
+    
+  }
+  # }
+  
+  
+  # Plot parameters distribution
+  
+  M11=Li[[1]]   #  cyclic latent 0
+  M12=Li[[2]]  # Cyclic latent pi
+  
+  M13=Li[[3]]   #  gama latent 0
+  M14=Li[[4]]  # gama latent pi
+  
+  M15=Li[[5]]   #  expo latent 0
+  M16=Li[[6]]  # expo latent pi
+  M17=Li[[7]]  # expo latent pi
+  
+  
+  
+  
+  
+  ######################### confidence band ##########################################
+  
+  lab=c("Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec")
+  latentt<- c("beta[1]==0","omega==2*pi")
+  trans1=c("Cyclic ","Gamma ","Exponential ")
+  year = c("2011","2012","2013","2014","2015","2016","2017")
+  
+
+  # times<- c(31,59,90, 120, 151, 181, 212, 243, 273, 304, 334, 365)
+  #names(latentt)<- latentt
+  df<- rbind(M11[1:69,],M12[1:69,],M13[1:69,])
+  colnames(df)<- c("min","median","max")
+  df<-as.data.frame(df,row.names = FALSE)
+  df$times<- df1$month[1:12]
+  df$obs<- df1$obs[1:12]
+  
+  df$times<- rep(times[1:69],3)
+  df$Strategies<- rep(c("Stochastic","Baseline","100% sweep prop"),each=69)
+  samp<- seq(1,12*6,4)
+  lab=c("Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec")
+  labl<- paste(rep(lab,6),rep(2017:2022,each=12),sep = "-")
+  labl<- labl[-c(1:5)]
+  df$sStrategies<- as.factor(df$Strategies)
+  ggplot(df,aes(times,median))+
+    geom_line()+
+    geom_ribbon(aes(ymin=min,ymax=max),alpha=0.3) 
+  
+  ggplot(df, aes(x=times, y=median,group=Strategies,colour=Strategies)) + 
+    geom_line() + scale_colour_manual(values=c("red","green","blue"))+
+      geom_point()+ theme(legend.position="top")+
+    #geom_errorbar(aes(ymin=min, ymax=max), width=15,
+     #             position=position_dodge(.9))+
+    scale_x_discrete(limits=times[samp],labels=labl[samp])+
+    theme(axis.text.x = element_text(angle = 90, hjust = 1))
+  
+  
+  ggplot(df,aes(times,obs))+
+    geom_point()+ geom_line(aes(times,median), color="red")+ geom_line()+
+    geom_ribbon(aes(ymin=min,ymax=max),alpha=0.3) + geom_line(aes(times,M[,10],color="blue"))
+  
+
+
+

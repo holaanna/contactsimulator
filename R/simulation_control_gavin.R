@@ -20,7 +20,7 @@
 #' \insertRef{KR08}{contactsimulator}
 #' \insertRef{Mee11}{contactsimulator}
 #' @export
-Simulate_contact_control_LER<- function(f_rast=NULL, b_rast=NULL, farm_pos_cat=NULL, vis_int_per_cat=NULL, param, grid_lines, pop_grid, grid_size=500, age_level=c(1,1),age_dist=c(1,0), m_start=1,t_b=100000, t_max=1000, t_intervention=100000, t_obs=3703, EI_model=1, kern_model=4,rad=1000,sweep_prop=c(.5,.5),back_p=c(.7,.5),rate_det=c(0.3,1),int_det=c(30,90,180),nb_in_b=1,nb=30,leav=c(3,6),ini=NULL){
+Simulate_contact_control_LER<- function(f_rast=NULL, b_rast=NULL, farm_pos_cat=NULL, vis_int_per_cat=NULL, param, grid_lines, pop_grid, grid_size=500, age_level=c(1,1),age_dist=c(1,0), m_start=1,t_b=100000, t_max=1000, t_intervention=100000, t_obs=3703, EI_model=1, kern_model=4,rad=1000,sweep_prop=c(.5,.5),back_p=c(.7,.5),rate_det=c(0.3,1),int_det=c(30,90,180),nb_in_b=1,nb=3,leav=c(3,6),ini=NULL){
 
   #Set parameters
   epsilon <- param$epsilon
@@ -198,7 +198,7 @@ if(t_obs<=t0){
 
   # Latent period depending on the model
 
-  index_t_i <- index_t_e + rBTFinv3(EI_model,index_t_e, mu_lat, var_lat,4)
+  index_t_i <- index_t_e + rBTFinv3(EI_model,index_t_e, mu_lat, var_lat,nb)
 
 
 
@@ -221,6 +221,7 @@ if(t_obs<=t0){
         b_rast[m_indx[i],n_indx[i]]<- b_rast[m_indx[i],n_indx[i]] - 1
       }
       else{
+        #print(c(f_rast[m_indx[i],n_indx[i]],m_indx[i],n_indx[i]))
         f_rast[m_indx[i],n_indx[i]]<- f_rast[m_indx[i],n_indx[i]] - 1
         farm_inf[m_indx[i],n_indx[i]]<- farm_inf[m_indx[i],n_indx[i]] + 1
       }
@@ -251,10 +252,10 @@ if(t_obs<=t0){
 
   t_next <- t_now # to start the while loop
 
-  # show(simulated_epi_sub)
+  #show(min(f_rast))
   t_i_new<- index_t_i
   while(t_next<(t_max)){
-   # show(t_next)
+   #show(t_next)
     ### simulate the timings, and the source, of next infection ###
 
     simulated_epi_sub <- subset(simulated_epi, simulated_epi$t_i<=t_now & simulated_epi$t_r>t_now) # those are currently infectious
@@ -281,11 +282,11 @@ if(t_obs<=t0){
     #print(c(t_next,total_beta,omega,t_max,t_now,t_intervention))
     min_tim_cont<- min(farm_pos_cat$vis)
     #show(min(min_tim_cont))
-    # show(c(t_next>=min(min_I_R,min_tim_cont) , t_next!=Inf , t_max<=min(min_I_R,min_tim_cont)))
+    #show(c(t_next>=min(min_I_R,min_tim_cont) , t_next!=Inf , t_max<=min(min_I_R,min_tim_cont)))
     while(t_next>=min(min_I_R,min_tim_cont) & t_next!=Inf & t_max>min(min_I_R,min_tim_cont)){  # If next event is a removal
 
       kk<- (min(min_I_R,min_tim_cont)==min_tim_cont) +1
-      #show(c(kk,min_I_R))
+     #show(c(kk))
 
       switch (kk,
               {  # next event is the baseline process
@@ -501,11 +502,12 @@ if(t_obs<=t0){
 
     } # end of while(t_next>=min_I_R)
 
-    # show(c(t_next,t_now,k,nrow(simulated_epi_sub)))
+    #show(c(t_next,t_now,k,nrow(simulated_epi_sub)))
 
     k <- num_infection + 1 - 1 # k=0,1,2...
+    t_old<- t_now
     t_now <- t_next
-    t_i_new <- t_now +  rBTFinv3(EI_model,t_now,mu_lat,var_lat,4) #E_to_I(EI_model,t_now , mu_lat, var_lat)
+    t_i_new <- t_now +  rBTFinv3(EI_model,t_now,mu_lat,var_lat,nb) #E_to_I(EI_model,t_now , mu_lat, var_lat)
     if(t_now<t_obs){
       t_r_new <- t_i_new + stats::rexp(1,rate=1/c)
       if(t_r_new>t_obs){
@@ -537,21 +539,30 @@ if(t_obs<=t0){
     #
     # }
     # ru <- .47
-     # show(source)
+    # show(source)
     m_1=n_1=1000
     pop_grid = f_rast + b_rast
+    #show(min(pop_grid))
     siz<- -1
+
     while(x_new<min_coor_x | x_new>max_coor_x | y_new<min_coor_y | y_new>max_coor_y | siz<0){
+    #   show(x_new)
+    # show(y_new)
+    # show(min_coor_x)
+    # show(max_coor_x )
+    # show(min_coor_y)
+    # show(max_coor_y)
       # show((x_new<min_coor_x) +(x_new>max_coor_x) + (y_new<min_coor_y) + (y_new>max_coor_y))
       # show((siz))
       # show(t_next)
       #pop_grid = pop_grid_before
+      #show(c(min(as.numeric(pop_grid))))
       if (source!=9999){
         # show(kern_model)
         # show(ru)
         # show(alpha1)
         # show(alpha2)
-
+        #show(c(kern_model,ru,alpha1,alpha2))
         r <- abs(Samp_dis (kern_model,ru, alpha1, alpha2))
 
         set_points <- circle_line_intersections (circle_x=simulated_epi$coor_x[source+1],circle_y=simulated_epi$coor_y[source+1], r,  n_line=n_line, grid_lines=grid_lines)
@@ -689,7 +700,7 @@ if(t_obs<=t0){
 
       if(all(c(u1,u2)==0)){
         tp<- 1
-        show(c(k,u1,u2,source,n_set_points,sum_arcs_den,r,m,n))
+        #show(c(k,u1,u2,source,n_set_points,sum_arcs_den,r,m,n))
       }
       else{
         u<- max(u1,u2)

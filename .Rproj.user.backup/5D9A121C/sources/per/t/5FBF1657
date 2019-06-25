@@ -1,0 +1,22 @@
+{
+    "collab_server" : "",
+    "contents" : "",
+    "created" : 1535561377230.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "2771906539",
+    "id" : "5FBF1657",
+    "lastKnownWriteTime" : 1535511026,
+    "last_content_update" : 1535511026,
+    "path" : "/run/user/1000/gvfs/sftp:host=login-cpu.hpc.cam.ac.uk,user=ha411/home/ha411/big_space/BBTV/QLD_17_08_18/expo-kernel/reso_500/cyclic_latent_omegapi/scale1/scale1_2.txt",
+    "project_path" : null,
+    "properties" : {
+        "cursorPosition" : "9,21",
+        "scrollLine" : "15"
+    },
+    "relative_order" : 18,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "text"
+}

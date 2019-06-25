@@ -1,0 +1,22 @@
+{
+    "collab_server" : "",
+    "contents" : "",
+    "created" : 1532987314122.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "0",
+    "id" : "71AA4A6",
+    "lastKnownWriteTime" : 1533042380,
+    "last_content_update" : 1533042380901,
+    "path" : "/run/user/1000/gvfs/sftp:host=login-cpu.hpc.cam.ac.uk/home/ha411/big_space/BBTV/NSW_25_07_18/Two-kernels/exp-cau/reso_500/BBTV-16/BBTV_simulation_control.R",
+    "project_path" : null,
+    "properties" : {
+        "cursorPosition" : "6,15",
+        "scrollLine" : "0"
+    },
+    "relative_order" : 15,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_source"
+}

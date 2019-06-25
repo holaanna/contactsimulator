@@ -1,0 +1,95 @@
+library(dplyr)
+df=as.data.frame(pointsinaustraliangrid)
+df$treatmentdate[is.na(df$treatmentdate)]<- df$inspectiondate[is.na(df$treatmentdate)]
+df1=subset(df,BBTV=="P&I" | BBTV=="P")
+#df1$treatmentdate[is.na(df1$treatmentdate)]<- df1$treatmentdate[is.na(df1$treatmentdate)]
+df1<- df1%>%dplyr::select(longitude, latitude,BBTV,treatmentdate)
+
+
+indx<- mclapply(1:nrow(df5),function(i){
+  x<- which(da1$longitude==df5[i,"longitude"] & da1$latitude==df5[i,"latitude"])
+  return(x)
+})
+
+DF<- da1
+DF$type<-0
+DF$type[unlist(indx)]<- "backyard" 
+DF$type[-unlist(indx)]<- "plantation" 
+write.table(DF,"/media/sf_D_DRIVE/BBTV_PROJECT/Data/plantation_backyard.txt",row.names = FALSE,col.names = T)
+
+
+
+for(id in c(1)){
+  #dir_name<- paste(sub_dir[4],paste0("reso_500/BBTV-",sublo[j]),sep = "/")
+  dir_name<- paste(sub_dir[1],paste0("BBTV-full/reso_",size),sep = "/")
+  
+  oak=paste("/run/user/1000/gvfs/sftp:host=login-cpu.hpc.cam.ac.uk/home/ha411/big_space/BBTV/QLD_25_07_18",dir_name,sep="/")
+  setwd(paste(oak,paste0(trans,latent,"/scale",id),sep="/"))
+  # #files<- list.files(pattern = "^dpc_snapshot")
+  L<- L1 <- vector("list",length = 9)
+  A_B<- c(360,540,720)
+  C_D<- c(30,90,180)
+  Rat<- c(0.3,1)
+  ss<- 1
+    
+    for(k1 in 1:3){
+      for(k2 in 1:3){
+        L1[[ss]]<- list.files(pattern = paste0("^expertAB_",A_B[k1],"_CD_",C_D[k2],"_",15))
+        ss<- ss+1
+      }
+    }
+
+  
+  #files<- sort(files)
+  #L<- vector("list",length = 4)
+  
+  times<- seq(2192,4352,30)
+  for(ii in 1:9){
+    files<- L1[[ii]]
+    rem<- mclapply(1:length(files),function(i){
+      
+      epi<- read.table(files[i],header=T)
+      M<- numeric(length(times))
+      for(k in 1:(length(times)-1)){
+        t1<- times[k]
+        t2<- times[k+1]
+        sub_epi<- subset(epi,t_e< t2 & t_e>=t1)
+        M[k]<- nrow(sub_epi)
+      }
+      
+      return(M)
+      
+    })
+    N_rem=do.call(rbind,rem)
+    Mean_rem<- apply(N_rem,2,quantile,c(0.025,.5,.975))
+    L[[ii]]<- (Mean_rem[,-73])
+  }
+  
+  M<- do.call(cbind,L)
+  df1<- as.data.frame(t(M))
+  cont<- NULL
+  for(ii in 1:9){
+    cont<- c(cont,paste0("exper_Scenario ",ii))
+  }
+  #cont<- c("Baseline","100% sweep", "Senario 1", "Senario 2")
+  df1$control<- rep(cont,each=length(times[-73]))
+  
+  # write.table(Mean_rem,paste("obs_removal",id,".txt",sep = ""),row.names = FALSE,col.names = FALSE)
+  
+  
+  colnames(df1)[1:3]<- c("min","median","max")
+  df1$times<- rep(times[1:72],9)
+  
+  # ggplot(df, aes(x=times, y=median,group=control,colour=control)) +
+  #   geom_line() + scale_colour_manual(values=rainbow(19))+
+  #   geom_point()+ theme(legend.position="top")+
+  #   #geom_errorbar(aes(ymin=min, ymax=max), width=15,
+  #   #             position=position_dodge(.9))+
+  #   scale_x_discrete(limits=times[samp],labels=labl[samp])+
+  #   theme(axis.text.x = element_text(angle = 90, hjust = 1))
+  # 
+  # ggsave(paste0("removed",id,".png"),path ="/media/sf_D_DRIVE/BBTV_PROJECT/draft_project/images/control-senarios/" )
+   write.table(df1,paste0("/media/sf_D_DRIVE/BBTV_PROJECT/Scenarios_controls/expert_exposed_",id,".txt"),row.names = F,col.names = T)
+  #write.table(df1,paste0("/media/sf_D_DRIVE/BBTV_PROJECT/Scenarios_controls/expert_removed_",id,".txt"),row.names = F,col.names = T)
+  
+}

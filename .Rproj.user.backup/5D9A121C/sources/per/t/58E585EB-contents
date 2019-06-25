@@ -1,0 +1,138 @@
+#!/rds/project/cag1/rds-cag1-general/epidem-programs/R/bin/Rscript
+
+# print(Sys.getenv())
+library(Rcpp)
+library(RcppGSL)
+library(geosphere)
+library(raster)
+library(rgdal)
+library(sp)
+library(graphics)
+library(grDevices)
+library(stats)
+library(parallel)
+library(pracma)
+library(contactsimulator)
+
+
+# Combined raster
+
+f<- "rast_mont_SEQ.tif"
+rast<- raster(f)
+show(rast)
+size<- raster::res(rast)[1]
+# Extract infos on the grid
+
+
+n_row_grid=nrow_grid=raster::nrow(rast)
+n_col_grid=ncol_grid=raster::ncol(rast)
+grid_size=raster::res(rast)[1]     # Resolution
+
+n_line=(nrow_grid+1) + (ncol_grid +1)  # Number of grid  lines
+
+x_min=raster::xmin(rast)  # min max of the bounding box
+x_max=raster::xmax(rast)
+
+y_min=raster::ymin(rast)
+y_max=raster::ymax(rast)
+
+pop_per_grid=round(raster::values(rast)*size^2)
+pop_per_grid[is.na(pop_per_grid)]=0
+mat=matrix(pop_per_grid,nrow = nrow_grid, byrow = TRUE)
+pop_grid=mat     # population per grid
+
+# Structure of the grid
+x=seq(x_min,x_max,grid_size)
+y=seq(y_min,y_max,grid_size)
+
+grid_lines=array(0,c(n_line,6))
+for(i in 1:n_line){
+  if(i<=(nrow_grid +1)){
+    grid_lines[i,]=c(i,1,x[1],y[i],x[length(x)],y[i])
+  }
+  else{
+    grid_lines[i,]=c(i,2,x[i-length(y)],y[1],x[i-length(y)],y[length(y)])
+  }
+}
+
+grid_lines=as.data.frame(grid_lines)
+colnames(grid_lines)<- c("indx","orient_line","coor_x_1","coor_y_1","coor_x_2","coor_y_2")
+
+
+
+vis_int_per_cat<- data.frame(cat=LETTERS[1:5],vis_int=c(360,360,30,30,30))
+
+#============================================================================================#
+#                       Generate plot for simulation using draws from posterior
+#============================================================================================#
+
+argument = commandArgs(T)
+process=as.numeric(argument)[1]  #
+nb=as.numeric(argument)[2]  # weight of the bakcyard
+EI_model=as.numeric(argument)[3]  # latent period
+kern_model=as.numeric(argument)[4]  # Model/kernel
+# nb=as.numeric(argument)[4]
+# process=as.numeric(argument)[5]
+# rad=as.numeric(argument)[6]
+
+
+times<- seq(2344,4388,30)
+#times<- c(times, 365+times)
+#obs<- c(212,90,57)
+times1<- c(0,times)
+OBS<- array(0,c(4,length(times)))
+
+
+
+
+#1<- read.table("1.txt",sep=" ",header =T,stringsAsFactors = F)
+
+# pop_grid <- as.matrix(read.table("pop_grid",sep=" ",header =F,fill = T))
+# grid_lines <- read.table("grid_line.txt",sep=" ",header =T,stringsAsFactors = F)
+
+getwd()
+
+M=read.table("parameters_current.txt",fill=T)
+
+samp=sample(50000:nrow(M),1);Param=data.frame(epsilon=M[samp,1],beta=M[samp,2],c=M[samp,5],b1=M[samp,6],alpha1=M[samp,7],alpha2=M[samp,8],t0=M[samp,9],omega=M[samp,10],mu_lat=M[samp,3],var_lat=M[samp,4])
+
+epsilon <- Param$epsilon/365
+beta <- Param$beta/365
+alpha1 <- Param$alpha1
+alpha2 <- Param$alpha2
+mu_lat <- Param$mu_lat
+var_lat <- Param$var_lat
+omega <- Param$omega
+c<- Param$c
+t0<- Param$t0
+b1 <- Param$b1
+prop <- 1
+
+#define the control structure
+A_B<- c(360,540,720)
+C_D<- c(30,90,180)
+Rat<- c(0.3,1)
+radius<- c(0.25,0.5)
+
+#Input
+
+t_b<-max(times) + 2
+t_max <- min(times)
+        # sweep proportion
+grid_size<- size
+t_obs<- min(times)+1
+
+
+print(nb)
+#for(i in 1:1){
+i=1
+param=data.frame(alpha1=1/alpha1[i],alpha2=alpha2[i], beta=beta[i], b1=b1[i], epsilon=epsilon[i], omega=omega[i], mu_lat=mu_lat[i], var_lat=var_lat[i], t0=t0[i], c=c[i], gama=prop)
+
+
+
+#  if(process<=1999){
+#  #print(process)
+rate_det<- 1; vis_int_per_cat<- data.frame(cat=LETTERS[1:5],vis_int=c(A_B[1],A_B[1],C_D[1],C_D[1],C_D[1]));
+epi<- Simulate_contact_model(param, grid_lines, pop_grid,t_max = t_max, EI_model = EI_model,kern_model = kern_model,grid_size = grid_size,m_start = 1,t_intervention = 1000000)
+
+write.table(epi,paste("scale",nb,"/","scale",nb,"_",process,".txt",sep = ""),row.names = FALSE,col.names = T)

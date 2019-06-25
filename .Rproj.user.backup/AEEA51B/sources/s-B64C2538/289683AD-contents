@@ -1,0 +1,116 @@
+##-------------------posterior distribution of Montville and Eungille-------
+M=read.table("/media/sf_D_DRIVE/BBTV_PROJECT/posteriors-dist/BZcyout-Mont",fill = T)
+M1=read.table("/media/sf_D_DRIVE/BBTV_PROJECT/posteriors-dist/BZcyout-Eun",fill = T)
+M2=read.table("/media/sf_D_DRIVE/BBTV_PROJECT/posteriors-dist/BZcyout-both",fill = T)
+library(gridExtra)
+library(ggplot2)
+library(scales)
+library(cowplot)
+
+df<- rbind(M[50001:100000,1:8],M1[50001:100000,1:8],M2[50001:100000,1:8])
+df$Farm<-c(rep("Eungella",50000),rep("Montville",50000),rep("Mont-Eung",50000))
+colnames(df)[1:8]<- c("alpha","beta","epsilon","b","gama","lamda0","lamda1","t0")
+
+p1<- ggplot(df, aes(alpha, colour=Farm)) +geom_density(adjust = 5,show.legend=FALSE) + stat_density(aes(alpha, colour=Farm), geom="line",position="identity", size = 0) +
+    guides(colour = guide_legend(override.aes=list(size=1)))+ xlab(expression(paste(alpha," (","m",")"))) + xlim(c(-20,150))+ theme(legend.position='none')
+# ggsave(paste0(colnames(df)[1],".png"))
+
+p2<- ggplot(df, aes(beta, colour=Farm)) +geom_density(adjust = 5,show.legend=FALSE) + stat_density(aes(beta, colour=Farm), geom="line",position="identity", size = 0) +
+    guides(colour = guide_legend(override.aes=list(size=1)))+ xlab(expression(paste(beta," (","days"^-1,")")))+ theme(legend.position='none')
+# ggsave(paste0(colnames(df)[2],".png"))
+
+
+p3<- ggplot(df, aes(epsilon, colour=Farm)) +geom_density(adjust = 5,show.legend=FALSE) + stat_density(aes(epsilon, colour=Farm), geom="line",position="identity", size = 0) +
+    guides(colour = guide_legend(override.aes=list(size=1)))+ xlab(expression(paste(epsilon," (","days"^-1,")"))) + theme(legend.position='none')
+# ggsave(paste0(colnames(df)[3],".png"))
+
+p4<- ggplot(df, aes(b, colour=Farm)) +geom_density(adjust = 5,show.legend=FALSE) + stat_density(aes(b, colour=Farm), geom="line",position="identity", size = 0) +
+    guides(colour = guide_legend(override.aes=list(size=1)))+ xlab(expression(paste(b)))+ theme(legend.position='none')
+# ggsave(paste0(colnames(df)[4],".png"))
+
+p5<- ggplot(df, aes(gama, colour=Farm)) +geom_density(adjust = 5,show.legend=FALSE) + stat_density(aes(gama, colour=Farm), geom="line",position="identity", size = 0) +
+    guides(colour = guide_legend(override.aes=list(size=1)))+ xlab(expression(paste(gamma," (","days",")")))+ theme(legend.position='none')
+# ggsave(paste0(colnames(df)[5],".png"))
+
+p6<- ggplot(df, aes(lamda0, colour=Farm)) +geom_density(adjust = 5,show.legend=FALSE) + stat_density(aes(lamda0, colour=Farm), geom="line",position="identity", size = 0) +
+    guides(colour = guide_legend(override.aes=list(size=1)))+ xlab(expression(paste(lambda[0])))+ theme(legend.position='none')
+# ggsave(paste0(colnames(df)[6],".png"))
+
+p7<- ggplot(df, aes(lamda1, colour=Farm)) +geom_density(adjust = 5,show.legend=FALSE) + stat_density(aes(lamda1, colour=Farm), geom="line",position="identity", size = 0) +
+    guides(colour = guide_legend(override.aes=list(size=1)))+ xlab(expression(paste(lambda[1])))+theme(legend.position="top")
+legend <- get_legend(p7)
+p7<- ggplot(df, aes(lamda1, colour=Farm)) +geom_density(adjust = 5,show.legend=FALSE) + stat_density(aes(lamda1, colour=Farm), geom="line",position="identity", size = 0) +
+    guides(colour = guide_legend(override.aes=list(size=1)))+ xlab(expression(paste(lambda[1])))+ theme(legend.position='none')
+# ggsave(paste0(colnames(df)[7],".png"))
+
+p8<- ggplot(df, aes(t0, colour=Farm)) +geom_density(adjust = 5,show.legend=FALSE) + stat_density(aes(t0, colour=Farm), geom="line",position="identity", size = 0) +
+    guides(colour = guide_legend(override.aes=list(size=1)))+ xlab(expression(paste(t[0])))+theme(legend.position='none')
+#p8+
+    # geom_density(mapping=aes(V9),data = M2,adjust = 5,show.legend=FALSE) +
+    # theme(legend.position='none')
+
+
+setwd("~/Dropbox/BBTV_Australia/Report/Pictures")
+p<- grid.arrange(p1,p2,p3,p4,p6,p7,p5,p8,nrow=4)
+
+ggsave(paste0("post_dis.png"),p)
+
+
+setwd("~/Dropbox/BBTV_Australia/Report/Pictures")
+p<- ggdraw(plot_grid(plot_grid(NULL,legend,NULL, nrow=1),plot_grid(p1,p2,p3,p4,p6,p7,p5,p8, ncol=2, align='v'),
+                  ncol = 1,
+                 rel_heights =c(0.05,1)))
+
+ggsave(paste0("post_dis1.png"),p)
+
+
+#--------------------DIC-------------------------
+
+-4*mean(M[50000:100000,9] + M1[50000:100000,9]) + 2*(-4699.7-2323.44)
+
+-4*mean(M2[50000:100000,10]) + 2*(-4708.71-2334.95)
+
+
+#----------------------------Each farm distribution-----------------------------------------
+famr<- c("Montville","Eungella","Mont-Eung")
+famr_col<- c("#1f77b4","#d62728","#2ca02c")
+setwd("/media/sf_D_DRIVE/BBTV_PROJECT/draft_project/images/Farms/")
+for(i in 1:length(famr)){
+  Df<- subset(df,Farm==famr[i])
+  p1<- ggplot(Df, aes(alpha)) +geom_density(adjust = 5,show.legend=FALSE,position = "identity",fill=NA,size=1,colour=famr_col[i]) +
+    xlab(expression(paste(alpha," (","m",")"))) + xlim(c(-20,150))+ theme(legend.position='none')
+   ggsave(paste0(colnames(df)[1],"_",famr[i],".png"))
+
+  p2<- ggplot(Df, aes(beta)) +geom_density(adjust = 5,show.legend=FALSE,position = "identity",fill=NA,size=1,colour=famr_col[i]) +
+    xlab(expression(paste(beta," (","days"^-1,")")))+ theme(legend.position='none')
+   ggsave(paste0(colnames(df)[2],"_",famr[i],".png"))
+
+
+  p3<- ggplot(Df, aes(epsilon))+ geom_density(adjust = 5,show.legend=FALSE,position = "identity",fill=NA,size=1,colour=famr_col[i])+
+    xlab(expression(paste(epsilon," (","days"^-1,")"))) + theme(legend.position='none')
+    ggsave(paste0(colnames(df)[3],"_",famr[i],".png"))
+
+  p4<- ggplot(Df, aes(b)) + geom_density(adjust = 5,show.legend=FALSE,position = "identity",fill=NA,size=1,colour=famr_col[i])+
+    xlab(expression(paste(b)))+ theme(legend.position='none')
+  ggsave(paste0(colnames(df)[4],"_",famr[i],".png"))
+
+  p5<- ggplot(Df, aes(gama)) +geom_density(adjust = 5,show.legend=FALSE,position = "identity",fill=NA,size=1,colour=famr_col[i])+
+    xlab(expression(paste(gamma," (","days",")")))+ theme(legend.position='none')
+  ggsave(paste0(colnames(df)[5],"_",famr[i],".png"))
+
+  p6<- ggplot(Df, aes(lamda0)) + geom_density(adjust = 5,show.legend=FALSE,position = "identity",fill=NA,size=1,colour=famr_col[i])+
+    xlab(expression(paste(lambda[0])))+ theme(legend.position='none')
+  ggsave(paste0(colnames(df)[6],"_",famr[i],".png"))
+
+  #p7<- ggplot(Df, aes(lamda1)) +geom_density(adjust = 5,show.legend=FALSE) + stat_density(aes(lamda1, colour=Farm), geom="line",position="identity", size = 0) +
+  #   guides(colour = guide_legend(override.aes=list(size=1)))+ xlab(expression(paste(lambda[1])))+theme(legend.position="top")
+  # legend <- get_legend(p7)
+  p7<- ggplot(Df, aes(lamda1)) + geom_density(adjust = 5,show.legend=FALSE,position = "identity",fill=NA,size=1,colour=famr_col[i]) +
+    xlab(expression(paste(lambda[1])))+ theme(legend.position='none')
+  ggsave(paste0(colnames(df)[7],"_",famr[i],".png"))
+
+  p8<- ggplot(Df, aes(t0)) + geom_density(adjust = 5,show.legend=FALSE,position = "identity",fill=NA,size=1,colour=famr_col[i]) +
+    xlab(expression(paste(t[0])))+ theme(legend.position='none')
+  ggsave(paste0(colnames(df)[8],"_",famr[i],".png"))
+}
+

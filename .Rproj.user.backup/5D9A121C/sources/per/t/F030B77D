@@ -1,0 +1,22 @@
+{
+    "collab_server" : "",
+    "contents" : "",
+    "created" : 1535481301695.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "2863745651",
+    "id" : "F030B77D",
+    "lastKnownWriteTime" : 1535023061,
+    "last_content_update" : 1535023061,
+    "path" : "/media/sf_D_DRIVE/BBTV_PROJECT/Ploting_code/Montville-data-export.R",
+    "project_path" : null,
+    "properties" : {
+        "cursorPosition" : "230,0",
+        "scrollLine" : "210"
+    },
+    "relative_order" : 11,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_source"
+}

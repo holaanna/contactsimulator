@@ -1,0 +1,151 @@
+
+
+trajectory_plot<-function(sub_dir,df1){
+
+
+
+  latent=c("_latent_omegapi")
+  trans=c("cyclic")
+
+
+
+
+  Li=Di=vector("list",length = 7)
+  k=1
+
+  sublo<- 11:17
+
+  # for(i in 1:length(sub_dir){
+    for(j in 1:(length(sublo))){
+      dir_name<- paste(sub_dir,paste0("BBTV-",sublo[j]),sep = "/")
+      oak=paste("/run/user/1000/gvfs/sftp:host=oak--is.grid.private.cam.ac.uk/home/ha411/big_space/BBTV/QLD",dir_name,sep="/")
+      setwd(paste(oak,paste0(trans,latent),sep="/"))
+      files1<- mixedsort(list.files(pattern = "^obs_snapshot"))
+      files <- files1[1:(which(files1=="obs_snapshot99.txt"))]
+      M=read.table(files[1])
+      for(l in 1:(length(files)-1)){
+        M=rbind(M,read.table(files[l+1]))
+      }
+
+      if(j==6){
+        M1=M
+        M= M1[,2:ncol(M1)]
+        M[,1]=M[,1] + M1[,1]
+      }
+
+      if(j==7){
+        M= M[,1:6]
+      }
+
+      Li[[k]]=t(apply(M,2,quantile,c(0.025,.5,.975)))
+      k=k+1
+    }
+  # }
+
+
+  # Plot parameters distribution
+
+  M11=Li[[1]]   #  cyclic latent 0
+  M12=Li[[2]]  # Cyclic latent pi
+
+  M13=Li[[3]]   #  gama latent 0
+  M14=Li[[4]]  # gama latent pi
+
+  M15=Li[[5]]   #  expo latent 0
+  M16=Li[[6]]  # expo latent pi
+  M17=Li[[7]]  # expo latent pi
+
+
+  setwd(paste("/media/sf_D_DRIVE/BBTV_PROJECT/draft_project/images/",sub_dir,"QLD-11-17",sep="/"))
+
+
+
+  ######################### confidence band ##########################################
+
+  lab=c("Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec")
+  latentt<- c("beta[1]==0","omega==2*pi")
+  trans1=c("Cyclic ","Gamma ","Exponential ")
+  year = c("2011","2012","2013","2014","2015","2016","2017")
+
+  # OBS <- NULL
+  # times<- c(31,59,90, 120, 151, 181, 212, 243, 273, 304, 334, 365)
+  # #times<- c(times,365+times)
+  # times1<- c(0,times)
+  #
+  # for(j in 1:length(sublo)){
+  #   obs<- numeric(length(times))
+  #   da1=subset(dat,dat$detection>365*(j) & dat$detection<365*(j+1) & dat$BBTV=="P&I") # Incidence within a year
+  #   for(k in 1:length(times)){
+  #     obs[k]<- length(which(da1$removal<= (times1[k+1] + 365*(j)) & da1$removal> (times1[k]+ 365*(j) ) ))
+  #   }
+  #   OBS <- c(OBS,obs)
+  # }
+
+
+
+
+  # times<- c(31,59,90, 120, 151, 181, 212, 243, 273, 304, 334, 365)
+  #names(latentt)<- latentt
+  df<- rbind(M11,M12,M13,M14,M15,M16,M17)
+  colnames(df)<- c("min","median","max")
+  df<-as.data.frame(df,row.names = FALSE)
+  df$times<- df1$month
+  df$obs<-   df1$obs
+  df$year<- df1$year
+  ggplot(df,aes(times,obs,group=year))+
+    geom_point()+ geom_line(aes(times,median), color="red")+ geom_line()+
+    geom_ribbon(aes(ymin=min,ymax=max),alpha=0.3) +
+    facet_wrap(~year, ncol=3) + scale_x_discrete(limits=times,labels=lab)+
+    theme(axis.text.x = element_text(angle = 90, hjust = 1))
+
+
+  ggsave(paste0("confi_band",".png"))
+
+
+
+
+
+
+}
+library(ggplot2)
+library(dplyr)
+library(gtools)
+
+dat=read.table("/media/sf_D_DRIVE/BBTV_PROJECT/Data/merged_all_updated.csv",sep=",",header = TRUE,stringsAsFactors = F)
+#dat=read.table("D:/BBTV_PROJECT/Data/merged_all.csv",sep=",",header = TRUE,stringsAsFactors = F)
+Dat<- dat[,c("longitude","latitude","BBTV","inspectiondate","leavesinfected","treatmentdate","location")]
+Dat1<-subset(Dat,Dat$latitude> -27.4698 & Dat$BBTV%in%c("P&I","P", "NI") & difftime(as.Date(Dat$inspectiondate), as.Date("2008/01/01"), unit="days")>=0)  # data up in queensland
+Dat1$treatmentdate[is.na(Dat1$treatmentdate)]<- Dat1$inspectiondate[is.na(Dat1$treatmentdate)]
+Dat1$detection<-as.numeric(difftime(as.Date(Dat1$inspectiondate), as.Date("2008/01/01"), unit="days"))
+Dat1$removal<-as.numeric(difftime(as.Date(Dat1$treatmentdate), as.Date("2008/01/01"), unit="days"))
+Dat1$removal[which(Dat1$removal<0)]<- Dat1$detection[which(Dat1$removal<0)]
+dat<-Dat1[,c("longitude","latitude","BBTV","leavesinfected","detection","removal")]
+da1 <- subset(dat,dat$BBTV=="P&I")
+times<- c(31,59,90, 120, 151, 181, 212, 243, 273, 304, 334, 365)
+times2<- times
+for(i in 1:9){
+  times<-c(times,365*i +times2)
+}
+times1<- c(0,times)
+obs<- numeric(length(times))
+for(i in 1:length(times)){
+  obs[i]<- length(which(da1$detection<= times1[i+1] & da1$detection> times1[i] ))
+}
+
+times<- c(31,59,90, 120, 151, 181, 212, 243, 273, 304, 334, 365)
+df<- data.frame(obs=obs, year=rep(2008:2017,each=12),month=rep(times,10))
+df1<- df%>%filter(obs>0 & year>2010)
+
+
+size<- 5000
+
+sub_dir<- c("expo-kernel","Cauchy-kernel","Two-kernels/cau-cau","Two-kernels/exp-cau")
+
+  for(i in 2:(length(sub_dir))){
+    #dir_name<- paste0("Cauchy_kernel/BBTV_",size)
+
+    trajectory_plot(sub_dir[i],df1)
+
+  }
+
+

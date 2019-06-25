@@ -1,0 +1,98 @@
+[
+    {
+        "definitions" : [
+            {
+                "column" : 8,
+                "file" : "/home/holakwame/Dropbox/package/contactsimulator/src/contactfunctions.cpp",
+                "kind" : 6,
+                "line" : 23,
+                "name" : "func_time_beta(const double &, const double &, const double &, const double &, const double &)",
+                "parent_name" : "",
+                "usr" : "c:@F@func_time_beta#&1d#S0_#S0_#S0_#S0_#"
+            },
+            {
+                "column" : 8,
+                "file" : "/home/holakwame/Dropbox/package/contactsimulator/src/contactfunctions.cpp",
+                "kind" : 6,
+                "line" : 66,
+                "name" : "simulate_NHPP_next_event(const double, const double, const double, const double, const double, double)",
+                "parent_name" : "",
+                "usr" : "c:@F@simulate_NHPP_next_event#1d#1d#1d#1d#1d#d#"
+            },
+            {
+                "column" : 27,
+                "file" : "/home/holakwame/Dropbox/package/contactsimulator/src/contactfunctions.cpp",
+                "kind" : 6,
+                "line" : 109,
+                "name" : "circle_line_intersections_C(double, double, double, int &, grid_lines_struct &)",
+                "parent_name" : "",
+                "usr" : "c:@F@circle_line_intersections_C#d#d#d#&I#&$@S@grid_lines_struct#"
+            },
+            {
+                "column" : 11,
+                "file" : "/home/holakwame/Dropbox/package/contactsimulator/src/contactfunctions.cpp",
+                "kind" : 6,
+                "line" : 255,
+                "name" : "circle_line_intersections(double, double, double, int, DataFrame)",
+                "parent_name" : "",
+                "usr" : "c:@F@circle_line_intersections#d#d#d#I#$@N@Rcpp@C@DataFrame_Impl>#@N@Rcpp@CT>1#T@PreserveStorage#"
+            },
+            {
+                "column" : 25,
+                "file" : "/home/holakwame/Dropbox/package/contactsimulator/src/contactfunctions.cpp",
+                "kind" : 6,
+                "line" : 283,
+                "name" : "func_segments_attributes(DataFrame &, NumericMatrix &, double &, para_aux &)",
+                "parent_name" : "",
+                "usr" : "c:@F@func_segments_attributes#&$@N@Rcpp@C@DataFrame_Impl>#@N@Rcpp@CT>1#T@PreserveStorage#&$@N@Rcpp@C@Matrix>#VI14#@N@Rcpp@CT>1#T@PreserveStorage#&d#&$@S@para_aux#"
+            },
+            {
+                "column" : 11,
+                "file" : "/home/holakwame/Dropbox/package/contactsimulator/src/contactfunctions.cpp",
+                "kind" : 6,
+                "line" : 484,
+                "name" : "func_arcs_attributes(DataFrame, NumericMatrix &, double, double, double, double, double, double)",
+                "parent_name" : "",
+                "usr" : "c:@F@func_arcs_attributes#$@N@Rcpp@C@DataFrame_Impl>#@N@Rcpp@CT>1#T@PreserveStorage#&$@N@Rcpp@C@Matrix>#VI14#@N@Rcpp@CT>1#T@PreserveStorage#d#d#d#d#d#d#"
+            },
+            {
+                "column" : 8,
+                "file" : "/home/holakwame/Dropbox/package/contactsimulator/src/contactfunctions.cpp",
+                "kind" : 6,
+                "line" : 534,
+                "name" : "f(double, double, double)",
+                "parent_name" : "",
+                "usr" : "c:@F@f#d#d#d#"
+            },
+            {
+                "column" : 15,
+                "file" : "/home/holakwame/Dropbox/package/contactsimulator/src/contactfunctions.cpp",
+                "kind" : 6,
+                "line" : 552,
+                "name" : "BTFinv1(double, double, double)",
+                "parent_name" : "",
+                "usr" : "c:@F@BTFinv1#d#d#d#"
+            },
+            {
+                "column" : 8,
+                "file" : "/home/holakwame/Dropbox/package/contactsimulator/src/contactfunctions.cpp",
+                "kind" : 6,
+                "line" : 600,
+                "name" : "E_to_I(int, double, double, double)",
+                "parent_name" : "",
+                "usr" : "c:@F@E_to_I#I#d#d#d#"
+            },
+            {
+                "column" : 8,
+                "file" : "/home/holakwame/Dropbox/package/contactsimulator/src/contactfunctions.cpp",
+                "kind" : 6,
+                "line" : 630,
+                "name" : "beta_by_age(int, NumericVector)",
+                "parent_name" : "",
+                "usr" : "c:@F@beta_by_age#I#$@N@Rcpp@C@Vector>#VI14#@N@Rcpp@CT>1#T@PreserveStorage#"
+            }
+        ],
+        "file" : "/home/holakwame/Dropbox/package/contactsimulator/src/contactfunctions.cpp",
+        "file_last_write" : 1509720675
+    }
+]

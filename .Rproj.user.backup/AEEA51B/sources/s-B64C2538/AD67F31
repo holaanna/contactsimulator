@@ -1,0 +1,22 @@
+{
+    "collab_server" : "",
+    "contents" : "",
+    "created" : 1533098938940.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "0",
+    "id" : "AD67F31",
+    "lastKnownWriteTime" : 1533199414,
+    "last_content_update" : 1533199414,
+    "path" : "/run/user/1000/gvfs/sftp:host=login-cpu.hpc.cam.ac.uk/home/ha411/big_space/BBTV/QLD_25_07_18/Two-kernels/exp-cau/reso_500/BBTV-12/farm_pos_cat.txt",
+    "project_path" : null,
+    "properties" : {
+        "cursorPosition" : "249,23",
+        "scrollLine" : "0"
+    },
+    "relative_order" : 21,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "text"
+}

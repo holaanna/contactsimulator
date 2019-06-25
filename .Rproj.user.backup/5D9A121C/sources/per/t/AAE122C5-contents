@@ -1,0 +1,85 @@
+#!/bin/bash
+#! Make sure all the SBATCH directives go in this section and no other commands
+#! Name of the job:
+#SBATCH -J simulatin_control
+#! Project name for Gilligan group, use SL2 for paying queue:
+#SBATCH -A GILLIGAN-SL2-CPU
+#! Output filename:
+#! %A means slurm job ID and %a means array index
+#SBATCH --output=getcpuinfo_%A_%a.out
+#! Errors filename:
+#SBATCH --error=getcpuinfo_%A_%a.err
+#! How many whole nodes should be allocated? (for single core jobs always leave this at 1)
+#SBATCH --nodes=1
+#! How many tasks will there be in total? (for single core jobs always leave this at 1)
+#SBATCH --ntasks=1
+#! How many many cores will be allocated per task? (for single core jobs always leave this at 1)
+#SBATCH --cpus-per-task=1
+#! Estimated runtime: hh:mm:ss (job is force-stopped after if exceeded):
+#SBATCH --time=00:20:00
+#! Estimated maximum memory needed (job is force-stopped if exceeded):
+#! Never request less than 5990mb of memory.
+#! RAM is allocated in ~5990mb blocks, you are charged per block used,
+#! and unused fractions of blocks will not be usable by others.
+#SBATCH --mem=5990mb
+#! Submit a job array with index values between 0 and 31
+#! NOTE: This must be a range, not a single number (i.e. specifying '32' here would only run one job, with index 32)
+#SBATCH --array=0-2999
+
+#! This is the partition name. This will request for a node with 6GB RAM for each task
+#SBATCH -p skylake
+
+# mail alert at start, end and abortion of execution
+#SBATCH --mail-type=ALL
+
+#! Don't put any #SBATCH directives below this line, it is now safe to put normal commands below this line
+        
+#! Modify the environment seen by the application. For this example we need the default modules.
+. /etc/profile.d/modules.sh                # This line enables the module command
+module purge                               # Removes all modules still loaded
+module load rhel7/default-peta4            # REQUIRED - loads the basic environment
+module load use.own                        # This line loads the own module list
+module load /rds/project/cag1/rds-cag1-general/epidem-modules/epidem.modules   # This line loads the Epidemiology group module list
+module load R-with-libraries              # This line loads the R  module
+
+#! Command line that we want to run:
+#! The variable $SLURM_ARRAY_TASK_ID contains the array index for each job.
+#! In this example, each job will be passed its index, so each output file will contain a different value
+declare -a arr=("./reso_500/exponential_latent_omega0" "./reso_500/gama_latent_omega0" "./reso_500/cyclic_latent_omega0" "./reso_500/exponential_latent_omegapi" "./reso_500/gama_latent_omegapi" "./reso_500/cyclic_latent_omegapi")
+
+arr1=(1 20 50 100)
+lat_arr=(3 2 1)
+
+
+
+
+
+
+ #! Nb simulation in each directory or for each model
+ 
+sim=$((SLURM_ARRAY_TASK_ID %1000))             
+diret=$(( (SLURM_ARRAY_TASK_ID-sim)/1000))
+
+lat=$((diret %3))             
+lat1=$(( (diret-lat)/3))
+id=$((la_arr[lat1]))
+
+
+#! Weight of each backyard
+
+nn=$((SLURM_ARRAY_TASK_ID %6000))
+nn1=$(( (SLURM_ARRAY_TASK_ID-nn)/6000))
+
+ii=$((arr1[nn1]))
+
+
+ jobDir=${arr[$diret]}
+ 
+ cp ./reso_500/Dout ./reso_500/farm_pos_cat.txt $jobDir
+ 
+ #! echo  $n1  $n2 $ratr $ii $SLURM_ARRAY_TASK_ID $nn1
+   cd $jobDir
+ if [ ! -d "scale"$ii ]; then
+ mkdir "scale"$ii
+ fi
+  Rscript ../../BBTV_simulation.R $sim $ii $id  5
