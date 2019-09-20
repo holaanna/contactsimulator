@@ -6,17 +6,21 @@
 #'\code{Simulate_contact_control_LER_africa} provide a simulation of the epidemic process applying the Malawi management strategy.
 #'
 #' @inheritParams Simulate_contact_control
+#' @param rast A raster file containing info related to grid_lines etc. Need to construnct the object contact to handle all of these
+#' @param plant_proc The cells ids guiding the planting protoccol
+#' @param prev The disease prevalence in the region. Note that this is redundund when suckers are not imported from external source
+#' @param nb_p_grid Cell population size
 #' @seealso  \code{\link{Simulate_contact_control_LER_farm}}
 #' @references
 #' \insertRef{KR08}{contactsimulator}
 #' \insertRef{Mee11}{contactsimulator}
 #' @example examples/africa_landscape_example.R
 #' @export
-Simulate_contact_control_LER_africa <- function(f_rast=NULL, b_rast=NULL, farm_pos_cat=NULL, vis_int_per_cat=NULL, param, grid_lines, pop_grid, grid_size=70, age_level=c(1,1),age_dist=c(1,0), m_start=1,t_b=100000, t_max=1000, t_intervention=100000, t_obs=seq(0,1000,100), EI_model=1, kern_model=4,rad=1000,sweep_prop=c(.5,.5),back_p=c(.7,.5),rate_det=c(0.3,1),int_det=c(30,90,180),nb_in_b=1,nb=3,leav=c(3,6),ini=NULL){
+Simulate_contact_control_LER_africa <- function(rast, param, grid_lines, pop_grid, grid_size=70, age_level=c(1,1),age_dist=c(1,0), m_start=1,t_b=100000, t_max=1000, t_intervention=100000, t_obs=seq(0,1000,100), EI_model=1, kern_model=4,rad=1000,prev=0.003,nb=3,leav=c(3,6),ini=NULL, plant_proc, type_cont=TRUE, nb_p_grid=140){
 
   #Set parameters
   epsilon <- param$epsilon
-  beta <- param$beta
+  #beta <- param$beta
   b1 <- param$b1
   alpha1 <- param$alpha1
   alpha2 <- param$alpha2
@@ -27,8 +31,8 @@ Simulate_contact_control_LER_africa <- function(f_rast=NULL, b_rast=NULL, farm_p
   delta<- param$delta
   t0<- param$t0
 
-  beta_1<- beta;
-  beta_2<- beta;
+  beta_1<- param$beta_1;
+  beta_2<- param$beta_2;
 
   ru <- param$gama
 
@@ -44,40 +48,28 @@ Simulate_contact_control_LER_africa <- function(f_rast=NULL, b_rast=NULL, farm_p
   n_row_grid <- nrow(pop_grid) # number of rows of grids
   n_col_grid <- ncol(pop_grid)  # number of cols of grids
 
-  pop_grid_old = pop_grid
-  #Plantations
-  if(is.null(f_rast) & is.null(b_rast) & is.null(farm_pos_cat) & is.null(farm_pos_cat)){
-    f_rast<- pop_grid
-    b_rast<- pop_grid*0
-    nb_in_b<- 0
-    farm_pos_cat<- data.frame(ro=1,co=1,cat="A",vis_int=360,tim_lst_pos=-10000,nb_round=1,sweep=1)
 
-  }
+
+  raster::values(rast)[plant_proc[1]]<- nb_p_grid # Initial plantation
+  pop_grid<- flipdim(matrix(raster::values(rast),nrow = nrow_grid, byrow = TRUE))
+  pop_grid_old = pop_grid
+
   # else if(is.null(f_rast)){
   #   farm_pos_cat<- data.frame(ro=1,co=1,cat="A",vis_int=360,tim_lst_pos=-10000,nb_round=1,sweep=1)
   # }``
 
-if(max(t_obs)<=t0){
-  farm_pos_cat$cat<- "A"
-  farm_pos_cat$tim_lst_pos<- -10000
-  farm_pos_cat$vis_int<- 360
-}
 
 
-  simulated_epi <- data.frame(k=numeric(0), coor_x=numeric(0), coor_y=numeric(0), t_e=numeric(0), t_i=numeric(0), t_d=numeric(0), t_r=numeric(0),age=numeric(0), infected_source=numeric(0), row=numeric(0), col=numeric(0), typ=numeric(0))
+  simulated_epi <- data.frame(k=numeric(0), coor_x=numeric(0), coor_y=numeric(0), t_e=numeric(0), t_i=numeric(0), t_d=numeric(0), t_r=numeric(0),age=numeric(0), infected_source=numeric(0), row=numeric(0), col=numeric(0), typ=numeric(0), season=numeric(0))
+  simulated_pro<- data.frame(seas=numeric(0), n_suck_inrn=numeric(0),n_suck_imp=numeric(0), n_plantation=numeric(0), n_remv=numeric(0)) # simulation protocole
+  k_11<- 0
+  plant_age<- numeric(length(plant_proc))
+  plant_age[1]<- 0
+
 
   # Extract data from farm and bakckyard
   #print(c(b_rast[355,140],f_rast[355,140]))
-  b_rast<- b_rast*nb
-  f_rast_p<- f_rast/(b_rast+f_rast)              # proportion occupied by farm and backyard plant resp
-  b_rast_p<- b_rast/(b_rast+f_rast)
-  f_rast_p[is.na(f_rast_p)]<- 0
-  b_rast_p[is.na(b_rast_p)]<- 0
-  farm_pos_cat$vis<- max(t_obs) + farm_pos_cat$vis_int
-  farm_pos_cat$cat<- as.character(farm_pos_cat$cat)
-  farm_inf<- array(0,c(nrow(f_rast),ncol(f_rast)))
-  time_sinc_last_pos<- array(0,c(nrow(f_rast),ncol(f_rast)))
-  time_sinc_last_pos1<- array(0,c(nrow(f_rast),ncol(f_rast)))
+
 #show(param)
   #print(c(b_rast[355,140],f_rast[355,140]))
   if(t_max<=365){
@@ -94,7 +86,7 @@ if(max(t_obs)<=t0){
     if(!is.data.frame(ini)){
       stop("The initial info ini must be a data frame")
     }
-    if(!(all(colnames(ini)%in%c("x", "y", "t_e", "t_i", "row", "col", "typ")))){
+    if(!(all(colnames(ini)%in%c("x", "y", "t_e", "t_i", "row", "col", "typ", "age")))){
       stop("Check the colnames of the initial state ini ")
     }
     m_start<- nrow(ini)
@@ -102,76 +94,23 @@ if(max(t_obs)<=t0){
 
   index_k <- 0:(m_start-1)
   tp_indx<- n_indx<- m_indx<- index_coor_x <- index_coor_y<- numeric(m_start)
+  #Assume that the initial infection(s) are located in the centroid
+  cent_coor<- sp::coordinates(rast)
+
+  # m_indx<- cent
 # show(param)
   if(is.null(ini)){
 
   for(i in 1:m_start){
-    if(t0<=max(t_obs)){
-      ss<- 1:nrow(farm_pos_cat)
-      k_grid <- sample(ss,size=1)
-    }
-    else{
-      ss<- which(farm_pos_cat$cat=="E" | farm_pos_cat$cat=="D" | farm_pos_cat$cat=="C" )
-      if(length(ss)==0 ){
-        ss<- which(farm_pos_cat$cat=="B" )
-        if(length(ss)==0){
-          ss<- which(farm_pos_cat$cat=="A" )
-          if(length(ss)==0){
-            stop("Farm need to be in one of the categories: A, B, C or D")
 
-          }
-        }
+     m_grid <-  raster::rowFromCell(rast,plant_proc[1])# the mth row of the grids
+     n_grid <-  raster::colFromCell(rast,plant_proc[1])# the mth row of the grids
 
-        k_grid <- sample(ss,size=1)
-        #show(i)
-        # k_grid <- sample(1:length(as.numeric(pop_grid)),size=1, prob=as.numeric(pop_grid))
-        # m_grid <- k_grid%%nrow(pop_grid) # the mth row of the grids
-        # if(m_grid==0) m_grid <- nrow(pop_grid)
-        # n_grid <- ceiling(k_grid/nrow(pop_grid))  # nth column ..
-      }
-
-      else{
-        k_grid <- sample(ss,size=1)
-
-
-      }
-    }
-#show(param)
-    m_grid <-  farm_pos_cat$ro[k_grid]# the mth row of the grids
-    n_grid <-  farm_pos_cat$co[k_grid]# the mth row of the grids
-
-    index_coor_x[i] <- stats::runif(1,min=x_intervals[n_grid],max=x_intervals[n_grid+1]) # random lands at a point in the grid selected
-    index_coor_y[i] <- stats::runif(1,min=y_intervals[m_grid],max=y_intervals[m_grid+1])
+    index_coor_x[i] <- xFromCell(rast,plant_proc[1])  + sample(c(-1,1),1)*runif(1,0,grid_size/2) #stats::runif(1,min=x_intervals[n_grid],max=x_intervals[n_grid+1]) # random lands at a point in the grid selected
+    index_coor_y[i] <- yFromCell(rast,plant_proc[1])  + sample(c(-1,1),1)*runif(1,0,grid_size/2)
 
     n_indx[i]=n_grid
-    m_indx[i]=m_grid
-     #show(c(m_grid,n_grid,dim(f_rast_p)))
-    u1<- f_rast_p[m_grid,n_grid]
-    u2<- b_rast_p[m_grid,n_grid]
-
-#show(c(u1,u2))
-    u<- max(u1,u2)
-    if(length(ss)==0 ){
-      if(u2>0){
-        tp_indx[i]<- 1
-        b_rast[m_grid,n_grid]<- b_rast[m_grid,n_grid] - 1
-      }
-      else{
-        tp_indx[i]<- 0
-        f_rast[m_grid,n_grid]<- f_rast[m_grid,n_grid] - 1
-        farm_inf[m_grid,n_grid]<- farm_inf[m_grid,n_grid] + 1
-
-      }
-    }
-
-    else{
-      tp_indx[i]<- 0
-      f_rast[m_grid,n_grid]<- f_rast[m_grid,n_grid] - 1
-      farm_inf[m_grid,n_grid]<- farm_inf[m_grid,n_grid] + 1
-
-    }
-
-
+    m_indx[i]=nrow(pop_grid) - m_grid + 1
 
   }
 #show(param)
@@ -180,13 +119,14 @@ if(max(t_obs)<=t0){
   dt<- stats::rexp(1)/epsilon    # Sellke
   #dt<- 0
 
-  if(dt>0){  # When running the simulation from the start e.g for parameter estimation
-    index_t_e <- rep(t0+dt,m_start)
+  if(is.infinite(dt)){  # When running the simulation from the start e.g for parameter estimation
+    index_t_e <- rep(t0,m_start)
+
+
     # index_t_i <- index_t_e + E_to_I(EI_model,t0 , mu_lat, var_lat)
   }
   else{
-    index_t_e <- rep(t0,m_start)
-
+     index_t_e <- rep(t0+dt,m_start)
   }
   # index_t_e <- rep(t0+dt,m_start) # all assumed to infected at time=t0
   #index_t_e <- rep(t0,m_start) # all assumed to infected at time=t0
@@ -195,7 +135,7 @@ if(max(t_obs)<=t0){
 
   index_t_i <- index_t_e + rBTFinv3(EI_model,index_t_e, mu_lat, var_lat, leav[1])
 
-
+index_age <- sample(age_level,size=m_start,prob=age_dist,replace=T)
 
   }
   else{  # If initial starting points are provided
@@ -206,54 +146,56 @@ if(max(t_obs)<=t0){
     tp_indx<- ini$typ
     index_t_e<- ini$t_e
     index_t_i<- ini$t_i
-    # b_in<- which(tp_indx==1)
-    # f_in<- which(tp_indx==0)
-    # if(length(b_in)>0){
-    #   b_rast[m_grid,n_grid]<- b_rast[m_grid,n_grid] - 1
-    # }
-    for(i in 1:m_start){
-      if(tp_indx[i]==1){
-        b_rast[m_indx[i],n_indx[i]]<- b_rast[m_indx[i],n_indx[i]] - 1
-      }
-      else{
-        #print(c(f_rast[m_indx[i],n_indx[i]],m_indx[i],n_indx[i]))
-        f_rast[m_indx[i],n_indx[i]]<- f_rast[m_indx[i],n_indx[i]] - 1
-        farm_inf[m_indx[i],n_indx[i]]<- farm_inf[m_indx[i],n_indx[i]] + 1
-      }
-    }
+    index_age <- ini$age
     }#####
    # index_t_r <- 2*t_max
 
    # index_t_r <- index_t_i +  stats::rexp(m_start,rate=1/c)
-index_t_d <- index_t_i +  rBTFinv3(EI_model,index_t_i, mu_lat, var_lat,nb)
- index_t_r <- index_t_i
+
+ index_t_d <- index_t_r <- index_t_i
   for(i in 1:m_start){
+    if(index_coor_x[i]<min_coor_x | index_coor_x[i]>max_coor_x | index_coor_y[i]<min_coor_y | index_coor_y[i]>max_coor_y){
+       index_t_d[i] <- 2*t_max
+     }
+     else{
+        index_t_d[i] <- index_t_i[i] +  rBTFinv3(EI_model,index_t_i[i], mu_lat, var_lat,nb)
+     }
     # if(index_t_r[i]>t_obs){
       index_t_r[i] <- 2*t_max
     # }
   }
 
-  index_age <- sample(age_level,size=m_start,prob=age_dist,replace=T)
+  rast_list<- rast
+
   index_source <- rep(9999,m_start) # all assumed to be infected by the background
+  # show(length(index_k))
+  # show(length(index_coor_x))
+  # show(length(index_coor_y))
+  # show(length(index_t_e))
+  # show(length(index_t_i))
+  # show(length(index_t_d))
+  # show(length(index_t_r))
+  # show(length(index_age))
+  # show(length(index_source))
+  # show(length(m_indx))
+  # show(length(n_indx))
+  # show(length(tp_indx))
+  simulated_epi[1:m_start,] <- cbind(index_k, index_coor_x,index_coor_y,index_t_e,index_t_i, index_t_d, index_t_r,index_age,index_source,m_indx,n_indx,tp_indx, plant_age[1])
 
-  simulated_epi[1:m_start,] <- c(index_k, index_coor_x,index_coor_y,index_t_e,index_t_i, index_t_d, index_t_r,index_age,index_source,m_indx,n_indx,tp_indx)
-
-#show(param)
+  #show(param)
   t_now <- min(simulated_epi$t_i)
 
   simulated_epi_sub <- subset(simulated_epi, simulated_epi$t_i<=t_now & simulated_epi$t_r>t_now) # those are currently infectious
 
   num_infection <- nrow(simulated_epi)
- if(t_now>min(farm_pos_cat$vis)){ # To ensure that the initial visit occurs beyond the first infection
-   farm_pos_cat$vis<- t_now + farm_pos_cat$vis_int
- }
 
   t_next <- t_now # to start the while loop
 
   #show(min(f_rast))
   t_i_new<- index_t_i
   while(t_next<(t_max)){
-    #show(t_next)
+   # show(t_next)
+    #show(min(pop_grid))
     ### simulate the timings, and the source, of next infection ###
 
     simulated_epi_sub <- subset(simulated_epi, simulated_epi$t_i<=t_now & simulated_epi$t_r>t_now) # those are currently infectious
@@ -274,13 +216,12 @@ index_t_d <- index_t_i +  rBTFinv3(EI_model,index_t_i, mu_lat, var_lat,nb)
       min_I_R <- t_now
     }
 
-
+    #show(max(pop_grid))
+    # show(c(t_now, t_intervention, total_beta, epsilon, omega, b1, t_max) )
     t_next <- simulate_NHPP_next_event (t_now=t_now, t_intervention=t_intervention, sum_beta=total_beta, epsilon=epsilon, omega=omega, b1=b1, t_max=t_max) # simulate the next infection time using thinning algorithm
-    #show(c(t_next,t_now,1))
-    #print(c(t_next,total_beta,omega,t_max,t_now,t_intervention))
-    min_tim_cont<- min(farm_pos_cat$vis)
-    #show(min(min_tim_cont))
-    #show(c(t_next>=min(min_I_R,min_tim_cont) , t_next!=Inf , t_max<=min(min_I_R,min_tim_cont)))
+    # show(t_next)
+    min_tim_cont<- t_intervention
+
     while(t_next>=min(c(min_I_R,min_tim_cont,min(t_obs), t_seas[1])) & t_next!=Inf & t_max>min(c(min_I_R,min_tim_cont,min(t_obs), t_seas[1]))){  # If next event is a removal
 
       kk<- (min(min_I_R,min_tim_cont)==min_tim_cont) +1
@@ -293,207 +234,356 @@ index_t_d <- index_t_i +  rBTFinv3(EI_model,index_t_i, mu_lat, var_lat,nb)
                 t_now <- min_I_R
 
                 ll<- which(simulated_epi_sub$t_r==min_I_R)
-                #show(ll)
-                if(length(ll)>0){
-                  if(simulated_epi[ll,"typ"]==0){
-
-                    farm_inf[simulated_epi[ll,"row"],simulated_epi[ll,"col"]]<- farm_inf[simulated_epi[ll,"row"],simulated_epi[ll,"col"]] -1
-
-                    f_rast[simulated_epi[ll,"row"],simulated_epi[ll,"col"]]<- f_rast[simulated_epi[ll,"row"],simulated_epi[ll,"col"]] +1
-                  }
-                  else{
-                    b_rast[simulated_epi[ll,"row"],simulated_epi[ll,"col"]]<- b_rast[simulated_epi[ll,"row"],simulated_epi[ll,"col"]] +1
-
-                  }
-                  #pop_grid[simulated_epi[ll,"row"],simulated_epi[ll,"col"]]<- pop_grid[simulated_epi[ll,"row"],simulated_epi[ll,"col"]] +1
-
-                }
-
-
-
-
 
       }
-      else if(tim_next_event==min_tim_cont){  # control sweep
-                indx_con<- which(farm_pos_cat$vis==min_tim_cont)
-                ll<- (min_tim_cont>t_b) + 1  # baseline or alternative
-                for(i in 1:length(indx_con)){
-                   #show(c(i,length(indx_con),t_now))
-
-                  nn_1<- farm_pos_cat[indx_con[i],c("co")]
-                  mm_1<- farm_pos_cat[indx_con[i],c("ro")]
-                  #show(c(mm_1,nn_1,farm_inf[mm_1,nn_1]))
-                  # if(farm_inf[mm_1,nn_1]>0){
-                  farm_inf[mm_1,nn_1]<- 0
-                  plan_in_farm<- as.numeric(subset(simulated_epi, row==mm_1 & col==nn_1 & typ==0 & t_i<t_now &t_r>t_now)[,1])
-                  plan_det<- integer(0)
-                  if(length(plan_in_farm)>0 ){
-
-                    if(ll==2 & (farm_pos_cat$cat[indx_con[i]]=="A" | farm_pos_cat$cat[indx_con[i]]=="B")){ # Growers monitoring
-                      plan_in_farm_det_tim<- simulated_epi[plan_in_farm+1,"t_i"] + rBTFinv3(1,simulated_epi[plan_in_farm+1,"t_i"],mu_lat,var_lat,leav[2]-4)
-                      samp1<- plan_in_farm[which(plan_in_farm_det_tim<t_now)]
-                      if(length(samp1)>0){
-                        samp<- runif(length(samp1))
-                        indx_det<- samp1[which(samp<=rate_det[1])]
-                        if(length(indx_det)>0){
-                          plan_det<- indx_det
-                        }
-
-                      }
-
-                    }
-                    else{
-                      # print(farm_pos_cat$cat[indx_con[i]])
-
-                      expert_det<- simulated_epi[plan_in_farm+1,"t_i"] #+ rBTFinv3(1,simulated_epi[plan_in_farm+1,"t_i"],mu_lat,var_lat,leav[1])
-
-                      # print(plan_in_farm)
-                      if(length(expert_det)>0){
-                        samp1<- plan_in_farm[which(expert_det<t_now)]
-
-                        if(length(samp1)>0){
-                          samp<- runif(length(samp1))
-                          indx_det<- samp1[which(samp<=rate_det[2])]
-                          if(length(indx_det)>0){
-                            plan_det<- indx_det
-                          }
-
-                        }
-
-                      }
-
-
-
-                    }
-
-                    if(length(plan_det)!=0){
-                      # show(plan_in_farm)
-                      simulated_epi[plan_det+1,"t_r"]<- min_tim_cont  # Remove all
-                      f_rast[simulated_epi[plan_det+1,"row"],simulated_epi[plan_det+1,"col"]]<- f_rast[simulated_epi[plan_det+1,"row"],simulated_epi[plan_det+1,"col"]] +1
-                      farm_inf[mm_1,nn_1]<- length(plan_det)
-
-                      if(runif(1)<sweep_prop[ll]){ # Check if the plantation is considered for sweep
-                        # Removal of backyard plant in a certain radius
-                        x_intervals
-                        # x_center<- min_coor_x + (nn_1-1)*grid_size + grid_size/2
-                        # y_center<-  min_coor_y + (mm_1-1)*grid_size + grid_size/2
-
-                        x_center<- x_intervals[nn_1] + grid_size/2
-                        y_center<-  y_intervals[mm_1] + grid_size/2
-
-                        back_in_sweep<- as.numeric(subset(simulated_epi, typ==1 & t_i<=t_now &t_r>t_max)[,1])
-                        #show(length(back_in_sweep))
-                        if(length(back_in_sweep)!=0){
-                          #Select proportion in the sweep
-                          expert_det<- simulated_epi[ back_in_sweep+1,"t_i"] #+ rBTFinv3(1,simulated_epi[ back_in_sweep+1,"t_i"],mu_lat,var_lat,leav[1])
-
-
-                          back_in_sweep_det<- back_in_sweep[which(expert_det<t_now)]
-                          if(length(back_in_sweep_det)>0){
-                            prob<- round(length(back_in_sweep_det)*back_p[ll])
-                            samp<- sample(back_in_sweep_det,prob)
-
-                            dist_pot<- distanc(as.matrix(simulated_epi[samp+1,c("coor_x","coor_y")]),c(x_center,y_center))
-                            indx_rem<- which(dist_pot<rad)
-                            # show(dist_pot)
-                            # show(c(x_center,y_center))
-                            # show(c(mm_1,nn_1,prob))
-                           # show(c(length(back_in_sweep),prob,min(dist_pot),nn_1,mm_1,length(indx_rem),length(back_in_sweep_det),x_center,y_center,t_now))
-                            # show(samp)
-                            if(length(indx_rem)>0){
-                              simulated_epi[samp[indx_rem]+1,"t_r"]<- min_tim_cont  # Remove all
-                              b_rast[simulated_epi[samp[indx_rem]+1,"row"],simulated_epi[samp[indx_rem]+1,"col"]]<- b_rast[simulated_epi[samp[indx_rem]+1,"row"],simulated_epi[samp[indx_rem]+1,"col"]] +1
-
-                            }
-                          }
-
-
-                        }
-                      }
-                    }
-
-
-
-                  }
-
-
-                  # recorded in the last year
-
-                  rem_last_year<- subset(simulated_epi, row==mm_1 & col==nn_1 & typ==0 & t_r>t_now-360)
-                  farm_inf_on<- farm_inf
-                  if(length(rem_last_year)>0){
-                    farm_inf[mm_1,nn_1]<-  farm_inf[mm_1,nn_1] + nrow(rem_last_year)
-                  }
-
-
-
-                  # }
-
-                  if(farm_pos_cat$vis[indx_con[i]]<farm_pos_cat$tim_lst_pos[indx_con[i]]){
-                    # show(c(farm_inf[mm_1,nn_1],farm_inf_on[mm_1,nn_1]))
-                    # show(farm_pos_cat[indx_con[i],])
-                    # show(t_now)
-                    #show(c(t_now,min_tim_cont-farm_pos_cat$tim_lst_pos[indx_con[i]]))
-                  }
-
-                  if(ll==1){  # baseline
-                    baseline_con(farm_pos_cat,farm_inf,farm_inf_on,min_tim_cont,indx_rem,indx_con[i],mm_1,nn_1,int_det)
-                  }
-                  else{ # alternative
-                    baseline_alt(farm_pos_cat,vis_int_per_cat,farm_inf,farm_inf_on,min_tim_cont,indx_rem,indx_con[i],mm_1,nn_1)
-                  }
-                  # if(farm_pos_cat$vis[indx_con[i]]<farm_pos_cat$tim_lst_pos[indx_con[i]]){
-                  #   show(c(farm_inf[mm_1,nn_1],farm_inf_on[mm_1,nn_1]))
-                  #   show(farm_pos_cat[indx_con[i],])
-                  #   show(c(t_now,min_tim_cont-farm_pos_cat$tim_lst_pos[indx_con[i]]))
-                  # }
-                  # show(farm_inf[mm_1,nn_1])
-                  # show(farm_pos_cat$vst)
-                }
-                t_now <- min_tim_cont
-                # simulated_epi_sub <- subset(simulated_epi, simulated_epi$t_i<=t_now & simulated_epi$t_r>t_now)# those are currently infectious
-
-                min_tim_cont<- min(farm_pos_cat$vis)
-                if(ll==1){
-                  # show(c(min_tim_cont,min_I_R,t_next))
-                  #show(farm_pos_cat)
-                }
-                # show(farm_pos_cat)
-                # show(c(min_tim_cont,ll))
-                # show(c(min_tim_cont,min_I_R,t_next))
-              }
 
       else if(tim_next_event==min(t_obs)){ # Removal during the survey
-         plan_rem<- as.numeric(subset(simulated_epi, t_d<t_now &t_r>t_now)[,1])
+        #show(t_max)
+         plan_rem<- simulated_epi%>%dplyr::filter(t_d<t_now, t_r>t_now)%>%dplyr::arrange(season)
+         plan_rem<- as.numeric(plan_rem[,1])
+         #show(plan_rem)
          if(length(plan_rem)>0){
-           samp<- round(length(plan_rem)*delta)
-           simulated_epi[sample(plan_rem,samp) + 1,"t_r"]<- min(t_obs)  # Remove all
+           samp<- ceiling(length(plan_rem)*delta)
+           simulated_epi[plan_rem[1:samp] + 1,"t_r"]<- min(t_obs)  # Remove all
          }
          t_obs[which(t_obs==min(t_obs))]<- 2*t_max
       }
       # End of season. Generate new plantationa/cell for the new season
       else{
-        indx_pop <- which(pop_grid>0, arr.ind = T)
-        indx_npop<- which(pop_grid==0, arr.ind = T)
-        # Nb of plants removed
-        nb_rm_in_sea <- nrow(subset(simulated_epi, simulated_epi$t_r<=t_now & simulated_epi$t_r>t_seas[1]-365))
-        N_suckers<- (nrow(indx_pop)*700 - nb_rm_in_sea)*smaple(1,2:5)
-        N_new_plantation <- ceiling(N_suckers/700)
-        if(N_new_plantation<= nrow(indx_pop)){
-          # Fill the current plantation
-          pop_grid[indx_pop]<- 700
+      #show(t_max)
+       # show(c(1,min(values(rast))))
+        indx_pop <- which(raster::values(rast)>0)
+        indx_npop<- which(raster::values(rast)==0)
+        #print(length(indx_pop))
+        rast_inf<- rast
+        raster::values(rast_inf)<- 0
+        # Plant remove during the previous season
+        plant_rem<- subset(simulated_epi, simulated_epi$t_r<=t_now & simulated_epi$t_r>t_seas[1]-365)
+        #show(plant_rem)
+        # Cells where removals occured
+        count_rm_cell<- 0
+        if(nrow(plant_rem)>0){
+          cell_rm <- cellFromXY(rast, cbind(plant_rem$coor_x,plant_rem$coor_y))
+          count_rm_cell<- table(cell_rm)
+          raster::values(rast)[as.numeric(names(count_rm_cell))]<- raster::values(rast)[as.numeric(names(count_rm_cell))] - as.numeric(count_rm_cell)
+
+          #show(cell_rm)
 
         }
-        else{ # Regenerate new plantaion
-          pop_grid[indx_pop]<- 700
-          pop_grid[indx_npop[sample(N_new_plantation - nrow(indx_pop),1:nrow(indx_npop)),]]<- 700
+        #show(c(2,min(raster::values(rast))))
+         # show(count_rm_cell)
+         # show(length(plant_rem))
+                   #show(count_rm_cell)
+        # Nb of suckers generated by infected plants but not detected
+        plant_inf<- subset(simulated_epi, simulated_epi$t_r>=t_now & simulated_epi$t_i>t_seas[1]-365 & typ==0)
+
+        if(nrow(plant_inf)==0){
+          count_inf_cell<- 0
+        }
+        else{
+          cell_inf <- cellFromXY(rast, cbind(plant_inf$coor_x,plant_inf$coor_y))
+          count_inf_cell<- table(cell_inf)
+
+        }
+        raster::values(rast_inf)[as.numeric(names(count_inf_cell))]<- raster::values(rast_inf)[as.numeric(names(count_inf_cell))] + as.numeric(count_inf_cell)
+
+        raster::values(rast)<- raster::values(rast) - raster::values(rast_inf)
+         #N_suckers_non_inf<- raster::values(rast)
+        #
+        # if(any(N_suckers_non_inf>0)){
+        #   N_suckers_non_inf[which(N_suckers_non_inf>0)]<- sapply(N_suckers_non_inf[which(N_suckers_non_inf>0)],function(x){
+        #     return(sum(replicate(x,sample(2:5,1))))
+        #   })
+        # }
+        # N_suckers_non_inf<- sapply(raster::values(rast),function(x){
+        #      return(sum(replicate(x,sample(2:5,1))))
+        #    })
+
+        N_suckers_non_inf<- raster::values(rast)
+        N_suckers_non_inf[N_suckers_non_inf>0]<- sapply(N_suckers_non_inf[N_suckers_non_inf>0], function(x){
+          return(sum(sample(2:5,x,replace = T)))
+        })
+        N_suckers_non_inf<- N_suckers_non_inf + raster::values(rast)
+        # N_suckers_inf<- raster::values(rast_inf)
+        # if(any(N_suckers_inf>0)){
+        #   N_suckers_inf[which(N_suckers_inf>0)]<- sapply(N_suckers_inf[which(N_suckers_inf>0)],function(x){
+        #     return(sum(replicate(x,sample(2:5,1))))
+        #   })
+        # }
+        N_suckers_inf<- raster::values(rast_inf)
+        if(!all(N_suckers_inf==0)){
+          N_suckers_inf[N_suckers_inf>0]<- sapply(N_suckers_inf[N_suckers_inf>0], function(x){
+          return(sum(sample(2:5,x,replace = T)))
+        })
+        N_suckers_inf<- N_suckers_inf + raster::values(rast_inf)
+        }
+
+        #N_suckers_inf<- raster::values(rast_inf)*sample(2:5,length(raster::values(rast_inf)), replace = T) + raster::values(rast_inf)
+
+        N_suckers <- N_suckers_non_inf + N_suckers_inf
+        N_new_plantation <- sum(N_suckers)%/%nb_p_grid
+        N_suckers_remain <- sum(N_suckers)%%nb_p_grid
+
+         #Proportion of infected suckers
+
+        p_suck_inf<- (sum(N_suckers_inf) - sum(raster::values(rast_inf)))*runif(1,0.7,0.9)/(sum(N_suckers))
+        # Cell to fill in with infected suckers from within the plantation
+        if(nrow(plant_rem)>0){
+          rm_cell<- floor(as.numeric(count_rm_cell)*p_suck_inf)
+          for(i in 1:length(count_rm_cell)){
+                if(rm_cell[i]>0){
+                   m_indx <-  raster::rowFromCell(rast,names(count_rm_cell)[i])# the mth row of the grids
+                   n_indx <-  raster::colFromCell(rast,names(count_rm_cell)[i])# the mth row of the grids
+
+                  index_coor_x <- xFromCell(rast,names(count_rm_cell)[i])  + sample(c(-1,1),rm_cell[i],replace = T)*runif(rm_cell[i],0,grid_size/2) #stats::runif(1,min=x_intervals[n_grid],max=x_intervals[n_grid+1]) # random lands at a point in the grid selected
+                  index_coor_y <- yFromCell(rast,names(count_rm_cell)[i])  + sample(c(-1,1),rm_cell[i],replace = T)*runif(rm_cell[i],0,grid_size/2) #stats::runif(1,min=x_intervals[n_grid],max=x_intervals[n_grid+1]) # random lands at a point in the grid selected
+
+                  k <- (num_infection+1):(num_infection + rm_cell[i]) # k=0,1,2...
+                  index_t_e<- rep(t_seas[1],rm_cell[i])
+                  index_t_i <- index_t_e +  rBTFinv3(EI_model,index_t_e,mu_lat,var_lat,leav[1]) #E_to_I(EI_model,t_now , mu_lat, var_lat)
+                  index_t_d <- index_t_i + rBTFinv3(EI_model,index_t_i, mu_lat, var_lat,nb)
+                  index_t_r <- rep(2*t_max,rm_cell[i])
+
+                  simulated_epi[k,] <- cbind(k, index_coor_x,index_coor_y,index_t_e,index_t_i, index_t_d, index_t_r,1,9999,nrow(pop_grid)-m_indx+1,n_indx,0,plant_age[names(count_rm_cell)[i]])
+
+                  num_infection<- num_infection + rm_cell[i]
+                }
+
+
+              }
+        }
+       #show(t_max)
+        # Cells with surplus suckers and non-surplus
+        cell_suplus<- which(N_suckers>nb_p_grid)
+        cell_non_suplus<- which(N_suckers<nb_p_grid & N_suckers>0)
+
+        N_suckers_surplus<- sum(N_suckers) - nb_p_grid*length(cell_suplus)
+
+        if(N_new_plantation>length(plant_proc)){
+          N_new_plantation<- length(plant_proc)
+          N_suckers_remain<- 0
+        }
+        #show(c(t_seas[1],length(cell_suplus),length(cell_non_suplus),N_new_plantation,N_suckers_remain))
+        if(length(cell_non_suplus)==0){
+           if(length(cell_suplus)==0){
+            stop("No suckers left to continue.")
+           }
+          else{
+            #if(length(cell_suplus)<length(indx_pop)){
+              if(N_new_plantation>length(indx_pop)){
+
+                raster::values(rast)[indx_pop]<- nb_p_grid
+                raster::values(rast)[plant_proc[(length(indx_pop)+1):N_new_plantation]]<- nb_p_grid
+                plant_age[(length(indx_pop)+1):N_new_plantation]<- t_seas[1]
+                if(N_suckers_remain>0){
+                  if(type_cont){
+                    raster::values(rast)[plant_proc[N_new_plantation+1]] <- nb_p_grid
+
+                    Nb_inf_imp<- ceiling(prev*(nb_p_grid-N_suckers_remain))
+                    if(Nb_inf_imp>0){
+                      plant_age[N_new_plantation+1]<- t_seas[1]
+                      #show(c(N_new_plantation,num_infection,Nb_inf_imp))
+                      #show(Nb_inf_imp)
+                      #randomly smaple cell in wich imported infected suckers lie in
+                      rand_cel_suck<- sample(plant_proc[(length(indx_pop)+1):(N_new_plantation+1)],1)
+                      m_indx <-  raster::rowFromCell(rast,rand_cel_suck)# the mth row of the grids
+                      n_indx <-  raster::colFromCell(rast,rand_cel_suck)# the mth row of the grids
+
+                      index_coor_x <- xFromCell(rast,rand_cel_suck)  + sample(c(-1,1),Nb_inf_imp,replace = T)*runif(Nb_inf_imp,0,grid_size/2) #stats::runif(1,min=x_intervals[n_grid],max=x_intervals[n_grid+1]) # random lands at a point in the grid selected
+                      index_coor_y <- yFromCell(rast,rand_cel_suck)  + sample(c(-1,1),Nb_inf_imp,replace = T)*runif(Nb_inf_imp,0,grid_size/2) #stats::runif(1,min=x_intervals[n_grid],max=x_intervals[n_grid+1]) # random lands at a point in the grid selected
+
+                      k <- (num_infection+1):(num_infection + Nb_inf_imp) # k=0,1,2...
+                      index_t_e<- rep(t_seas[1],Nb_inf_imp)
+                      index_t_i <- index_t_e +  rBTFinv3(EI_model,index_t_e,mu_lat,var_lat,leav[1]) #E_to_I(EI_model,t_now , mu_lat, var_lat)
+                      index_t_d <- index_t_i +  rBTFinv3(EI_model,index_t_i, mu_lat, var_lat,nb)
+                      index_t_r <- rep(2*t_max,Nb_inf_imp)
+
+                      simulated_epi[k,] <- cbind(k, index_coor_x,index_coor_y,index_t_e,index_t_i, index_t_d, index_t_r,1,9999,nrow(pop_grid)-m_indx+1,n_indx,0,plant_age[N_new_plantation+1])
+                       # show(c(t_max,1))
+                      num_infection<- num_infection + Nb_inf_imp
+                    }
+
+
+                  }
+                  else{
+                    raster::values(rast)[plant_proc[N_new_plantation+1]] <- N_suckers_remain
+
+                  }
+                }
+               # show(min(values(rast)))
+              }
+              else{
+                raster::values(rast)[cell_suplus]<- nb_p_grid
+                raster::values(rast)[plant_proc[1:N_new_plantation][-cell_suplus]]<- nb_p_grid
+
+                 if(N_suckers_remain>0){
+                  if(type_cont){
+                    raster::values(rast)[plant_proc[N_new_plantation+1]] <- nb_p_grid # Add proportion infected here
+                    plant_age[N_new_plantation+1]<- t_seas[1]
+                    rand_cel_suck<- sample(plant_proc[1:(N_new_plantation+1)][-cell_suplus],1)
+                    # Nber of infected suckers imported
+                    Nb_inf_imp<- ceiling(prev*(nb_p_grid-N_suckers_remain))
+                    if(Nb_inf_imp>0){
+                      m_indx <-  raster::rowFromCell(rast,rand_cel_suck)# the mth row of the grids
+                      n_indx <-  raster::colFromCell(rast,rand_cel_suck)# the mth row of the grids
+
+                      index_coor_x <- xFromCell(rast,rand_cel_suck)  + sample(c(-1,1),Nb_inf_imp,replace = T)*runif(Nb_inf_imp,0,grid_size/2) #stats::runif(1,min=x_intervals[n_grid],max=x_intervals[n_grid+1]) # random lands at a point in the grid selected
+                      index_coor_y <- yFromCell(rast,rand_cel_suck)  + sample(c(-1,1),Nb_inf_imp,replace = T)*runif(Nb_inf_imp,0,grid_size/2) #stats::runif(1,min=x_intervals[n_grid],max=x_intervals[n_grid+1]) # random lands at a point in the grid selected
+
+                      k <- (num_infection+1):(num_infection + Nb_inf_imp) # k=0,1,2...
+                      index_t_e<- rep(t_seas[1],Nb_inf_imp)
+                      index_t_i <- index_t_e +  rBTFinv3(EI_model,index_t_e,mu_lat,var_lat,leav[1]) #E_to_I(EI_model,t_now , mu_lat, var_lat)
+                      index_t_d <- index_t_i +  rBTFinv3(EI_model,index_t_i, mu_lat, var_lat,nb)
+                      index_t_r <- rep(2*t_max,Nb_inf_imp)
+
+                      simulated_epi[k,] <- cbind(k, index_coor_x,index_coor_y,index_t_e,index_t_i, index_t_d, index_t_r,1,9999,nrow(pop_grid)-m_indx+1,n_indx,0,plant_age[N_new_plantation+1])
+
+                      num_infection<- num_infection + Nb_inf_imp
+                    }
+
+                  }
+                  else{
+                    raster::values(rast)[plant_proc[N_new_plantation+1]] <- N_suckers_remain
+
+                  }
+                }
+              }
+          #}
+          }
+
+
+        }
+        else{
+          if(length(cell_suplus)==0){
+            if(type_cont){
+
+              # Nber of infected suckers imported
+              for(i in 1:length(cell_non_suplus)){
+                Nb_inf_imp<- ceiling(prev*(nb_p_grid-raster::values(rast)[cell_non_suplus[i]]))
+                if(Nb_inf_imp>0){
+                  m_indx <-  raster::rowFromCell(rast,cell_non_suplus[i])# the mth row of the grids
+                  n_indx <-  raster::colFromCell(rast,cell_non_suplus[i])# the mth row of the grids
+                  #plant_age[cell_non_suplus[i]]<- t_seas[1]
+
+                  index_coor_x <- xFromCell(rast,cell_non_suplus[i])  + sample(c(-1,1),Nb_inf_imp,replace = T)*runif(Nb_inf_imp,0,grid_size/2) #stats::runif(1,min=x_intervals[n_grid],max=x_intervals[n_grid+1]) # random lands at a point in the grid selected
+                  index_coor_y <- yFromCell(rast,cell_non_suplus[i])  + sample(c(-1,1),Nb_inf_imp,replace = T)*runif(Nb_inf_imp,0,grid_size/2) #stats::runif(1,min=x_intervals[n_grid],max=x_intervals[n_grid+1]) # random lands at a point in the grid selected
+
+                  k <- (num_infection+1):(num_infection + Nb_inf_imp) # k=0,1,2...
+                  index_t_e<- rep(t_seas[1],Nb_inf_imp)
+                  index_t_i <- index_t_e +  rBTFinv3(EI_model,index_t_e,mu_lat,var_lat,leav[1]) #E_to_I(EI_model,t_now , mu_lat, var_lat)
+                  index_t_d <- index_t_i + rBTFinv3(EI_model,index_t_i, mu_lat, var_lat,nb)
+                  index_t_r <- rep(2*t_max,Nb_inf_imp)
+
+                  simulated_epi[k,] <- cbind(k, index_coor_x,index_coor_y,index_t_e,index_t_i, index_t_d, index_t_r,1,9999,nrow(pop_grid)-m_indx+1,n_indx,0,plant_age[cell_non_suplus[i]])
+
+                  num_infection<- num_infection + Nb_inf_imp
+                }
+
+
+              }
+              raster::values(rast)[cell_non_suplus] <- nb_p_grid # Add proportion infected here
+            }
+
+          }
+          else{
+            #show(t_seas[1])
+            if(N_suckers_surplus>sum((nb_p_grid - cell_non_suplus))){
+              raster::values(rast)[cell_non_suplus]<- nb_p_grid
+
+              raster::values(rast)[indx_pop]<- nb_p_grid
+              raster::values(rast)[plant_proc[(length(indx_pop)+1):N_new_plantation]]<- nb_p_grid
+              plant_age[(length(indx_pop)+1):N_new_plantation]<- t_seas[1]
+                if(N_suckers_remain>0){
+                  if(type_cont){
+                    raster::values(rast)[plant_proc[N_new_plantation+1]] <- nb_p_grid
+                    Nb_inf_imp<- ceiling(prev*(nb_p_grid-N_suckers_remain))
+                    if(Nb_inf_imp>0){
+                      m_indx <-  raster::rowFromCell(rast,plant_proc[N_new_plantation+1])# the mth row of the grids
+                      n_indx <-  raster::colFromCell(rast,plant_proc[N_new_plantation+1])# the mth row of the grids
+                      plant_age[N_new_plantation+1]<- t_seas[1]
+                      rand_cel_suck<- sample(plant_proc[(length(indx_pop)+1):(N_new_plantation+1)],1)
+
+                      index_coor_x <- xFromCell(rast,rand_cel_suck)  + sample(c(-1,1),Nb_inf_imp,replace = T)*runif(Nb_inf_imp,0,grid_size/2) #stats::runif(1,min=x_intervals[n_grid],max=x_intervals[n_grid+1]) # random lands at a point in the grid selected
+                      index_coor_y <- yFromCell(rast,rand_cel_suck)  + sample(c(-1,1),Nb_inf_imp,replace = T)*runif(Nb_inf_imp,0,grid_size/2) #stats::runif(1,min=x_intervals[n_grid],max=x_intervals[n_grid+1]) # random lands at a point in the grid selected
+
+                      k <- (num_infection+1):(num_infection + Nb_inf_imp) # k=0,1,2...
+                      index_t_e<- rep(t_seas[1],Nb_inf_imp)
+                      index_t_i <- index_t_e +  rBTFinv3(EI_model,index_t_e,mu_lat,var_lat,leav[1]) #E_to_I(EI_model,t_now , mu_lat, var_lat)
+                      index_t_d <- index_t_i + rBTFinv3(EI_model,index_t_i, mu_lat, var_lat,nb)
+                      index_t_r <- rep(2*t_max,Nb_inf_imp)
+
+                      simulated_epi[k,] <- cbind(k, index_coor_x,index_coor_y,index_t_e,index_t_i, index_t_d, index_t_r,1,9999,nrow(pop_grid)-m_indx+1,n_indx,0,plant_age[N_new_plantation+1])
+
+                      num_infection<- num_infection + Nb_inf_imp
+                    }
+
+
+                  }
+                  else{
+                    raster::values(rast)[plant_proc[N_new_plantation+1]] <- N_suckers_remain
+                  }
+                }
+            }
+            else{
+              # Randomly select from the suckers generated and fill each remaining cell proportional to their deficit
+              samp_suck<- rmultinom(1,N_suckers_surplus,(nb_p_grid - cell_non_suplus)/sum((nb_p_grid - cell_non_suplus)))  #(700 - cell_non_suplus)/sum((700 - cell_non_suplus))*N_suckers_surplus
+              raster::values(rast)[cell_non_suplus] <- raster::values(rast)[cell_non_suplus] + samp_suck
+              if(type_cont){
+                for(i in 1:length(cell_non_suplus)){
+                Nb_inf_imp<- ceiling(prev*(nb_p_grid-raster::values(rast)[cell_non_suplus[i]]))
+                if(Nb_inf_imp>0){
+                  m_indx <-  raster::rowFromCell(rast,cell_non_suplus[i])# the mth row of the grids
+                  n_indx <-  raster::colFromCell(rast,cell_non_suplus[i])# the mth row of the grids
+
+                  index_coor_x <- xFromCell(rast,cell_non_suplus[i])  + sample(c(-1,1),Nb_inf_imp,replace = T)*runif(Nb_inf_imp,0,grid_size/2) #stats::runif(1,min=x_intervals[n_grid],max=x_intervals[n_grid+1]) # random lands at a point in the grid selected
+                  index_coor_y <- yFromCell(rast,cell_non_suplus[i])  + sample(c(-1,1),Nb_inf_imp,replace = T)*runif(Nb_inf_imp,0,grid_size/2) #stats::runif(1,min=x_intervals[n_grid],max=x_intervals[n_grid+1]) # random lands at a point in the grid selected
+
+                  k <- (num_infection+1):(num_infection + Nb_inf_imp) # k=0,1,2...
+                  index_t_e<- rep(t_seas[1],Nb_inf_imp)
+                  index_t_i <- index_t_e +  rBTFinv3(EI_model,index_t_e,mu_lat,var_lat,leav[1]) #E_to_I(EI_model,t_now , mu_lat, var_lat)
+                  index_t_d <- index_t_i + rBTFinv3(EI_model,index_t_i, mu_lat, var_lat,nb)
+                  index_t_r <- rep(2*t_max,Nb_inf_imp)
+
+                  simulated_epi[k,] <- cbind(k, index_coor_x,index_coor_y,index_t_e,index_t_i, index_t_d, index_t_r,1,9999,nrow(pop_grid)-m_indx+1,n_indx,0,plant_age[cell_non_suplus[i]])
+
+                  num_infection<- num_infection + Nb_inf_imp
+                }
+
+
+              }
+              raster::values(rast)[cell_non_suplus] <- nb_p_grid # Add proportion infected here
+              }
+              }
+
+          }
         }
 
 
-
+     k_11<- k_11 + 1
+    if(type_cont){
+      if(N_suckers_remain>0){
+        simulated_pro[k_11,]<- c(t_seas[1], sum(N_suckers), nb_p_grid-N_suckers_remain, N_new_plantation,sum(as.numeric(count_rm_cell)))
       }
+      else{
+         simulated_pro[k_11,]<- c(t_seas[1], sum(N_suckers), 0, N_new_plantation,sum(as.numeric(count_rm_cell)))
+      }
+
+    }
+     else{
+       simulated_pro[k_11,]<- c(t_seas[1], sum(N_suckers), 0, N_new_plantation,sum(as.numeric(count_rm_cell)))
+     }
+
+
+     rast_list<- raster::stack(rast_list,rast)
+     t_seas<- t_seas[-1]
+
+     pop_grid<- flipdim(matrix(raster::values(rast), nrow = nrow_grid, byrow = TRUE))
+     #show(min(pop_grid))
+    # Number of cryptic suckers
+      }
+      #show(c(t_next,min(pop_grid)))
       simulated_epi_sub <- subset(simulated_epi, simulated_epi$t_i<=t_now & simulated_epi$t_r>t_now) # those are currently infectious
-# show(nrow(simulated_epi_sub))
+#   show(nrow(simulated_epi_sub))
 
       if(nrow(simulated_epi_sub)>=1){
 
@@ -505,12 +595,6 @@ index_t_d <- index_t_i +  rBTFinv3(EI_model,index_t_i, mu_lat, var_lat,nb)
 
         t_next <- simulate_NHPP_next_event (t_now=t_now,  t_intervention=t_intervention, sum_beta=total_beta, epsilon=epsilon, omega=omega, b1=b1,t_max=t_max)
 
-
-        for(j in 1:nrow(simulated_epi_sub)){
-          if(simulated_epi_sub$typ[j]==0){
-            farm_inf[simulated_epi_sub$row[j],simulated_epi_sub$col[j]]<- farm_inf[simulated_epi_sub$row[j],simulated_epi_sub$col[j]] + 1
-          }
-        }
       }
       # show(c(min_tim_cont,min_I_R,t_now,nrow(simulated_epi_sub),t_next))
       if(nrow(simulated_epi_sub)<1){
@@ -526,10 +610,12 @@ index_t_d <- index_t_i +  rBTFinv3(EI_model,index_t_i, mu_lat, var_lat,nb)
         break;
       }
 
+
+
+
     } # end of while(t_next>=min_I_R)
 
     #show(c(t_next,t_now,k,nrow(simulated_epi_sub)))
-
     k <- num_infection + 1 - 1 # k=0,1,2...
     t_old<- t_now
     t_now <- t_next
@@ -549,9 +635,11 @@ index_t_d <- index_t_i +  rBTFinv3(EI_model,index_t_i, mu_lat, var_lat,nb)
 
 
 
-#show(nrow(simulated_epi_sub))
+#show(c(t_next,nrow(simulated_epi_sub),beta_infectious))
     # if(nrow(simulated_epi_sub)>=1) source <- sample(c(9999,simulated_epi_sub$k),size=1, prob=c(epsilon/365,beta_infectious/365*(1+b1*cos(omega*t_old)))) # 9999 = background
 if(nrow(simulated_epi_sub)>=1) source <- sample(c(9999,simulated_epi_sub$k),size=1, prob=c(epsilon,beta_infectious)) # 9999 = background
+    #show(c(source,nrow(simulated_epi)))
+#show(c(t_next,min(pop_grid)))
 
     if(nrow(simulated_epi_sub)<1) source <- 9999 # 9999 = background
 #show(nrow(simulated_epi_sub))
@@ -561,49 +649,39 @@ if(nrow(simulated_epi_sub)>=1) source <- sample(c(9999,simulated_epi_sub$k),size
 
     x_new = min_coor_x - 5 # to start the while loop
     y_new = min_coor_y - 5 # to start the while loop
-    #print(t_now)
-    # if(source!=9999){
-    #   #print(c(simulated_epi$row[source+1],simulated_epi$col[source+1],source,k_grid))
-    #   ru<- pop_grid[simulated_epi$row[source+1],simulated_epi$col[source+1]]/pop_grid_old[simulated_epi$row[source+1],simulated_epi$col[source+1]]
-    #
-    # }
-    # ru <- .47
-    # show(source)
+
     m_1=n_1=1000
-    pop_grid = f_rast + b_rast
+    #pop_grid = f_rast + b_rast
     #show(min(pop_grid))
     siz<- -1
+    tt<- 0
 
     while(x_new<min_coor_x | x_new>max_coor_x | y_new<min_coor_y | y_new>max_coor_y | siz<0){
-    #   show(x_new)
-    # show(y_new)
-    # show(min_coor_x)
-    # show(max_coor_x )
-    # show(min_coor_y)
-    # show(max_coor_y)
-      # show((x_new<min_coor_x) +(x_new>max_coor_x) + (y_new<min_coor_y) + (y_new>max_coor_y))
-      # show((siz))
-      # show(t_next)
-      #pop_grid = pop_grid_before
-      #show(c(min(as.numeric(pop_grid))))
+      if(is.na(simulated_epi$coor_x[source+1]) & source<9999){
+        show(c(1,x_new,y_new,siz,r,source,nrow(simulated_epi),simulated_epi$coor_x[source+1],simulated_epi$coor_y[source+1]))
+        show(simulated_epi[source+1,])
+      }
+            # show(c(t_next,min(pop_grid),max(pop_grid),source))
       if (source!=9999){
-        # show(kern_model)
-        # show(ru)
-        # show(alpha1)
-        # show(alpha2)
-        #show(c(kern_model,ru,alpha1,alpha2))
-        r <- abs(Samp_dis (kern_model,ru, alpha1, alpha2))
+        if(simulated_epi[source+1,"typ"]==1){
+          r <- abs(Samp_dis (kern_model,ru, alpha2, alpha2))
+        }
+        else{
+          r <- abs(Samp_dis (kern_model,ru, alpha1, alpha1))
+        }
+
 
         set_points <- circle_line_intersections (circle_x=simulated_epi$coor_x[source+1],circle_y=simulated_epi$coor_y[source+1], r,  n_line=n_line, grid_lines=grid_lines)
 
         n_set_points = nrow(set_points)
-        # show(c(r,n_set_points,min(as.numeric(pop_grid))))
-        if (n_set_points>=1) {
-          # show(set_points)
-          # show(source)
-          # show(simulated_epi)
-          arcs <- func_arcs_attributes(set_points, pop_grid, r, min_coor_x, min_coor_y, grid_size, n_row_grid, n_col_grid)
+        # show(c(r,n_set_points))
 
+        if (n_set_points>=1) {
+
+          arcs <- func_arcs_attributes(set_points, pop_grid, r, min_coor_x, min_coor_y, grid_size, n_row_grid, n_col_grid)
+          #arcs<- na.omit(arcs)
+          #show(arcs)
+          arcs[is.na(arcs)] <- 0
           arcs$mass <- arcs$dens*arcs$len_arc
 
           arcs$theta=set_points$theta
@@ -611,13 +689,10 @@ if(nrow(simulated_epi_sub)>=1) source <- sample(c(9999,simulated_epi_sub$k),size
           #arcs <- arcs[order(arcs$theta_abs),]
 
           sum_arcs_den <- sum(arcs$dens)
-           # print(c(sum_arcs_den,n_line,min(as.numeric(pop_grid))))
-          # print(c(simulated_epi$coor_x[source+1],simulated_epi$coor_y[source+1]))
-          # print(as.data.frame(arcs$n_th_col,arcs$m_th_row))
-          # show(c(sum(arcs$mass),0))
+          #show(c(r,simulated_epi$coor_x[source+1],simulated_epi$coor_y[source+1],min(arcs$mass)))
+          #show(min(arcs$mass))
+          #show(c(sum_arcs_den,min(arcs$mass),min(arcs$dens),arcs$len_arc))
           if (sum_arcs_den>0){
-            # print(nrow(arcs))
-            #print(arcs$mass)
             k_segment <- sample(1:nrow(arcs),size=1,prob=arcs$mass) # decide which segment the new infection would lie
             #print(k_segment)
             theta_within_segment <- stats::runif(1, min=0, max=arcs$theta_abs[k_segment]) # uniformly draws a point within the segment chosen above
@@ -631,29 +706,15 @@ if(nrow(simulated_epi_sub)>=1) source <- sample(c(9999,simulated_epi_sub$k),size
             n=ceiling((x_new-min_coor_x)/grid_size)
             m=ceiling((y_new-min_coor_y)/grid_size)
 
-            #print(c(arcs$n_th_col[k_segment],arcs$m_th_row[k_segment]))
-            # print(c(m,n,k_segment,n_set_points))
-            # print(c(pop_grid[m,n],r))
-            # print(arcs)
-            # print(set_points)
-            # #print(c(simulated_epi$coor_x[source+1],simulated_epi$coor_y[source+1],r))
+            m=m_1=arcs$m_th_row[k_segment]
+            n=n_1=arcs$n_th_col[k_segment]
 
-            m_1=arcs$m_th_row[k_segment]
-            n_1=arcs$n_th_col[k_segment]
-            # if(any(c(m,n)!=c(arcs$m_th_row[k_segment],arcs$n_th_col[k_segment]))){
-            #   print(c(m,n,k_segment,n_set_points))
-            #   print(c(pop_grid[m,n],r))
-            #   print(c(simulated_epi$coor_x[source+1],simulated_epi$coor_y[source+1],r))
-            #   print(arcs)
-            #   print(set_points)
-            #   print(c(x_new,y_new))
-            # }
-
-            # print(c(m,n,1))
           }
 
           ###
           if (sum_arcs_den==0){
+            tt<- 1
+            break
             k_grid <- sample(1:length(as.numeric(pop_grid)),size=1, prob=as.numeric(pop_grid))
             m_grid <- k_grid%%nrow(pop_grid) # the mth row of the grids
 
@@ -670,11 +731,12 @@ if(nrow(simulated_epi_sub)>=1) source <- sample(c(9999,simulated_epi_sub$k),size
           }
           ###
 
-
+        #show(arcs)
         }
 
         #print(c(r,n_set_points))
         if (n_set_points<1) {
+
           theta_from_y_eq_0 <-  stats::runif(1, min=0,max=(2*pi)) # draw theta uniformly between [0,2pi]
 
           x_new <- simulated_epi$coor_x[source+1] + r*cos(theta_from_y_eq_0) # the coor_x of the new infection
@@ -685,6 +747,11 @@ if(nrow(simulated_epi_sub)>=1) source <- sample(c(9999,simulated_epi_sub$k),size
           m_1 = m
           n_1 = n
 
+          if(x_new<min_coor_x | x_new>max_coor_x | y_new<min_coor_y | y_new>max_coor_y){
+            tt<- 1
+            break
+          }
+
           #message(c(r))
         }
 
@@ -692,7 +759,11 @@ if(nrow(simulated_epi_sub)>=1) source <- sample(c(9999,simulated_epi_sub$k),size
       }
 
       if(source==9999){
-
+        # r <- abs(Samp_dis (kern_model,ru, alpha1, alpha2))
+        # if(t_next<365){
+        #
+        # }
+        # if(r<)
         #print(pop_grid)
         k_grid <- sample(1:length(as.numeric(pop_grid)),size=1, prob=as.numeric(pop_grid))
         m_grid <- k_grid%%nrow(pop_grid) # the mth row of the grids
@@ -708,72 +779,25 @@ if(nrow(simulated_epi_sub)>=1) source <- sample(c(9999,simulated_epi_sub$k),size
 
 
       }
-
-
+    # show(c(t_next,max(pop_grid)))
+      #show(c(m,n,source))
       siz<- pop_grid[m,n]-1
+      #show(c(2,x_new,y_new,siz,m,n))
+      # show(c(x_new, y_new, siz))
     } # end while(x_new<min_coor_x | x_new>max_coor_x | y_new<min_coor_y | y_new>max_coor_y){
     #show(c(t_next,t_now,3))
-    if(is.infinite(t_next)){
-      break
-    }
-    else{
-      # label the plant
-      # show(c(m,n))
-      f_rast_p<- f_rast/(b_rast+f_rast)              # proportion occupied by farm and backyard plant resp
-      b_rast_p<- b_rast/(b_rast+f_rast)
-      f_rast_p[is.na(f_rast_p)]<- 0
-      b_rast_p[is.na(b_rast_p)]<- 0
-
-      u1<- f_rast_p[m,n]
-      u2<- b_rast_p[m,n]
-
-      if(all(c(u1,u2)==0)){
-        tp<- 1
-        #show(c(k,u1,u2,source,n_set_points,sum_arcs_den,r,m,n))
+    if(tt==0){
+      if(is.infinite(t_next)){
+        break
       }
       else{
-        u<- max(u1,u2)
-        #print(c(u1,u2,m,n))
-        if(u==u1){
-          if(u>runif(1)){
-            tp<- 0
-            f_rast[m,n]<- f_rast[m,n] - 1
-          }
-          else{
-           # tp<- 1
-            tp<- 0
-            b_rast[m,n]<- b_rast[m,n] - 1
-          }
 
-        }
-        else{
-          if(u>runif(1)){
-            #tp<- 1
-            tp<- 0
-            b_rast[m,n]<- b_rast[m,n] - 1
-          }
-          else{
-            tp<- 0
-            # f_rast[m,n]<- f_rast[m,n] - 1
-          }
-        }
+        pop_grid[m,n]<- pop_grid[m,n] - 1
+        simulated_epi[k+1,] <- c(k, x_new, y_new, t_now, t_i_new, t_d_new, t_r_new, age, source, m,n,0, plant_age[cellFromRowCol(rast,nrow(pop_grid)-m+1,n)])
 
-
-
-
-
-      }
-
-      # if(tp==0){
-      #   farm_inf[m,n]<- farm_inf[m,n] + 1
-      # }
-      #pop_grid[m,n]=pop_grid[m,n]-1
-      simulated_epi[k+1,] <- c(k, x_new, y_new, t_now, t_i_new, t_d_new, t_r_new, age, source, m,n,tp)
-
+       }
+       num_infection <- num_infection + 1
     }
-    ####
-
-    num_infection <- num_infection + 1
 
     # Control proccedures; what if scenarios
 
@@ -781,6 +805,6 @@ if(nrow(simulated_epi_sub)>=1) source <- sample(c(9999,simulated_epi_sub$k),size
   } # end of while(t_next<t_max)
   # show(farm_pos_cat)
 
-  return(simulated_epi)
+  return(list(simulated_epi, simulated_pro,rast_list))
 }
 

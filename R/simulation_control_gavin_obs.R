@@ -14,7 +14,7 @@
 #'         \item{t_e}{exposure time}
 #'         \item{t_i}{infection time}
 #'        }
-#'
+#' @param  det_rat The type of detection rate: 0 for constant and 1 for time varying
 #' @inheritParams Simulate_contact_control
 #' @seealso  \code{\link{Simulate_contact_control}}
 #' @references
@@ -23,7 +23,7 @@
 #'
 #' @example examples/plantation_example.R
 #' @export
-Simulate_contact_control_LER_farm <- function(f_rast=NULL, b_rast=NULL, farm_pos_cat=NULL, vis_int_per_cat=NULL, param, grid_lines, pop_grid, grid_size=500, age_level=c(1,1),age_dist=c(1,0), m_start=1,t_b=100000, t_max=1000, t_intervention=100000, t_obs=seq(0,1000,100), EI_model=1, kern_model=4,rad=1000,sweep_prop=c(.5,.5),back_p=c(.7,.5),rate_det=c(0.3,1),int_det=c(30,90,180),nb_in_b=1,nb=3,leav=c(3,6),ini=NULL){
+Simulate_contact_control_LER_farm <- function(f_rast=NULL, b_rast=NULL, farm_pos_cat=NULL, vis_int_per_cat=NULL, param, grid_lines, pop_grid, grid_size=500, age_level=c(1,1),age_dist=c(1,0), m_start=1,t_b=100000, t_max=1000, t_intervention=100000, t_obs=seq(0,1000,100), EI_model=1, kern_model=4,rad=1000,sweep_prop=c(.5,.5),back_p=c(.7,.5),rate_det=c(0.3,1),int_det=c(30,90,180),nb_in_b=1,nb=3,leav=c(3,6),ini=NULL,det_rat=0){
 
   #Set parameters
   epsilon <- param$epsilon
@@ -235,20 +235,26 @@ if(max(t_obs)<=t0){
         f_rast[m_indx[i],n_indx[i]]<- f_rast[m_indx[i],n_indx[i]] - 1
         farm_inf[m_indx[i],n_indx[i]]<- farm_inf[m_indx[i],n_indx[i]] + 1
       }
-      show(c(m_indx[i],n_indx[i]))
+      #show(c(m_indx[i],n_indx[i]))
     }
 
     }#####
    # index_t_r <- 2*t_max
 
    # index_t_r <- index_t_i +  stats::rexp(m_start,rate=1/c)
-index_t_d <- index_t_i +  rBTFinv3(EI_model,index_t_i, mu_lat, var_lat,nb)
- index_t_r <- index_t_i
+  index_t_d <- index_t_r <- index_t_i
   for(i in 1:m_start){
-    # if(index_t_r[i]>t_obs){
-      index_t_r[i] <- 2*t_max
-    # }
-  }
+      if(index_coor_x[i]<min_coor_x | index_coor_x[i]>max_coor_x | index_coor_y[i]<min_coor_y | index_coor_y[i]>max_coor_y){
+         index_t_d[i] <- 2*t_max
+       }
+       else{
+          index_t_d[i] <- index_t_i[i] +  rBTFinv3(EI_model,index_t_i[i], mu_lat, var_lat,nb)
+       }
+      # if(index_t_r[i]>t_obs){
+        index_t_r[i] <- 2*t_max
+      # }
+    }
+
 
   index_age <- sample(age_level,size=m_start,prob=age_dist,replace=T)
   index_source <- rep(9999,m_start) # all assumed to be infected by the background
@@ -264,7 +270,7 @@ index_t_d <- index_t_i +  rBTFinv3(EI_model,index_t_i, mu_lat, var_lat,nb)
 # show(length(m_indx))
 # show(length(n_indx))
 # show(length(tp_indx))
-  simulated_epi[1:m_start,] <- c(index_k, index_coor_x,index_coor_y,index_t_e,index_t_i, index_t_d, index_t_r,index_age,index_source,m_indx,n_indx,tp_indx)
+  simulated_epi[1:m_start,] <- cbind(index_k, index_coor_x,index_coor_y,index_t_e,index_t_i, index_t_d, index_t_r,index_age,index_source,m_indx,n_indx,tp_indx)
 
 #show(param)
   t_now <- min(simulated_epi$t_i)
@@ -494,7 +500,13 @@ index_t_d <- index_t_i +  rBTFinv3(EI_model,index_t_i, mu_lat, var_lat,nb)
       else{ # Removal during the survey
          plan_rem<- as.numeric(subset(simulated_epi, t_d<t_now &t_r>t_now)[,1])
          if(length(plan_rem)>0){
-           samp<- round(length(plan_rem)*delta)
+           if(det_rat==0){
+             samp<- round(length(plan_rem)*delta)
+           }
+           else{
+             samp<- round(length(plan_rem)*c*(1+delta*cos(2*pi*t_now/365)))
+           }
+
            simulated_epi[sample(plan_rem,samp) + 1,"t_r"]<- min(t_obs)  # Remove all
          }
          t_obs[which(t_obs==min(t_obs))]<- 2*t_max
@@ -580,6 +592,7 @@ if(nrow(simulated_epi_sub)>=1) source <- sample(c(9999,simulated_epi_sub$k),size
     pop_grid = f_rast + b_rast
     # show(min(pop_grid))
     siz<- -1
+    tt<- 0
 
     while(x_new<min_coor_x | x_new>max_coor_x | y_new<min_coor_y | y_new>max_coor_y | siz<0){
     #   show(x_new)
@@ -661,6 +674,8 @@ if(nrow(simulated_epi_sub)>=1) source <- sample(c(9999,simulated_epi_sub$k),size
 
           ###
           if (sum_arcs_den==0){
+            tt<- 1
+            break
             k_grid <- sample(1:length(as.numeric(pop_grid)),size=1, prob=as.numeric(pop_grid))
             m_grid <- k_grid%%nrow(pop_grid) # the mth row of the grids
 
@@ -691,6 +706,10 @@ if(nrow(simulated_epi_sub)>=1) source <- sample(c(9999,simulated_epi_sub$k),size
           m=ceiling((y_new-min_coor_y)/grid_size)
           m_1 = m
           n_1 = n
+          if(x_new<min_coor_x | x_new>max_coor_x | y_new<min_coor_y | y_new>max_coor_y){
+            tt<- 1
+            break
+          }
 
           #message(c(r))
         }
@@ -771,16 +790,23 @@ if(nrow(simulated_epi_sub)>=1) source <- sample(c(9999,simulated_epi_sub$k),size
 
       }
 
-      # if(tp==0){
-      #   farm_inf[m,n]<- farm_inf[m,n] + 1
-      # }
-      #pop_grid[m,n]=pop_grid[m,n]-1
-      simulated_epi[k+1,] <- c(k, x_new, y_new, t_now, t_i_new, t_d_new, t_r_new, age, source, m,n,tp)
+      if(tt==0){
+      if(is.infinite(t_next)){
+        break
+      }
+      else{
+
+        pop_grid[m,n]<- pop_grid[m,n] - 1
+        simulated_epi[k+1,] <- c(k, x_new, y_new, t_now, t_i_new, t_d_new, t_r_new, age, source, m,n,tp)
+
+       }
+       num_infection <- num_infection + 1
+    } #     simulated_epi[k+1,] <- c(k, x_new, y_new, t_now, t_i_new, t_d_new, t_r_new, age, source, m,n,tp)
 
     }
     ####
 
-    num_infection <- num_infection + 1
+    #num_infection <- num_infection + 1
 
     # Control proccedures; what if scenarios
 

@@ -972,7 +972,7 @@ NumericVector rBTFinv3 (int EI_model, NumericVector E, double a, double b, int n
 //' @return It returns a random period of time n leaf will emerge given E.
 //'
 //' @examples
-//' rBTFinv3(1,c(0,10,100),0.062,0.85,3)
+//' rBTFinv4(1,c(0,10,100),0.062,0.85,3)
 //' @export
 // [[Rcpp::export]]
 NumericVector rBTFinv4 (int EI_model, NumericVector I, double a, double b, int n){

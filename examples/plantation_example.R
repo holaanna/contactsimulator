@@ -7,6 +7,7 @@ library(contactsimulator)
   size=500
 f<- system.file("external/rast_newr_NSW.tif", package="contactsimulator")
 f<- system.file(paste0("external/rast_NSW_",size,".tif"), package="contactsimulator")
+f <-paste0("/media/sf_D_DRIVE/BBTV_PROJECT/Montville/rast_mont_SEQ",".tif")
 rast<- raster(f)
 names(rast)<- "layer"
 size<- raster::res(rast)[1]
@@ -61,21 +62,23 @@ b_rast=flipdim(mat)
 param<- data.frame(epsilon=10,beta=15,c=30,b1=0.3,alpha1=18,alpha2=1000,t0=0,omega=2*pi,mu_lat=0.062,var_lat=0.903,gama=0.5)
 path="/run/user/1000/gvfs/sftp:host=login-cpu.hpc.cam.ac.uk/home/ha411/big_space/BBTV/Newrybar_partial/latent-leaf/"
 path1="/run/user/1000/gvfs/sftp:host=login-cpu.hpc.cam.ac.uk/home/ha411/big_space/BBTV/"
-dat=as.data.frame(read.table(paste0(path1,"NSW_8_1_19/expo-kernel/reso_500/Dout")))
+dat=as.data.frame(read.table(paste0(path1,"Montville/leaf-2/leaf/Dout")))
 dat=as.data.frame(read.table(paste0(path,"no-initial-infection/Dout")))
 
 farm_pos_cat<- read.table(paste0(path1,"NSW_8_1_19/expo-kernel/farm_pos_cat.txt"),fill=T,header = T)
 farm_pos_cat<- farm_pos_cat[with(farm_pos_cat,order(farm_pos_cat$cat)),]
 
 
-M=read.table(paste0(path1,"NSW_8_1_19/expo-kernel/reso_500/cyclic_latent_omegapi/parameters_current.txt"),head=T)
+M=read.table(paste0(path1,"Montville/leaf-2/cyclic_latent_omegapi/parameters_current.txt"),head=T)
 M=read.table(paste0(path,"test-vague-prior/cyclic_latent_omegapi/parameters_current.txt"),head=T)
-samp=sample(150000:nrow(M),1000);Param=data.frame(epsilon=M[samp,1],beta=M[samp,2],c=M[samp,5], delta=M[samp,6], b1=M[samp,7],alpha1=1/M[samp,8],alpha2=M[samp,9],t0=M[samp,10],omega=M[samp,11],mu_lat=M[samp,3],var_lat=M[samp,4])
+samp=sample(600000:nrow(M),1000);Param=data.frame(epsilon=M[samp,1],beta=M[samp,2],c=M[samp,5], delta=M[samp,6], b1=M[samp,7],alpha1=1/M[samp,8],alpha2=M[samp,9],t0=M[samp,10],omega=M[samp,11],mu_lat=M[samp,3],var_lat=M[samp,4])
 Param$gama=0.5
 ini<- data.frame(x=2069503,y=-3293246,t_e=0,t_i=0,typ=0,row=9,col=15)
 ini=dat%>%filter(V5==min(V5))%>%dplyr::select(V2,V3,V4,V5,V10,V12,V13)%>%rename(x=V2,y=V3,t_e=V4,t_i=V5,typ=V10,row=V12,col=V13)
+ini=dat%>%slice(1:4)%>%dplyr::select(V2,V3,V4,V5,V10,V12,V13)%>%rename(x=V2,y=V3,t_e=V4,t_i=V5,typ=V10,row=V12,col=V13)
+ini<- ini%>%mutate(row=row+1,col=col+1)%>%arrange(t_i)
 #ini<- ini%>%mutate(row=row+1,col=col+1)
-t_obs<- read.table(paste0(path1,"NSW_8_1_19/expo-kernel/reso_500/obs_time1"),fill = T)[,1]
+t_obs<- read.table(paste0(path1,"Montville/leaf-2/obs_time"),fill = T)[,1]
 t_max=max(t_obs)+1
 L=list()
 sim=numeric(1000)
@@ -83,7 +86,7 @@ L<- lapply(1:1000,function(x){
   print(x)
   param=Param[x,]
   # param$delta=.6
-  xx=Simulate_contact_control_LER_farm(param=param, grid_lines=grid_lines, pop_grid=pop_grid,t_max = t_max, EI_model = 1,kern_model = 5,t_obs = t_obs,grid_size = grid_size,m_start = 5,nb=2,ini = ini,leav = c(2,6))
+  xx=Simulate_contact_control_LER_farm(param=param, grid_lines=grid_lines, pop_grid=pop_grid,t_max = t_max, EI_model = 1,kern_model = 5,t_obs = t_obs,grid_size = grid_size,m_start = nrow(ini),nb=2,ini = ini,leav = c(2,6))
   # xx=Simulate_contact_control_LER(param=param, grid_lines=grid_lines, pop_grid=pop_grid,t_max = t_max, EI_model = 1,kern_model = 5,t_obs = 2000,grid_size = grid_size,m_start = 5,nb=2,ini = ini)
   return(xx)
 })
