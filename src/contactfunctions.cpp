@@ -906,7 +906,7 @@ NumericVector BTFinv4 (double I, double a, double b, int n)
 }
 
 
-//' Sample the period it takes for n leaf to emerge.
+//' Sample the period it will take for n leaf to emerge.
 //'
 //'\code{rBTFinv3} Generate a random draw from the distribution of leaf emergence.
 //'
@@ -927,7 +927,6 @@ NumericVector BTFinv4 (double I, double a, double b, int n)
 //'
 //' @examples
 //' rBTFinv3(1,c(0,10,100),0.062,0.85,3)
-
 //' @export
 // [[Rcpp::export]]
 NumericVector rBTFinv3 (int EI_model, NumericVector E, double a, double b, int n){
@@ -967,7 +966,7 @@ NumericVector rBTFinv3 (int EI_model, NumericVector E, double a, double b, int n
 //'
 //'\code{rBTFinv4} Generate a random draw from the distribution of leaf emergence knowing the ti.
 //'
-//' @inheritParams rBTFinv4
+//' @inheritParams rBTFinv3
 //' @param I A vector of time at which the period it took for n leaf to emerge is computed.
 //' @return It returns a random period of time n leaf will emerge given E.
 //'

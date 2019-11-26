@@ -1231,6 +1231,153 @@ RcppExport SEXP _contactsimulator_integral_forc(SEXP aSEXP, SEXP bSEXP) {
     UNPROTECT(1);
     return rcpp_result_gen;
 }
+// Sum_Leaf_emergence_rate
+NumericVector Sum_Leaf_emergence_rate(NumericVector t1, NumericVector t2, double a, double b);
+static SEXP _contactsimulator_Sum_Leaf_emergence_rate_try(SEXP t1SEXP, SEXP t2SEXP, SEXP aSEXP, SEXP bSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::traits::input_parameter< NumericVector >::type t1(t1SEXP);
+    Rcpp::traits::input_parameter< NumericVector >::type t2(t2SEXP);
+    Rcpp::traits::input_parameter< double >::type a(aSEXP);
+    Rcpp::traits::input_parameter< double >::type b(bSEXP);
+    rcpp_result_gen = Rcpp::wrap(Sum_Leaf_emergence_rate(t1, t2, a, b));
+    return rcpp_result_gen;
+END_RCPP_RETURN_ERROR
+}
+RcppExport SEXP _contactsimulator_Sum_Leaf_emergence_rate(SEXP t1SEXP, SEXP t2SEXP, SEXP aSEXP, SEXP bSEXP) {
+    SEXP rcpp_result_gen;
+    {
+        Rcpp::RNGScope rcpp_rngScope_gen;
+        rcpp_result_gen = PROTECT(_contactsimulator_Sum_Leaf_emergence_rate_try(t1SEXP, t2SEXP, aSEXP, bSEXP));
+    }
+    Rboolean rcpp_isInterrupt_gen = Rf_inherits(rcpp_result_gen, "interrupted-error");
+    if (rcpp_isInterrupt_gen) {
+        UNPROTECT(1);
+        Rf_onintr();
+    }
+    bool rcpp_isLongjump_gen = Rcpp::internal::isLongjumpSentinel(rcpp_result_gen);
+    if (rcpp_isLongjump_gen) {
+        Rcpp::internal::resumeJump(rcpp_result_gen);
+    }
+    Rboolean rcpp_isError_gen = Rf_inherits(rcpp_result_gen, "try-error");
+    if (rcpp_isError_gen) {
+        SEXP rcpp_msgSEXP_gen = Rf_asChar(rcpp_result_gen);
+        UNPROTECT(1);
+        Rf_error(CHAR(rcpp_msgSEXP_gen));
+    }
+    UNPROTECT(1);
+    return rcpp_result_gen;
+}
+// Log_likelihood
+double Log_likelihood(DataFrame data, double a, double b);
+static SEXP _contactsimulator_Log_likelihood_try(SEXP dataSEXP, SEXP aSEXP, SEXP bSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::traits::input_parameter< DataFrame >::type data(dataSEXP);
+    Rcpp::traits::input_parameter< double >::type a(aSEXP);
+    Rcpp::traits::input_parameter< double >::type b(bSEXP);
+    rcpp_result_gen = Rcpp::wrap(Log_likelihood(data, a, b));
+    return rcpp_result_gen;
+END_RCPP_RETURN_ERROR
+}
+RcppExport SEXP _contactsimulator_Log_likelihood(SEXP dataSEXP, SEXP aSEXP, SEXP bSEXP) {
+    SEXP rcpp_result_gen;
+    {
+        Rcpp::RNGScope rcpp_rngScope_gen;
+        rcpp_result_gen = PROTECT(_contactsimulator_Log_likelihood_try(dataSEXP, aSEXP, bSEXP));
+    }
+    Rboolean rcpp_isInterrupt_gen = Rf_inherits(rcpp_result_gen, "interrupted-error");
+    if (rcpp_isInterrupt_gen) {
+        UNPROTECT(1);
+        Rf_onintr();
+    }
+    bool rcpp_isLongjump_gen = Rcpp::internal::isLongjumpSentinel(rcpp_result_gen);
+    if (rcpp_isLongjump_gen) {
+        Rcpp::internal::resumeJump(rcpp_result_gen);
+    }
+    Rboolean rcpp_isError_gen = Rf_inherits(rcpp_result_gen, "try-error");
+    if (rcpp_isError_gen) {
+        SEXP rcpp_msgSEXP_gen = Rf_asChar(rcpp_result_gen);
+        UNPROTECT(1);
+        Rf_error(CHAR(rcpp_msgSEXP_gen));
+    }
+    UNPROTECT(1);
+    return rcpp_result_gen;
+}
+// Prior
+double Prior(double a, double a_p, double b, double b_p);
+static SEXP _contactsimulator_Prior_try(SEXP aSEXP, SEXP a_pSEXP, SEXP bSEXP, SEXP b_pSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::traits::input_parameter< double >::type a(aSEXP);
+    Rcpp::traits::input_parameter< double >::type a_p(a_pSEXP);
+    Rcpp::traits::input_parameter< double >::type b(bSEXP);
+    Rcpp::traits::input_parameter< double >::type b_p(b_pSEXP);
+    rcpp_result_gen = Rcpp::wrap(Prior(a, a_p, b, b_p));
+    return rcpp_result_gen;
+END_RCPP_RETURN_ERROR
+}
+RcppExport SEXP _contactsimulator_Prior(SEXP aSEXP, SEXP a_pSEXP, SEXP bSEXP, SEXP b_pSEXP) {
+    SEXP rcpp_result_gen;
+    {
+        Rcpp::RNGScope rcpp_rngScope_gen;
+        rcpp_result_gen = PROTECT(_contactsimulator_Prior_try(aSEXP, a_pSEXP, bSEXP, b_pSEXP));
+    }
+    Rboolean rcpp_isInterrupt_gen = Rf_inherits(rcpp_result_gen, "interrupted-error");
+    if (rcpp_isInterrupt_gen) {
+        UNPROTECT(1);
+        Rf_onintr();
+    }
+    bool rcpp_isLongjump_gen = Rcpp::internal::isLongjumpSentinel(rcpp_result_gen);
+    if (rcpp_isLongjump_gen) {
+        Rcpp::internal::resumeJump(rcpp_result_gen);
+    }
+    Rboolean rcpp_isError_gen = Rf_inherits(rcpp_result_gen, "try-error");
+    if (rcpp_isError_gen) {
+        SEXP rcpp_msgSEXP_gen = Rf_asChar(rcpp_result_gen);
+        UNPROTECT(1);
+        Rf_error(CHAR(rcpp_msgSEXP_gen));
+    }
+    UNPROTECT(1);
+    return rcpp_result_gen;
+}
+// mcmc_leaf
+DataFrame mcmc_leaf(DataFrame data, double a0, double b0, int samp);
+static SEXP _contactsimulator_mcmc_leaf_try(SEXP dataSEXP, SEXP a0SEXP, SEXP b0SEXP, SEXP sampSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::traits::input_parameter< DataFrame >::type data(dataSEXP);
+    Rcpp::traits::input_parameter< double >::type a0(a0SEXP);
+    Rcpp::traits::input_parameter< double >::type b0(b0SEXP);
+    Rcpp::traits::input_parameter< int >::type samp(sampSEXP);
+    rcpp_result_gen = Rcpp::wrap(mcmc_leaf(data, a0, b0, samp));
+    return rcpp_result_gen;
+END_RCPP_RETURN_ERROR
+}
+RcppExport SEXP _contactsimulator_mcmc_leaf(SEXP dataSEXP, SEXP a0SEXP, SEXP b0SEXP, SEXP sampSEXP) {
+    SEXP rcpp_result_gen;
+    {
+        Rcpp::RNGScope rcpp_rngScope_gen;
+        rcpp_result_gen = PROTECT(_contactsimulator_mcmc_leaf_try(dataSEXP, a0SEXP, b0SEXP, sampSEXP));
+    }
+    Rboolean rcpp_isInterrupt_gen = Rf_inherits(rcpp_result_gen, "interrupted-error");
+    if (rcpp_isInterrupt_gen) {
+        UNPROTECT(1);
+        Rf_onintr();
+    }
+    bool rcpp_isLongjump_gen = Rcpp::internal::isLongjumpSentinel(rcpp_result_gen);
+    if (rcpp_isLongjump_gen) {
+        Rcpp::internal::resumeJump(rcpp_result_gen);
+    }
+    Rboolean rcpp_isError_gen = Rf_inherits(rcpp_result_gen, "try-error");
+    if (rcpp_isError_gen) {
+        SEXP rcpp_msgSEXP_gen = Rf_asChar(rcpp_result_gen);
+        UNPROTECT(1);
+        Rf_error(CHAR(rcpp_msgSEXP_gen));
+    }
+    UNPROTECT(1);
+    return rcpp_result_gen;
+}
 
 // validate (ensure exported C++ functions exist before calling them)
 static int _contactsimulator_RcppExport_validate(const char* sig) { 
@@ -1269,6 +1416,10 @@ static int _contactsimulator_RcppExport_validate(const char* sig) {
         signatures.insert("double(*func_latent_pdf)(double,double,double,double,int)");
         signatures.insert("double(*norma_cons)(const double&,const double&)");
         signatures.insert("double(*integral_forc)(double,double)");
+        signatures.insert("NumericVector(*Sum_Leaf_emergence_rate)(NumericVector,NumericVector,double,double)");
+        signatures.insert("double(*Log_likelihood)(DataFrame,double,double)");
+        signatures.insert("double(*Prior)(double,double,double,double)");
+        signatures.insert("DataFrame(*mcmc_leaf)(DataFrame,double,double,int)");
     }
     return signatures.find(sig) != signatures.end();
 }
@@ -1308,6 +1459,10 @@ RcppExport SEXP _contactsimulator_RcppExport_registerCCallable() {
     R_RegisterCCallable("contactsimulator", "_contactsimulator_func_latent_pdf", (DL_FUNC)_contactsimulator_func_latent_pdf_try);
     R_RegisterCCallable("contactsimulator", "_contactsimulator_norma_cons", (DL_FUNC)_contactsimulator_norma_cons_try);
     R_RegisterCCallable("contactsimulator", "_contactsimulator_integral_forc", (DL_FUNC)_contactsimulator_integral_forc_try);
+    R_RegisterCCallable("contactsimulator", "_contactsimulator_Sum_Leaf_emergence_rate", (DL_FUNC)_contactsimulator_Sum_Leaf_emergence_rate_try);
+    R_RegisterCCallable("contactsimulator", "_contactsimulator_Log_likelihood", (DL_FUNC)_contactsimulator_Log_likelihood_try);
+    R_RegisterCCallable("contactsimulator", "_contactsimulator_Prior", (DL_FUNC)_contactsimulator_Prior_try);
+    R_RegisterCCallable("contactsimulator", "_contactsimulator_mcmc_leaf", (DL_FUNC)_contactsimulator_mcmc_leaf_try);
     R_RegisterCCallable("contactsimulator", "_contactsimulator_RcppExport_validate", (DL_FUNC)_contactsimulator_RcppExport_validate);
     return R_NilValue;
 }
@@ -1346,6 +1501,10 @@ static const R_CallMethodDef CallEntries[] = {
     {"_contactsimulator_func_latent_pdf", (DL_FUNC) &_contactsimulator_func_latent_pdf, 5},
     {"_contactsimulator_norma_cons", (DL_FUNC) &_contactsimulator_norma_cons, 2},
     {"_contactsimulator_integral_forc", (DL_FUNC) &_contactsimulator_integral_forc, 2},
+    {"_contactsimulator_Sum_Leaf_emergence_rate", (DL_FUNC) &_contactsimulator_Sum_Leaf_emergence_rate, 4},
+    {"_contactsimulator_Log_likelihood", (DL_FUNC) &_contactsimulator_Log_likelihood, 3},
+    {"_contactsimulator_Prior", (DL_FUNC) &_contactsimulator_Prior, 4},
+    {"_contactsimulator_mcmc_leaf", (DL_FUNC) &_contactsimulator_mcmc_leaf, 4},
     {"_contactsimulator_RcppExport_registerCCallable", (DL_FUNC) &_contactsimulator_RcppExport_registerCCallable, 0},
     {NULL, NULL, 0}
 };

@@ -124,9 +124,11 @@ if(max(t_obs)<=t0){
     if(t0<=max(t_obs)){
       ss<- 1:nrow(farm_pos_cat)
       k_grid <- sample(ss,size=1)
+      #show(c(k_grid,nrow(farm_pos_cat)))
     }
     else{
       ss<- which(farm_pos_cat$cat=="E" | farm_pos_cat$cat=="D" | farm_pos_cat$cat=="C" )
+      ss<- 1:nrow(which(pop_grid>0,arr.ind = T))
       if(length(ss)==0 ){
         ss<- which(farm_pos_cat$cat=="B" )
         if(length(ss)==0){
@@ -152,15 +154,16 @@ if(max(t_obs)<=t0){
       }
     }
 #show(param)
+   # ind<- which(pop_grid>0,arr.ind = T)
     m_grid <-  farm_pos_cat$ro[k_grid]# the mth row of the grids
     n_grid <-  farm_pos_cat$co[k_grid]# the mth row of the grids
-
+    #show(c(m_grid,n_grid,k_grid,nrow(farm_pos_cat)))
     index_coor_x[i] <- stats::runif(1,min=x_intervals[n_grid],max=x_intervals[n_grid+1]) # random lands at a point in the grid selected
     index_coor_y[i] <- stats::runif(1,min=y_intervals[m_grid],max=y_intervals[m_grid+1])
 
     n_indx[i]=n_grid
     m_indx[i]=m_grid
-     #show(c(m_grid,n_grid,dim(f_rast_p)))
+    # show(c(m_grid,n_grid, k_grid,dim(f_rast_p)))
     u1<- f_rast_p[m_grid,n_grid]
     u2<- b_rast_p[m_grid,n_grid]
 
@@ -192,8 +195,8 @@ if(max(t_obs)<=t0){
   #show(c(m_grid,n_grid))
   # index_coor_x <- stats::runif(m_start,min_coor_x,max_coor_x)
   # index_coor_y <- stats::runif(m_start,min_coor_y,max_coor_y)
-  dt<- stats::rexp(1)/(epsilon/365.0)    # Sellke
-  #dt<- 0
+  dt<- stats::rexp(1)/(epsilon/365.0*(1 + b1*cos(omega*(t0))))    # Sellke
+  # dt<- 0
 
   if(dt>0){  # When running the simulation from the start e.g for parameter estimation
     index_t_e <- rep(t0+dt,m_start)
@@ -210,14 +213,14 @@ if(max(t_obs)<=t0){
 
   index_t_i <- index_t_e + rBTFinv3(EI_model,index_t_e, mu_lat, var_lat, leav[1])
 
-
+  #show(c(index_t_i,index_t_e, t0,dt))
 
   }
   else{  # If initial starting points are provided
     index_coor_x<- ini$x
     index_coor_y<- ini$y
-    n_indx<- ini$col+1
-    m_indx<- ini$row+1
+    n_indx<- ini$col
+    m_indx<- ini$row
     tp_indx<- ini$typ
     index_t_e<- ini$t_e
     index_t_i<- ini$t_i
@@ -244,6 +247,7 @@ if(max(t_obs)<=t0){
    # index_t_r <- index_t_i +  stats::rexp(m_start,rate=1/c)
   index_t_d <- index_t_r <- index_t_i
   for(i in 1:m_start){
+    #show(c(index_coor_x[i],index_coor_y[i],min_coor_x,max_coor_x,min_coor_y,max_coor_y))
       if(index_coor_x[i]<min_coor_x | index_coor_x[i]>max_coor_x | index_coor_y[i]<min_coor_y | index_coor_y[i]>max_coor_y){
          index_t_d[i] <- 2*t_max
        }
@@ -287,6 +291,7 @@ if(max(t_obs)<=t0){
   #show(min(f_rast))
   t_i_new<- index_t_i
   while(t_next<(t_max)){
+    #show(min(f_rast))
     #show(t_next)
     ### simulate the timings, and the source, of next infection ###
 
@@ -320,7 +325,7 @@ if(max(t_obs)<=t0){
       kk<- (min(min_I_R,min_tim_cont)==min_tim_cont) +1
      #show(c(kk))
       tim_next_event<- min(c(min_I_R,min_tim_cont,min(t_obs)))
-
+#show(c(tim_next_event,min_I_R))
       if(tim_next_event==min_I_R){ # next event is the baseline process
                 #indx_inf<- which(simulated_epi$t_i==min_I_R)  # Increase number of plants infected in the cell
                 #farm_inf[simulated_epi$row[indx_inf],simulated_epi$col[indx_inf]]<- farm_inf[simulated_epi$row[indx_inf],simulated_epi$col[indx_inf]] +1
@@ -329,14 +334,16 @@ if(max(t_obs)<=t0){
                 ll<- which(simulated_epi_sub$t_r==min_I_R)
                 #show(ll)
                 if(length(ll)>0){
-                  if(simulated_epi[ll,"typ"]==0){
+                  ll1 <- which(simulated_epi[ll,"typ"]==0)
+                  ll2 <- which(simulated_epi[ll,"typ"]==1)
+                  if(length(ll1)>0){
 
-                    farm_inf[simulated_epi[ll,"row"],simulated_epi[ll,"col"]]<- farm_inf[simulated_epi[ll,"row"],simulated_epi[ll,"col"]] -1
+                    farm_inf[simulated_epi[ll1,"row"],simulated_epi[ll1,"col"]]<- farm_inf[simulated_epi[ll1,"row"],simulated_epi[ll1,"col"]] -1
 
-                    f_rast[simulated_epi[ll,"row"],simulated_epi[ll,"col"]]<- f_rast[simulated_epi[ll,"row"],simulated_epi[ll,"col"]] +1
+                    f_rast[simulated_epi[ll1,"row"],simulated_epi[ll1,"col"]]<- f_rast[simulated_epi[ll1,"row"],simulated_epi[ll1,"col"]] +1
                   }
-                  else{
-                    b_rast[simulated_epi[ll,"row"],simulated_epi[ll,"col"]]<- b_rast[simulated_epi[ll,"row"],simulated_epi[ll,"col"]] +1
+                  if(length(ll2)>0){
+                    b_rast[simulated_epi[ll2,"row"],simulated_epi[ll2,"col"]]<- b_rast[simulated_epi[ll2,"row"],simulated_epi[ll2,"col"]] +1
 
                   }
                   #pop_grid[simulated_epi[ll,"row"],simulated_epi[ll,"col"]]<- pop_grid[simulated_epi[ll,"row"],simulated_epi[ll,"col"]] +1
@@ -502,12 +509,29 @@ if(max(t_obs)<=t0){
          if(length(plan_rem)>0){
            if(det_rat==0){
              samp<- round(length(plan_rem)*delta)
+             #show(samp)
+             simulated_epi[sample(plan_rem,samp) + 1,"t_r"]<- min(t_obs)  # Remove all
            }
-           else{
+           if(det_rat==1){
              samp<- round(length(plan_rem)*c*(1+delta*cos(2*pi*t_now/365)))
+             simulated_epi[sample(plan_rem,samp) + 1,"t_r"]<- min(t_obs)  # Remove all
+
+           }
+          if(det_rat==2){
+             plan_rem1<- as.numeric(subset(simulated_epi, t_i<t_now & t_now<t_d & t_r>t_now)[,1])
+             plan_rem2<- as.numeric(subset(simulated_epi,  t_now>t_d & t_r>t_now)[,1])
+             if(length(plan_rem1)>0){
+               samp<- round(length(plan_rem)*c)
+               simulated_epi[sample(plan_rem,samp) + 1,"t_r"]<- min(t_obs)  # Remove all
+             }
+             if(length(plan_rem2)>0){
+               samp<- round(length(plan_rem)*delta)
+               simulated_epi[sample(plan_rem,samp) + 1,"t_r"]<- min(t_obs)  # Remove all
+             }
+
            }
 
-           simulated_epi[sample(plan_rem,samp) + 1,"t_r"]<- min(t_obs)  # Remove all
+
          }
          t_obs[which(t_obs==min(t_obs))]<- 2*t_max
       }
@@ -590,7 +614,7 @@ if(nrow(simulated_epi_sub)>=1) source <- sample(c(9999,simulated_epi_sub$k),size
     # show(source)
     m_1=n_1=1000
     pop_grid = f_rast + b_rast
-    # show(min(pop_grid))
+    #show(min(pop_grid))
     siz<- -1
     tt<- 0
 
@@ -617,7 +641,7 @@ if(nrow(simulated_epi_sub)>=1) source <- sample(c(9999,simulated_epi_sub$k),size
         set_points <- circle_line_intersections (circle_x=simulated_epi$coor_x[source+1],circle_y=simulated_epi$coor_y[source+1], r,  n_line=n_line, grid_lines=grid_lines)
 
         n_set_points = nrow(set_points)
-        # show(c(r,n_set_points,min(as.numeric(pop_grid))))
+        # show(c(r,n_set_points,min(as.numeric(pop_grid)),1))
         if (n_set_points>=1) {
           # show(set_points)
           # show(source)
@@ -631,7 +655,7 @@ if(nrow(simulated_epi_sub)>=1) source <- sample(c(9999,simulated_epi_sub$k),size
           #arcs <- arcs[order(arcs$theta_abs),]
 
           sum_arcs_den <- sum(arcs$dens)
-           # print(c(sum_arcs_den,n_line,min(as.numeric(pop_grid))))
+          #print(c(sum_arcs_den,n_line,min(as.numeric(pop_grid))))
           # print(c(simulated_epi$coor_x[source+1],simulated_epi$coor_y[source+1]))
           # print(as.data.frame(arcs$n_th_col,arcs$m_th_row))
           # show(c(sum(arcs$mass),0))
@@ -668,7 +692,9 @@ if(nrow(simulated_epi_sub)>=1) source <- sample(c(9999,simulated_epi_sub$k),size
             #   print(set_points)
             #   print(c(x_new,y_new))
             # }
-
+            if(pop_grid[m,n]==0){
+              print(c(m,n,1))
+            }
             # print(c(m,n,1))
           }
 
@@ -706,7 +732,8 @@ if(nrow(simulated_epi_sub)>=1) source <- sample(c(9999,simulated_epi_sub$k),size
           m=ceiling((y_new-min_coor_y)/grid_size)
           m_1 = m
           n_1 = n
-          if(x_new<min_coor_x | x_new>max_coor_x | y_new<min_coor_y | y_new>max_coor_y){
+         # print(c(pop_grid[m,n],1))
+          if(x_new<min_coor_x | x_new>max_coor_x | y_new<min_coor_y | y_new>max_coor_y | pop_grid[m,n]==0){
             tt<- 1
             break
           }
@@ -744,7 +771,8 @@ if(nrow(simulated_epi_sub)>=1) source <- sample(c(9999,simulated_epi_sub$k),size
     }
     else{
       # label the plant
-      # show(c(m,n))
+       #show(c(tt))
+      if(tt==0){
       f_rast_p<- f_rast/(b_rast+f_rast)              # proportion occupied by farm and backyard plant resp
       b_rast_p<- b_rast/(b_rast+f_rast)
       f_rast_p[is.na(f_rast_p)]<- 0
@@ -790,13 +818,16 @@ if(nrow(simulated_epi_sub)>=1) source <- sample(c(9999,simulated_epi_sub$k),size
 
       }
 
-      if(tt==0){
+
       if(is.infinite(t_next)){
         break
       }
       else{
-
+        #print(c(m,n))
         pop_grid[m,n]<- pop_grid[m,n] - 1
+        if(pop_grid[m,n]<0){
+          print(c(m,n))
+        }
         simulated_epi[k+1,] <- c(k, x_new, y_new, t_now, t_i_new, t_d_new, t_r_new, age, source, m,n,tp)
 
        }

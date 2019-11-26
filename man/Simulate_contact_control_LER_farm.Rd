@@ -11,7 +11,7 @@ Simulate_contact_control_LER_farm(f_rast = NULL, b_rast = NULL,
   t_obs = seq(0, 1000, 100), EI_model = 1, kern_model = 4,
   rad = 1000, sweep_prop = c(0.5, 0.5), back_p = c(0.7, 0.5),
   rate_det = c(0.3, 1), int_det = c(30, 90, 180), nb_in_b = 1,
-  nb = 3, leav = c(3, 6), ini = NULL)
+  nb = 3, leav = c(3, 6), ini = NULL, det_rat = 0)
 }
 \arguments{
 \item{f_rast}{Population density of the grid a farm plant resides. This is filled from bottom to top, then left to right.}
@@ -100,6 +100,8 @@ Simulate_contact_control_LER_farm(f_rast = NULL, b_rast = NULL,
   \item{t_e}{exposure time}
   \item{t_i}{infection time}
  }}
+
+\item{det_rat}{The type of detection rate: 0 for constant and 1 for time varying}
 }
 \description{
 Epidemic simulation using the contact type model with the Australian control strategies.
@@ -114,7 +116,10 @@ library(tidyverse)
 library(parallel)
 library(pracma)
 library(contactsimulator)
+  size=500
 f<- system.file("external/rast_newr_NSW.tif", package="contactsimulator")
+f<- system.file(paste0("external/rast_NSW_",size,".tif"), package="contactsimulator")
+f <-paste0("/media/sf_D_DRIVE/BBTV_PROJECT/Montville/rast_mont_SEQ",".tif")
 rast<- raster(f)
 names(rast)<- "layer"
 size<- raster::res(rast)[1]
@@ -152,20 +157,40 @@ for(i in 1:n_line){
 grid_lines=as.data.frame(grid_lines)
 colnames(grid_lines)<- c("indx","orient_line","coor_x_1","coor_y_1","coor_x_2","coor_y_2")
 
+# Individual raster
+f<- system.file(paste0("external/rast_farms_NSW_",size,".tif"), package="contactsimulator")
+f_rast<- raster(f)
+pop=round(raster::values(f_rast)*size^2)
+pop[is.na(pop)]=0
+mat=matrix(pop,nrow = nrow_grid, byrow = TRUE)
+f_rast=flipdim(mat)
+y<- system.file(paste0("external/rast_backy_NSW_",size,".tif"), package="contactsimulator")
+b_rast<- raster(y)
+pop=round(raster::values(b_rast)*size^2)
+pop[is.na(pop)]=0
+mat=matrix(pop,nrow = nrow_grid, byrow = TRUE)
+b_rast=flipdim(mat)
+
 param<- data.frame(epsilon=10,beta=15,c=30,b1=0.3,alpha1=18,alpha2=1000,t0=0,omega=2*pi,mu_lat=0.062,var_lat=0.903,gama=0.5)
 path="/run/user/1000/gvfs/sftp:host=login-cpu.hpc.cam.ac.uk/home/ha411/big_space/BBTV/Newrybar_partial/latent-leaf/"
 path1="/run/user/1000/gvfs/sftp:host=login-cpu.hpc.cam.ac.uk/home/ha411/big_space/BBTV/"
-dat=as.data.frame(read.table(paste0(path1,"Montville/leaf-2/Dout")))
+dat=as.data.frame(read.table(paste0(path1,"Montville/leaf-2/leaf/Dout")))
 dat=as.data.frame(read.table(paste0(path,"no-initial-infection/Dout")))
 
-M=read.table(paste0(path1,"Montville/leaf-2/parameters_current.txt"),head=T)
+farm_pos_cat<- read.table(paste0(path1,"NSW_8_1_19/expo-kernel/farm_pos_cat.txt"),fill=T,header = T)
+farm_pos_cat<- farm_pos_cat[with(farm_pos_cat,order(farm_pos_cat$cat)),]
+
+
+M=read.table(paste0(path1,"Montville/leaf-2/cyclic_latent_omegapi/parameters_current.txt"),head=T)
 M=read.table(paste0(path,"test-vague-prior/cyclic_latent_omegapi/parameters_current.txt"),head=T)
-samp=sample(500000:nrow(M),1000);Param=data.frame(epsilon=M[samp,1],beta=M[samp,2],c=M[samp,5], delta=M[samp,6], b1=M[samp,7],alpha1=1/M[samp,8],alpha2=M[samp,9],t0=M[samp,10],omega=M[samp,11],mu_lat=M[samp,3],var_lat=M[samp,4])
+samp=sample(600000:nrow(M),1000);Param=data.frame(epsilon=M[samp,1],beta=M[samp,2],c=M[samp,5], delta=M[samp,6], b1=M[samp,7],alpha1=1/M[samp,8],alpha2=M[samp,9],t0=M[samp,10],omega=M[samp,11],mu_lat=M[samp,3],var_lat=M[samp,4])
 Param$gama=0.5
 ini<- data.frame(x=2069503,y=-3293246,t_e=0,t_i=0,typ=0,row=9,col=15)
 ini=dat\%>\%filter(V5==min(V5))\%>\%dplyr::select(V2,V3,V4,V5,V10,V12,V13)\%>\%rename(x=V2,y=V3,t_e=V4,t_i=V5,typ=V10,row=V12,col=V13)
-ini<- ini\%>\%mutate(row=row+1,col=col+1)
-t_obs<- DF$time
+ini=dat\%>\%slice(1:4)\%>\%dplyr::select(V2,V3,V4,V5,V10,V12,V13)\%>\%rename(x=V2,y=V3,t_e=V4,t_i=V5,typ=V10,row=V12,col=V13)
+ini<- ini\%>\%mutate(row=row+1,col=col+1)\%>\%arrange(t_i)
+#ini<- ini\%>\%mutate(row=row+1,col=col+1)
+t_obs<- read.table(paste0(path1,"Montville/leaf-2/obs_time"),fill = T)[,1]
 t_max=max(t_obs)+1
 L=list()
 sim=numeric(1000)
@@ -173,7 +198,7 @@ L<- lapply(1:1000,function(x){
   print(x)
   param=Param[x,]
   # param$delta=.6
-  xx=Simulate_contact_control_LER_farm(param=param, grid_lines=grid_lines, pop_grid=pop_grid,t_max = t_max, EI_model = 1,kern_model = 5,t_obs = t_obs,grid_size = grid_size,m_start = 5,nb=2,ini = ini,leav = c(2,6))
+  xx=Simulate_contact_control_LER_farm(param=param, grid_lines=grid_lines, pop_grid=pop_grid,t_max = t_max, EI_model = 1,kern_model = 5,t_obs = t_obs,grid_size = grid_size,m_start = nrow(ini),nb=2,ini = ini,leav = c(2,6))
   # xx=Simulate_contact_control_LER(param=param, grid_lines=grid_lines, pop_grid=pop_grid,t_max = t_max, EI_model = 1,kern_model = 5,t_obs = 2000,grid_size = grid_size,m_start = 5,nb=2,ini = ini)
   return(xx)
 })

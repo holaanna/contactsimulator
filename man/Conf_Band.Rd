@@ -4,7 +4,8 @@
 \alias{Conf_Band}
 \title{Visualisation of the crdible band}
 \usage{
-Conf_Band(OBS, samp = NULL, labl = NULL, ylbl = NULL, tobs = NULL)
+Conf_Band(OBS, samp = NULL, labl = NULL, ylbl = NULL, tobs = NULL,
+  limt = NULL)
 }
 \arguments{
 \item{OBS}{Trajectory. See \code{\link{Trajectory_all}}}

@@ -718,6 +718,90 @@ namespace contactsimulator {
         return Rcpp::as<double >(rcpp_result_gen);
     }
 
+    inline NumericVector Sum_Leaf_emergence_rate(NumericVector t1, NumericVector t2, double a, double b) {
+        typedef SEXP(*Ptr_Sum_Leaf_emergence_rate)(SEXP,SEXP,SEXP,SEXP);
+        static Ptr_Sum_Leaf_emergence_rate p_Sum_Leaf_emergence_rate = NULL;
+        if (p_Sum_Leaf_emergence_rate == NULL) {
+            validateSignature("NumericVector(*Sum_Leaf_emergence_rate)(NumericVector,NumericVector,double,double)");
+            p_Sum_Leaf_emergence_rate = (Ptr_Sum_Leaf_emergence_rate)R_GetCCallable("contactsimulator", "_contactsimulator_Sum_Leaf_emergence_rate");
+        }
+        RObject rcpp_result_gen;
+        {
+            RNGScope RCPP_rngScope_gen;
+            rcpp_result_gen = p_Sum_Leaf_emergence_rate(Shield<SEXP>(Rcpp::wrap(t1)), Shield<SEXP>(Rcpp::wrap(t2)), Shield<SEXP>(Rcpp::wrap(a)), Shield<SEXP>(Rcpp::wrap(b)));
+        }
+        if (rcpp_result_gen.inherits("interrupted-error"))
+            throw Rcpp::internal::InterruptedException();
+        if (Rcpp::internal::isLongjumpSentinel(rcpp_result_gen))
+            throw Rcpp::LongjumpException(rcpp_result_gen);
+        if (rcpp_result_gen.inherits("try-error"))
+            throw Rcpp::exception(Rcpp::as<std::string>(rcpp_result_gen).c_str());
+        return Rcpp::as<NumericVector >(rcpp_result_gen);
+    }
+
+    inline double Log_likelihood(DataFrame data, double a, double b) {
+        typedef SEXP(*Ptr_Log_likelihood)(SEXP,SEXP,SEXP);
+        static Ptr_Log_likelihood p_Log_likelihood = NULL;
+        if (p_Log_likelihood == NULL) {
+            validateSignature("double(*Log_likelihood)(DataFrame,double,double)");
+            p_Log_likelihood = (Ptr_Log_likelihood)R_GetCCallable("contactsimulator", "_contactsimulator_Log_likelihood");
+        }
+        RObject rcpp_result_gen;
+        {
+            RNGScope RCPP_rngScope_gen;
+            rcpp_result_gen = p_Log_likelihood(Shield<SEXP>(Rcpp::wrap(data)), Shield<SEXP>(Rcpp::wrap(a)), Shield<SEXP>(Rcpp::wrap(b)));
+        }
+        if (rcpp_result_gen.inherits("interrupted-error"))
+            throw Rcpp::internal::InterruptedException();
+        if (Rcpp::internal::isLongjumpSentinel(rcpp_result_gen))
+            throw Rcpp::LongjumpException(rcpp_result_gen);
+        if (rcpp_result_gen.inherits("try-error"))
+            throw Rcpp::exception(Rcpp::as<std::string>(rcpp_result_gen).c_str());
+        return Rcpp::as<double >(rcpp_result_gen);
+    }
+
+    inline double Prior(double a, double a_p, double b, double b_p) {
+        typedef SEXP(*Ptr_Prior)(SEXP,SEXP,SEXP,SEXP);
+        static Ptr_Prior p_Prior = NULL;
+        if (p_Prior == NULL) {
+            validateSignature("double(*Prior)(double,double,double,double)");
+            p_Prior = (Ptr_Prior)R_GetCCallable("contactsimulator", "_contactsimulator_Prior");
+        }
+        RObject rcpp_result_gen;
+        {
+            RNGScope RCPP_rngScope_gen;
+            rcpp_result_gen = p_Prior(Shield<SEXP>(Rcpp::wrap(a)), Shield<SEXP>(Rcpp::wrap(a_p)), Shield<SEXP>(Rcpp::wrap(b)), Shield<SEXP>(Rcpp::wrap(b_p)));
+        }
+        if (rcpp_result_gen.inherits("interrupted-error"))
+            throw Rcpp::internal::InterruptedException();
+        if (Rcpp::internal::isLongjumpSentinel(rcpp_result_gen))
+            throw Rcpp::LongjumpException(rcpp_result_gen);
+        if (rcpp_result_gen.inherits("try-error"))
+            throw Rcpp::exception(Rcpp::as<std::string>(rcpp_result_gen).c_str());
+        return Rcpp::as<double >(rcpp_result_gen);
+    }
+
+    inline DataFrame mcmc_leaf(DataFrame data, double a0, double b0, int samp = 1000) {
+        typedef SEXP(*Ptr_mcmc_leaf)(SEXP,SEXP,SEXP,SEXP);
+        static Ptr_mcmc_leaf p_mcmc_leaf = NULL;
+        if (p_mcmc_leaf == NULL) {
+            validateSignature("DataFrame(*mcmc_leaf)(DataFrame,double,double,int)");
+            p_mcmc_leaf = (Ptr_mcmc_leaf)R_GetCCallable("contactsimulator", "_contactsimulator_mcmc_leaf");
+        }
+        RObject rcpp_result_gen;
+        {
+            RNGScope RCPP_rngScope_gen;
+            rcpp_result_gen = p_mcmc_leaf(Shield<SEXP>(Rcpp::wrap(data)), Shield<SEXP>(Rcpp::wrap(a0)), Shield<SEXP>(Rcpp::wrap(b0)), Shield<SEXP>(Rcpp::wrap(samp)));
+        }
+        if (rcpp_result_gen.inherits("interrupted-error"))
+            throw Rcpp::internal::InterruptedException();
+        if (Rcpp::internal::isLongjumpSentinel(rcpp_result_gen))
+            throw Rcpp::LongjumpException(rcpp_result_gen);
+        if (rcpp_result_gen.inherits("try-error"))
+            throw Rcpp::exception(Rcpp::as<std::string>(rcpp_result_gen).c_str());
+        return Rcpp::as<DataFrame >(rcpp_result_gen);
+    }
+
 }
 
 #endif // RCPP_contactsimulator_RCPPEXPORTS_H_GEN_

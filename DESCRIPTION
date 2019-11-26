@@ -29,7 +29,9 @@ Imports: Rcpp,
          parallel,
          BH,
          spatstat,
-         methods
+         methods,
+         dplyr,
+         tabulizer
 RdMacros: Rdpack
 Suggests: knitr,
     rmarkdown
@@ -44,6 +46,7 @@ Collate:
     'contact_fun.R'
     'contact_class.R'
     'builder.R'
+    'clean_names.R'
     'contact.R'
     'contact_methods.R'
     'contact_plot.R'
